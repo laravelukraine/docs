@@ -115,7 +115,11 @@ jobs:
             echo 'Структуру перевірено автоматично (кількість рядків, якорі, блоки коду), але текст потребує вичитки.'
           } > /tmp/body.md
 
+          # --repo is required because this is a fork of laravel/docs: without
+          # it gh targets the upstream repository, where the token has no
+          # access, and fails with "Resource not accessible by integration".
           gh pr create \
+            --repo "${GITHUB_REPOSITORY}" \
             --title "Підтягнути зміни апстріму ${HEAD:0:8}" \
             --body-file /tmp/body.md \
             --base 13.x \
@@ -135,7 +139,10 @@ jobs:
 
           # One open issue at a time: the daily run would otherwise file a
           # duplicate every morning until the work is done.
-          open=$(gh issue list --state open --search "$title in:title" \
+          # --repo for the same reason as the pull request above: on a fork,
+          # gh otherwise queries laravel/docs.
+          open=$(gh issue list --repo "${GITHUB_REPOSITORY}" \
+            --state open --search "$title in:title" \
             --json number --jq 'length')
 
           if [ "$open" != '0' ]; then
@@ -164,4 +171,5 @@ jobs:
             echo "_${REASON}_"
           } > /tmp/issue.md
 
-          gh issue create --title "$title" --body-file /tmp/issue.md
+          gh issue create --repo "${GITHUB_REPOSITORY}" \
+            --title "$title" --body-file /tmp/issue.md
