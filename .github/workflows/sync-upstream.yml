@@ -67,6 +67,10 @@ jobs:
         if: steps.status.outputs.status == 'translate'
         run: python3 scripts/tests/test_restore_edges.py
 
+      - name: Check the rebuild keeps upstream's sections
+        if: steps.status.outputs.status == 'translate'
+        run: python3 scripts/tests/test_rebuild.py
+
       - name: Install the SDK
         if: steps.status.outputs.status == 'translate'
         run: pip install --quiet anthropic

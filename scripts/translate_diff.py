@@ -59,6 +59,34 @@ laravelukraine.com.
 огорнення у блок коду.\
 """
 
+# A section upstream added outright has no Ukrainian counterpart to update, so
+# the diff-based prompt above has nothing to anchor on. It is translated whole
+# instead, under the same structural rules.
+SYSTEM_NEW = """\
+Ти перекладаєш документацію Laravel англійською на українську для
+laravelukraine.com.
+
+Тобі дають новий фрагмент англійської документації, якого ще немає в
+українському перекладі. Переклади його повністю.
+
+Правила:
+- Зберігай розмітку точно: кількість рядків, порожні рядки, відступи,
+  блоки коду, атрибути на кшталт {.collection-method}.
+- Не перекладай код, назви класів, методів, змінних, ключі конфігурації.
+- Якорі <a name="..."></a> лишаються англійською незмінними.
+- Посилання виду /docs/{{version}}/... не змінюй.
+- Заголовки на кшталт #### array_keys:_foo_,_bar_,... - це імена правил, а не
+  проза: лишай їх незмінними.
+- Дотримуйся глосарія, наведеного нижче.
+- Тире - звичайний дефіс, не довге тире.
+
+- Кількість рядків має точно збігатися з англійським фрагментом, включно з
+  порожніми рядками на початку та в кінці.
+
+Повертай ТІЛЬКИ український переклад фрагмента, без пояснень і без огорнення
+у блок коду.\
+"""
+
 
 def git(*args: str) -> str:
     return subprocess.run(['git', *args], capture_output=True, text=True,
@@ -109,13 +137,12 @@ def changed_anchors(base: str, head: str, path: str) -> set[str]:
     return touched
 
 
-def translate(client, glossary: str,
-              current: str, diff: str) -> str:
+def ask(client, system: str, glossary: str, prompt: str) -> str:
     message = client.messages.create(
         model=MODEL,
         max_tokens=8192,
         system=[
-            {'type': 'text', 'text': SYSTEM},
+            {'type': 'text', 'text': system},
             # Cached so a run that makes several calls pays for the glossary
             # once. Across runs the cache has expired, which is why nothing
             # else here is marked: writing a cache entry costs more than a
@@ -123,14 +150,71 @@ def translate(client, glossary: str,
             {'type': 'text', 'text': f'Глосарій:\n\n{glossary}',
              'cache_control': {'type': 'ephemeral'}},
         ],
-        messages=[{
-            'role': 'user',
-            'content': (f'Чинний український переклад фрагмента:\n\n{current}\n\n'
-                        f'Diff англійського оригіналу цього фрагмента:\n\n{diff}'),
-        }],
+        messages=[{'role': 'user', 'content': prompt}],
     )
 
     return message.content[0].text
+
+
+def translate(client, glossary: str, current: str, diff: str) -> str:
+    return ask(client, SYSTEM, glossary,
+               f'Чинний український переклад фрагмента:\n\n{current}\n\n'
+               f'Diff англійського оригіналу цього фрагмента:\n\n{diff}')
+
+
+def translate_new(client, glossary: str, section: str) -> str:
+    return ask(client, SYSTEM_NEW, glossary,
+               f'Новий фрагмент англійського оригіналу:\n\n{section}')
+
+
+def rebuild(current: str, upstream: str, touched: set[str],
+            update, create) -> tuple[str, list[str], list[str]]:
+    """Assemble the updated translation, in upstream's section order.
+
+    `update(anchor, section)` refreshes a section we already have; `create`
+    translates one upstream added. Either may return None to leave the section
+    to a person. Returns the page plus the anchors added and deferred.
+
+    Order comes from upstream so that a new section lands in the right place -
+    and so that walking our own sections cannot silently skip it, which is the
+    bug this function exists to make impossible.
+    """
+    mine = {anchor_of(section) or '': section
+            for section in split_sections(current)}
+
+    rebuilt: list[str] = []
+    added: list[str] = []
+    deferred: list[str] = []
+
+    for upstream_section in split_sections(upstream):
+        anchor = anchor_of(upstream_section) or ''
+        section = mine.get(anchor)
+
+        if section is None:
+            translated = create(anchor, upstream_section)
+
+            if translated is None:
+                deferred.append(anchor or '(преамбула)')
+                continue
+
+            rebuilt.append(restore_edges(upstream_section, translated))
+            added.append(anchor)
+            continue
+
+        if anchor not in touched:
+            rebuilt.append(section)
+            continue
+
+        translated = update(anchor, section)
+
+        if translated is None:
+            rebuilt.append(section)
+            deferred.append(anchor or '(преамбула)')
+            continue
+
+        rebuilt.append(restore_edges(section, translated))
+
+    return ''.join(rebuilt), added, deferred
 
 
 def restore_edges(original: str, translated: str) -> str:
@@ -206,38 +290,35 @@ def main() -> int:
         if not touched:
             continue
 
-        sections = split_sections(path.read_text())
-        rebuilt: list[str] = []
-        deferred: list[str] = []
-
-        for section in sections:
-            anchor = anchor_of(section) or ''
-
-            if anchor not in touched:
-                rebuilt.append(section)
-                continue
-
+        # Both paths refuse a section carrying an embedded data: URI - a single
+        # line tens of thousands of characters long, almost none of it
+        # translatable, which a model asked to echo back may silently truncate
+        # or alter, replacing a working image with a corrupt one. Reported and
+        # left for a person instead.
+        def update(anchor: str, section: str) -> str | None:
             diff = section_diff(base, head, name, anchor)
 
             if not diff:
-                rebuilt.append(section)
-                continue
+                return section
 
-            # An embedded data: URI is a single line tens of thousands of
-            # characters long - almost none of it translatable, and a model
-            # asked to echo it back may silently truncate or alter the payload,
-            # replacing a working image with a corrupt one. Left untouched and
-            # reported, so the prose around it can be updated by hand.
             if EMBEDDED.search(section):
                 print(f'{name}: section "{anchor}" holds embedded data - left for a person',
                       file=sys.stderr)
-                rebuilt.append(section)
-                deferred.append(anchor or '(преамбула)')
-                continue
+                return None
 
-            rebuilt.append(restore_edges(section, translate(client, glossary, section, diff)))
+            return translate(client, glossary, section, diff)
 
-        updated = ''.join(rebuilt)
+        def create(anchor: str, section: str) -> str | None:
+            if EMBEDDED.search(section):
+                print(f'{name}: new section "{anchor}" holds embedded data '
+                      '- left for a person', file=sys.stderr)
+                return None
+
+            return translate_new(client, glossary, section)
+
+        updated, added, deferred = rebuild(
+            path.read_text(), git('show', f'{head}:{name}'), touched, update, create,
+        )
 
         # The header records what the file is now in step with.
         updated = re.sub(r'^git: [0-9a-f]{40}$', f'git: {head}',
@@ -260,7 +341,14 @@ def main() -> int:
 
         path.write_text(updated)
 
-        note = f' ({len(deferred)} left for a person)' if deferred else ''
+        notes = []
+
+        if added:
+            notes.append(f'{len(added)} new')
+        if deferred:
+            notes.append(f'{len(deferred)} left for a person')
+
+        note = f' ({", ".join(notes)})' if notes else ''
         print(f'{name}: {len(touched)} sections{note}')
 
     return 1 if failed else 0
