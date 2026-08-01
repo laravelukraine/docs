@@ -1,5 +1,5 @@
 ---
-git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
+git: ebeea7cfaf51d77b8101825f3508e1e5ab1a8ad9
 ---
 # Laravel Telescope
 
@@ -110,6 +110,35 @@ public function register(): void
 
 ```php
 'enabled' => env('TELESCOPE_ENABLED', true),
+```
+
+<a name="content-security-policy-csp-nonce"></a>
+#### Nonce політики безпеки вмісту (CSP)
+
+Якщо ви хочете використовувати [атрибут nonce](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/nonce) у тегах script і style, що застосовуються в представленнях Telescope, як частину вашої [політики безпеки вмісту](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP), ви можете скористатися методом `Telescope::cspNonce`, щоб вказати nonce для використання. Цей метод зазвичай слід викликати всередині `middleware`, щоб для кожного запиту призначався новий nonce:
+
+```php
+use Closure;
+use Illuminate\Http\Request;
+use Laravel\Telescope\Telescope;
+use Symfony\Component\HttpFoundation\Response;
+
+public function handle(Request $request, Closure $next): Response
+{
+    Telescope::cspNonce('csp-nonce');
+
+    return $next($request);
+}
+```
+
+Ви можете додати це `middleware` до опції `middleware` у конфігураційному файлі вашого застосунку `config/telescope.php`:
+
+```php
+'middleware' => [
+    'web',
+    App\Http\Middleware\AddTelescopeCspNonce::class,
+    Authorize::class,
+],
 ```
 
 <a name="data-pruning"></a>

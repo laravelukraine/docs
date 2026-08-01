@@ -1,5 +1,5 @@
 ---
-git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
+git: ebeea7cfaf51d77b8101825f3508e1e5ab1a8ad9
 ---
 # Валідація
 
@@ -1124,6 +1124,7 @@ The credit card number field is required when payment type is credit card.
 <div class="collection-method-list" markdown="1">
 
 [Array](#rule-array)
+[Array Keys](#rule-array-keys)
 [Between](#rule-between)
 [Contains](#rule-contains)
 [Doesnt Contain](#rule-doesnt-contain)
@@ -1363,6 +1364,21 @@ Validator::make($input, [
 ```
 
 Загалом вам слід завжди вказувати ключі масиву, які дозволено в ньому мати.
+
+<a name="rule-array-keys"></a>
+#### array_keys:_foo_,_bar_,...
+
+Поле, що валідується, має бути PHP-`array`, чиї ключі всі включені до наданого списку. Має бути надано принаймні один ключ:
+
+```php
+'user' => ['array_keys:name,username'],
+```
+
+Для зручності ви можете використати метод `Rule::arrayKeys`:
+
+```php
+'user' => [Rule::arrayKeys('name', 'username')],
+```
 
 <a name="rule-ascii"></a>
 #### ascii
