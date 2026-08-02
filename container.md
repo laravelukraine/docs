@@ -1,5 +1,5 @@
 ---
-git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
+git: 68f903aca708d7c9070f73127e64468132b1266b
 ---
 # Сервіс-контейнер
 
@@ -319,6 +319,23 @@ interface EventPusher
     // ...
 }
 ```
+
+Для прив'язок, які залежать від довільної умови, можна використовувати атрибут `BindWhen`. Замикання може отримувати контейнер і має повертати `true`, коли прив'язку слід застосувати. Атрибути `Bind` і `BindWhen` опрацьовуються в порядку їх оголошення:
+
+```php
+use App\Services\BetaEventPusher;
+use Illuminate\Container\Attributes\BindWhen;
+use Laravel\Pennant\Feature;
+
+#[BindWhen(BetaEventPusher::class, static fn () => Feature::active('beta-events'))]
+interface EventPusher
+{
+    // ...
+}
+```
+
+> [!NOTE]
+> Атрибут `BindWhen` вимагає PHP 8.5 або вище.
 
 <a name="contextual-binding"></a>
 ### Контекстна прив'язка

@@ -1,5 +1,5 @@
 ---
-git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
+git: 68f903aca708d7c9070f73127e64468132b1266b
 ---
 # Обробка зображень
 
@@ -182,7 +182,10 @@ $image = $image->cover(400, 400);
 ```php
 $image = $image->contain(400, 400);
 $image = $image->contain(400, 400, '#ffffff');
+$image = $image->contain(400, 400, 'dominant');
 ```
+
+Ви можете вказати `dominant` як колір тла, щоб заповнити порожній простір домінантним кольором зображення.
 
 Обрізати зображення можна методом `crop`. Перші два аргументи - потрібні ширина й висота, а необов'язкові третій і четвертий задають координати `x` та `y` обрізання:
 
@@ -200,6 +203,7 @@ Laravel також надає низку додаткових методів п�
 $image = $image->orient();
 $image = $image->rotate(90);
 $image = $image->rotate(90, '#ffffff');
+$image = $image->rotate(90, 'dominant');
 $image = $image->blur(5);
 $image = $image->grayscale();
 $image = $image->sharpen(10);
@@ -303,7 +307,7 @@ $path = $request->image('avatar')
 <a name="inspecting-images"></a>
 ## Огляд зображень
 
-Отримати MIME-тип, розширення, розміри, ширину й висоту зображення можна такими методами:
+Отримати MIME-тип, розширення, розміри, ширину, висоту й домінантний колір зображення можна такими методами:
 
 ```php
 $mimeType = $image->mimeType();
@@ -312,6 +316,8 @@ $extension = $image->extension();
 [$width, $height] = $image->dimensions();
 $width = $image->width();
 $height = $image->height();
+
+$dominantColor = $image->dominantColor();
 ```
 
 Ці методи працюють з обробленим зображенням. Наприклад, виклик `width` після `cover(400, 400)` поверне `400`.
