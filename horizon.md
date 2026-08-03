@@ -1,5 +1,5 @@
 ---
-git: 946622229fa1d90052b7d51614a4a14a7156b9b0
+git: e064943bc6d9fe866685eae6e3214fe2f9e0fb5a
 ---
 # Laravel Horizon
 
@@ -66,7 +66,7 @@ php artisan horizon:install
 <a name="content-security-policy-csp-nonce"></a>
 #### Nonce для Content Security Policy (CSP)
 
-Якщо ви хочете використовувати [атрибут nonce](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/nonce) на тегах script і style у представленнях Horizon у межах вашої [Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP), скористайтеся методом `Horizon::cspNonce`, щоб указати потрібний nonce. Зазвичай цей метод викликають у `middleware`, щоб для кожного запиту призначався новий nonce:
+Якщо ви бажаєте використовувати [атрибут nonce](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/nonce) на тегах script і style у представленнях Horizon у межах вашої [Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP), скористайтеся методом `Horizon::cspNonce`, щоб указати потрібний nonce. Зазвичай цей метод викликають у `middleware`, щоб для кожного запиту призначався новий nonce:
 
 ```php
 use Closure;

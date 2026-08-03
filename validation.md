@@ -1,5 +1,5 @@
 ---
-git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
+git: e064943bc6d9fe866685eae6e3214fe2f9e0fb5a
 ---
 # Валідація
 
@@ -1124,6 +1124,7 @@ The credit card number field is required when payment type is credit card.
 <div class="collection-method-list" markdown="1">
 
 [Array](#rule-array)
+[Array Keys](#rule-array-keys)
 [Between](#rule-between)
 [Contains](#rule-contains)
 [Doesnt Contain](#rule-doesnt-contain)
@@ -1237,6 +1238,14 @@ The credit card number field is required when payment type is credit card.
 #### active_url
 
 Поле, що валідується, має мати дійсний запис A чи AAAA згідно з PHP-функцією `dns_get_record`. Ім'я хоста з наданого URL витягується PHP-функцією `parse_url` перед передаванням до `dns_get_record`.
+
+Під час тестування правил валідації, які виконують DNS-запити, як-от `active_url` і `email:dns`, ви можете використовувати метод `Validator::fakeDnsLookups`. Це імітує DNS-запити, зберігаючи при цьому іншу поведінку валідації правил:
+
+```php
+use Illuminate\Support\Facades\Validator;
+
+Validator::fakeDnsLookups();
+```
 
 <a name="rule-after"></a>
 #### after:_date_
@@ -1363,6 +1372,21 @@ Validator::make($input, [
 ```
 
 Загалом вам слід завжди вказувати ключі масиву, які дозволено в ньому мати.
+
+<a name="rule-array-keys"></a>
+#### array_keys:_foo_,_bar_,...
+
+Поле, яке валідується, має бути PHP-`array`, чиї ключі всі включені до наданого списку. Принаймні один ключ має бути наданий:
+
+```php
+'user' => ['array_keys:name,username'],
+```
+
+Для зручності ви можете використовувати метод `Rule::arrayKeys`:
+
+```php
+'user' => [Rule::arrayKeys('name', 'username')],
+```
 
 <a name="rule-ascii"></a>
 #### ascii

@@ -1,5 +1,5 @@
 ---
-git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
+git: e064943bc6d9fe866685eae6e3214fe2f9e0fb5a
 ---
 # База даних: міграції
 
@@ -1247,6 +1247,7 @@ Schema::table('users', function (Blueprint $table) {
 | `->nullable($value = true)`         | Дозволити вставляти в стовпець значення `NULL`.                                                 |
 | `->storedAs($expression)`           | Створити збережений генерований стовпець (MariaDB / MySQL / PostgreSQL / SQLite).               |
 | `->unsigned()`                      | Зробити стовпці `INTEGER` типу `UNSIGNED` (MariaDB / MySQL).                                    |
+| `->using($expression)`              | Задати вираз приведення типу при зміні типу стовпця (PostgreSQL).                               |
 | `->useCurrent()`                    | Задати стовпцям `TIMESTAMP` значення за замовчуванням `CURRENT_TIMESTAMP`.                      |
 | `->useCurrentOnUpdate()`            | Задати стовпцям `TIMESTAMP` значення `CURRENT_TIMESTAMP` при оновленні запису (MariaDB / MySQL). |
 | `->virtualAs($expression)`          | Створити віртуальний генерований стовпець (MariaDB / MySQL / SQLite).                           |
@@ -1357,6 +1358,17 @@ $table->bigIncrements('id')->primary()->change();
 
 // Drop an index...
 $table->char('postal_code', 10)->unique(false)->change();
+```
+
+<a name="postgresql-column-modifications"></a>
+#### Зміна колонок PostgreSQL
+
+Під час зміни типу колонки в PostgreSQL ви можете використати модифікатор `using`, щоб вказати вираз для перетворення існуючих значень:
+
+```php
+Schema::table('users', function (Blueprint $table) {
+    $table->date('birthday')->using('birthday::date')->change();
+});
 ```
 
 <a name="renaming-columns"></a>
