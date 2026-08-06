@@ -1,5 +1,5 @@
 ---
-git: 946622229fa1d90052b7d51614a4a14a7156b9b0
+git: 8042e4ce5c44b0ad51476cb1fb915af086047edb
 ---
 # Laravel MCP
 
