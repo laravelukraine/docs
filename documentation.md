@@ -1,5 +1,5 @@
 ---
-git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
+git: 8042e4ce5c44b0ad51476cb1fb915af086047edb
 ---
 - ## Пролог
     - [Нотатки релізу](/docs/{{version}}/releases)
@@ -97,6 +97,7 @@ git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
     - [Envoy](/docs/{{version}}/envoy)
     - [Fortify](/docs/{{version}}/fortify)
     - [Folio](/docs/{{version}}/folio)
+    - [Head](/docs/{{version}}/head)
     - [Homestead](/docs/{{version}}/homestead)
     - [Horizon](/docs/{{version}}/horizon)
     - [Mix](/docs/{{version}}/mix)
