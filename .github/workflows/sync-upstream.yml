@@ -153,21 +153,24 @@ jobs:
           HELD: ${{ steps.status.outputs.held }}
           NEW_PAGES: ${{ steps.status.outputs.new_pages }}
           REASON: ${{ steps.status.outputs.reason }}
+          LABEL: upstream-manual
         run: |
           title="Апстрім потребує ручного перекладу (${HEAD:0:8})"
 
-          # One open issue at a time: the daily run would otherwise file a
-          # duplicate every morning until the work is done.
+          # One open issue at a time. The label is what makes that work: the
+          # title carries the upstream SHA, so matching on it found nothing as
+          # soon as upstream moved and filed a near-duplicate every morning
+          # while the page waited for a person. The label does not change.
+          #
           # --repo for the same reason as the pull request above: on a fork,
           # gh otherwise queries laravel/docs.
-          open=$(gh issue list --repo "${GITHUB_REPOSITORY}" \
-            --state open --search "$title in:title" \
-            --json number --jq 'length')
+          gh label create "$LABEL" --repo "${GITHUB_REPOSITORY}" \
+            --description 'Сторінки апстріму, які чекають на людину' \
+            --color 'D93F0B' 2>/dev/null || true
 
-          if [ "$open" != '0' ]; then
-            echo "Issue already open ($open)."
-            exit 0
-          fi
+          open=$(gh issue list --repo "${GITHUB_REPOSITORY}" \
+            --state open --label "$LABEL" \
+            --json number --jq '.[0].number // empty')
 
           {
             echo "[Diff апстріму](https://github.com/laravel/docs/compare/$BASE...$HEAD)"
@@ -190,5 +193,15 @@ jobs:
             echo "_${REASON}_"
           } > /tmp/issue.md
 
+          # An issue already open is rewritten rather than left to go stale:
+          # the work is the same work, but the diff link and the file list have
+          # moved on with upstream, and a person reading it wants today's.
+          if [ -n "$open" ]; then
+            gh issue edit "$open" --repo "${GITHUB_REPOSITORY}" \
+              --title "$title" --body-file /tmp/issue.md
+            echo "Updated issue #$open."
+            exit 0
+          fi
+
           gh issue create --repo "${GITHUB_REPOSITORY}" \
-            --title "$title" --body-file /tmp/issue.md
+            --title "$title" --body-file /tmp/issue.md --label "$LABEL"
