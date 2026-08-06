@@ -8,7 +8,10 @@ changes twenty, and output tokens cost five times what input does - sending
 rest of the run. Untouched sections are copied through byte for byte, so the
 model cannot damage what it never saw.
 
-The result is checked by validate_translation.py before it is written.
+The result is checked by validate_translation.py before it is written. A page
+that fails the check is built again, and if it still fails it is left untouched
+and named for a person - the run goes on, because one bad page is not a reason
+to throw away the rest of the translation.
 """
 from __future__ import annotations
 
@@ -26,6 +29,14 @@ from validate_translation import problems
 # testing, and it should not need the SDK installed to run.
 
 MODEL = 'claude-sonnet-4-5'
+
+# How many times a page is built before it is left to a person. The failure
+# this exists for is a section coming back a line or two short - a model
+# dropping the blank line around a code fence, which restore_edges cannot put
+# back because it is interior to the section. Asking again usually gets it
+# right, and a whole page is a handful of calls, so the retry is cheap next to
+# losing the run.
+ATTEMPTS = 2
 
 # Sections start at an anchor; everything before the first one is the preamble
 # (header, title, contents list) and travels as its own unit.
@@ -276,7 +287,7 @@ def main() -> int:
 
     client = anthropic.Anthropic()
     glossary = Path('GLOSSARY.md').read_text()
-    failed = False
+    held: list[str] = []
 
     for name in args.files:
         path = Path(name)
@@ -316,27 +327,44 @@ def main() -> int:
 
             return translate_new(client, glossary, section)
 
-        updated, added, deferred = rebuild(
-            path.read_text(), git('show', f'{head}:{name}'), touched, update, create,
-        )
+        upstream = git('show', f'{head}:{name}')
+        current = path.read_text()
+        found: list[str] = []
 
-        # The header records what the file is now in step with.
-        updated = re.sub(r'^git: [0-9a-f]{40}$', f'git: {head}',
-                         updated, count=1, flags=re.MULTILINE)
+        for attempt in range(1, ATTEMPTS + 1):
+            updated, added, deferred = rebuild(
+                current, upstream, touched, update, create,
+            )
 
-        # Checked before writing, against the upstream file it now claims to
-        # match. A dropped anchor breaks the sidebar and every deep link into
-        # the page, and reads as an ordinary wording change in review - the
-        # kind of thing a person skims past, so it must not reach the branch.
-        found = problems(git('show', f'{head}:{name}'), updated)
+            # The header records what the file is now in step with.
+            updated = re.sub(r'^git: [0-9a-f]{40}$', f'git: {head}',
+                             updated, count=1, flags=re.MULTILINE)
 
-        if found:
-            print(f'{name}: rejected', file=sys.stderr)
+            # Checked before writing, against the upstream file it now claims
+            # to match. A dropped anchor breaks the sidebar and every deep link
+            # into the page, and reads as an ordinary wording change in review
+            # - the kind of thing a person skims past, so it must not reach the
+            # branch.
+            found = problems(upstream, updated)
+
+            if not found:
+                break
 
             for problem in found:
-                print(f'  - {problem}', file=sys.stderr)
+                print(f'{name}: {problem}', file=sys.stderr)
 
-            failed = True
+            if attempt < ATTEMPTS:
+                print(f'{name}: rebuilding ({attempt + 1}/{ATTEMPTS})',
+                      file=sys.stderr)
+
+        # Still wrong after the retries: the page is left exactly as it was,
+        # header included, so the next run sees the same gap and tries again.
+        # One bad page must not cost the run - the others are translated and
+        # worth opening, and this one is named in the pull request for a person
+        # to pick up.
+        if found:
+            print(f'{name}: left for a person', file=sys.stderr)
+            held.append(name)
             continue
 
         path.write_text(updated)
@@ -351,7 +379,19 @@ def main() -> int:
         note = f' ({", ".join(notes)})' if notes else ''
         print(f'{name}: {len(touched)} sections{note}')
 
-    return 1 if failed else 0
+    # Written for the workflow to fold into the pull request body. Reported on
+    # stdout as well, because a run read by eye should not need the step
+    # summary to say which pages did not make it.
+    if held:
+        print(f'left for a person: {" ".join(held)}')
+
+        summary = os.environ.get('GITHUB_OUTPUT')
+
+        if summary:
+            with open(summary, 'a') as handle:
+                handle.write(f'rejected={" ".join(held)}\n')
+
+    return 0
 
 
 if __name__ == '__main__':

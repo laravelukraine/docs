@@ -71,11 +71,16 @@ jobs:
         if: steps.status.outputs.status == 'translate'
         run: python3 scripts/tests/test_rebuild.py
 
+      - name: Check a bad page is retried and does not sink the run
+        if: steps.status.outputs.status == 'translate'
+        run: python3 scripts/tests/test_retry_and_defer.py
+
       - name: Install the SDK
         if: steps.status.outputs.status == 'translate'
         run: pip install --quiet anthropic
 
       - name: Translate the changed sections
+        id: translate
         if: steps.status.outputs.status == 'translate'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -89,8 +94,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HEAD: ${{ steps.status.outputs.head }}
-          FILES: ${{ steps.status.outputs.files }}
           HELD: ${{ steps.status.outputs.held }}
+          REJECTED: ${{ steps.translate.outputs.rejected }}
         run: |
           if git diff --quiet; then
             echo 'Nothing changed - the sections were already up to date.'
@@ -109,10 +114,20 @@ jobs:
           {
             echo "Автоматичний переклад змін з [laravel/docs@${HEAD:0:8}](https://github.com/laravel/docs/commit/$HEAD)."
             echo
-            echo "Оновлено: $FILES"
+            # The files actually committed, rather than everything the run set
+            # out to do: a page that failed validation is not in the branch.
+            echo "Оновлено: $(git diff --name-only HEAD~1 | tr '\n' ' ')"
             echo
             if [ -n "$HELD" ]; then
               echo "> Відкладено як завеликі для автоматики: $HELD"
+              echo
+            fi
+            if [ -n "$REJECTED" ]; then
+              echo "> Не пройшли структурну перевірку навіть після повтору"
+              echo "> і лишилися без змін: $REJECTED"
+              echo '>'
+              echo '> Заголовок `git:` у них старий, тому наступний запуск'
+              echo '> спробує ще раз - або перекладіть їх вручну.'
               echo
             fi
             echo 'Перекладено лише ті секції, яких торкнувся diff; решта сторінок не змінювалася.'
