@@ -1,5 +1,5 @@
 ---
-git: 8042e4ce5c44b0ad51476cb1fb915af086047edb
+git: 9c5a062c14069bab9054b558829e282f9593a065
 ---
 # Laravel Horizon
 
