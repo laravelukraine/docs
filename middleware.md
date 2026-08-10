@@ -1,5 +1,5 @@
 ---
-git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
+git: aa041e5fa5519d3bb6b0f1b00c60cc04636e21c9
 ---
 # Middleware
 
@@ -398,6 +398,24 @@ Route::get('/profile', function () {
     ]);
 })
 ```
+
+Якщо ви хочете додати `middleware` до існуючого списку пріоритетів, не замінюючи його, можете скористатися методами `prependToPriorityList` або `appendToPriorityList`. Метод `prependToPriorityList` вставляє заданий `middleware` перед іншим `middleware`, тоді як `appendToPriorityList` вставляє його після іншого `middleware`:
+
+```php
+->withMiddleware(function (Middleware $middleware): void {
+    $middleware->prependToPriorityList(
+        before: \Illuminate\Routing\Middleware\SubstituteBindings::class,
+        prepend: \App\Http\Middleware\EnsureTokenIsValid::class,
+    );
+
+    $middleware->appendToPriorityList(
+        after: \Illuminate\Routing\Middleware\SubstituteBindings::class,
+        append: \App\Http\Middleware\EnsureUserIsSubscribed::class,
+    );
+})
+```
+
+Аргументи `before` і `after` також можуть бути масивом класів `middleware`.
 
 <a name="middleware-parameters"></a>
 ## Параметри middleware

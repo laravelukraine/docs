@@ -1,5 +1,5 @@
 ---
-git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
+git: aa041e5fa5519d3bb6b0f1b00c60cc04636e21c9
 ---
 # HTTP-відповіді
 
@@ -165,10 +165,16 @@ return response('Hello World')->cookie($cookie);
 <a name="expiring-cookies-early"></a>
 #### Дострокове завершення дії cookie
 
-Ви можете вилучити cookie, завершивши її дію методом `withoutCookie` вихідної відповіді:
+Ви можете вилучити cookie, завершивши її дію методом `withoutCookie` або `withoutCookies` вихідної відповіді:
 
 ```php
 return response('Hello World')->withoutCookie('name');
+
+return response('Hello World')->withoutCookies([
+    'name',
+    'email',
+    'preferences',
+]);
 ```
 
 Якщо ви ще не маєте екземпляра вихідної відповіді, скористайтеся методом `expire` фасаду `Cookie`:
