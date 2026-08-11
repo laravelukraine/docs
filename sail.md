@@ -1,5 +1,5 @@
 ---
-git: 8042e4ce5c44b0ad51476cb1fb915af086047edb
+git: 5e0a0edf75ca5f9ec60a27cece58fa9997958335
 ---
 # Laravel Sail
 
