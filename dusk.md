@@ -1,5 +1,5 @@
 ---
-git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
+git: 5e0a0edf75ca5f9ec60a27cece58fa9997958335
 ---
 # Laravel Dusk
 
@@ -167,7 +167,6 @@ php artisan dusk:make LoginTest
 <?php
 
 use Illuminate\Foundation\Testing\DatabaseMigrations;
-use Laravel\Dusk\Browser;
 
 pest()->use(DatabaseMigrations::class);
 
@@ -203,7 +202,6 @@ class ExampleTest extends DuskTestCase
 <?php
 
 use Illuminate\Foundation\Testing\DatabaseTruncation;
-use Laravel\Dusk\Browser;
 
 pest()->use(DatabaseTruncation::class);
 
@@ -228,7 +226,7 @@ class ExampleTest extends DuskTestCase
 }
 ```
 
-За замовчуванням цей трейт очищає всі таблиці, окрім `migrations`. Якщо ви хочете вказати, які саме таблиці слід очищати, визначте у своєму тестовому класі властивість `$tablesToTruncate`:
+За замовчуванням цей трейт очищує всі таблиці, окрім `migrations`. Якщо ви хочете вказати, які саме таблиці слід очищати, визначте у своєму тестовому класі властивість `$tablesToTruncate`:
 
 > [!NOTE]
 > Якщо ви користуєтеся Pest, визначайте властивості чи методи в базовому класі `DuskTestCase` або в будь-якому класі, який успадковує ваш тестовий файл.
@@ -361,7 +359,6 @@ protected function driver(): RemoteWebDriver
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
-use Laravel\Dusk\Browser;
 
 pest()->use(DatabaseMigrations::class);
 
@@ -2484,7 +2481,6 @@ class DatePicker extends BaseComponent
 <?php
 
 use Illuminate\Foundation\Testing\DatabaseMigrations;
-use Laravel\Dusk\Browser;
 use Tests\Browser\Components\DatePicker;
 
 pest()->use(DatabaseMigrations::class);
