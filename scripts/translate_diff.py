@@ -53,8 +53,20 @@ laravelukraine.com.
 фрагмента англійського оригіналу. Твоє завдання - оновити український текст
 так, щоб він відповідав новому англійському, змінивши рівно те, що змінилось.
 
+Найважливіше правило: речення, якого diff не торкнувся, повертай СИМВОЛ
+У СИМВОЛ таким, як воно є в чинному перекладі.
+
+Це стосується і тих речень, які ти переклав би інакше. Не покращуй стиль,
+не підбирай синонім, не переставляй слова, не виправляй те, що здається
+тобі калькою. «хочете» не стає «хотіли б», «разом із» не стає «на додачу
+до», «очищає» не стає «очищує». Кожне таке редагування - шум у diff, і
+наступного запуску воно перефразується знову, без кінця.
+
+Змінюй рядок лише тоді, коли англійський текст цього рядка змінився
+в diff. Якщо diff додає новий абзац - переклади лише його, а сусідні
+абзаци залиши недоторканими.
+
 Правила:
-- Не чіпай нічого, крім того, що змінює diff. Решту речень повертай дослівно.
 - Зберігай розмітку точно: кількість рядків, порожні рядки, відступи,
   блоки коду, атрибути на кшталт {.collection-method}.
 - Не перекладай код, назви класів, методів, змінних, ключі конфігурації.
@@ -168,9 +180,11 @@ def ask(client, system: str, glossary: str, prompt: str) -> str:
 
 
 def translate(client, glossary: str, current: str, diff: str) -> str:
-    return ask(client, SYSTEM, glossary,
-               f'Чинний український переклад фрагмента:\n\n{current}\n\n'
-               f'Diff англійського оригіналу цього фрагмента:\n\n{diff}')
+    translated = ask(client, SYSTEM, glossary,
+                     f'Чинний український переклад фрагмента:\n\n{current}\n\n'
+                     f'Diff англійського оригіналу цього фрагмента:\n\n{diff}')
+
+    return keep_untouched_lines(current, translated, diff)
 
 
 def translate_new(client, glossary: str, section: str) -> str:
@@ -241,6 +255,53 @@ def restore_edges(original: str, translated: str) -> str:
 
     leading = len(original) - len(original.lstrip('\n'))
     trailing = len(original) - len(original.rstrip('\n'))
+
+    return ('\n' * leading) + body + ('\n' * trailing)
+
+
+def keep_untouched_lines(current: str, translated: str, diff: str) -> str:
+    """Revert lines the model rewrote without the diff asking it to.
+
+    The model is handed a whole section and returns a whole section, so every
+    line it was told to leave alone still passes through it - and it keeps
+    coming back reworded ("хочете" -> "хотіли б", "разом із" -> "на додачу до").
+    Each such edit is noise in review, and because the next run rewrites the
+    reworded line again, it never settles.
+
+    A line is allowed to change only if the English behind it changed. That is
+    approximated by requiring some English word from the diff's own +/- lines to
+    appear in either version of the line: a paragraph upstream rewrote shares
+    vocabulary with its diff, whereas a line the model merely restyled does not.
+    Anything else is restored from the current translation.
+
+    Alignment is positional, so this only applies when the model returned the
+    same number of lines - which the line-count check already requires.
+    """
+    before = current.strip('\n').splitlines()
+    after = translated.strip('\n').splitlines()
+
+    if len(before) != len(after):
+        return translated
+
+    # Words carried by the diff, i.e. the vocabulary of what actually changed.
+    changed_words = set()
+    for line in diff.splitlines():
+        if line.startswith(('+', '-')) and not line.startswith(('+++', '---')):
+            changed_words.update(re.findall(r'[A-Za-z_][A-Za-z0-9_]{2,}', line))
+
+    merged = []
+    for old, new in zip(before, after):
+        if old == new:
+            merged.append(new)
+            continue
+
+        touched = any(word in old or word in new for word in changed_words)
+        merged.append(new if touched else old)
+
+    body = '\n'.join(merged)
+
+    leading = len(translated) - len(translated.lstrip('\n'))
+    trailing = len(translated) - len(translated.rstrip('\n'))
 
     return ('\n' * leading) + body + ('\n' * trailing)
 
