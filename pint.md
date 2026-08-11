@@ -1,5 +1,5 @@
 ---
-git: 8042e4ce5c44b0ad51476cb1fb915af086047edb
+git: 5e0a0edf75ca5f9ec60a27cece58fa9997958335
 ---
 # Laravel Pint
 
@@ -172,7 +172,7 @@ Pint побудований на [PHP CS Fixer](https://github.com/FriendsOfPHP/
 }
 ```
 
-Після увімкнення Pint форматуватиме ваші Blade-шаблони разом із вашими PHP-файлами під час кожного запуску:
+Після увімкнення Pint форматуватиме ваші Blade-шаблони на додачу до ваших PHP-файлів щоразу, коли запускається:
 
 ```shell
 ./vendor/bin/pint
