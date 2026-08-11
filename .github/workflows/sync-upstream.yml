@@ -79,6 +79,7 @@ jobs:
         if: steps.status.outputs.status == 'translate'
         run: python3 scripts/tests/test_keep_untouched_lines.py
 
+
       - name: Install the SDK
         if: steps.status.outputs.status == 'translate'
         run: pip install --quiet anthropic
@@ -110,8 +111,37 @@ jobs:
 
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
-          git checkout -b "$branch"
+
+          # The branch name is derived from the upstream commit, so while
+          # upstream sits still every run aims at the same branch - and one is
+          # already there from the run that first reached this commit. Starting
+          # it afresh from 13.x and pushing rejected the push as non-fast-forward,
+          # which failed the whole step: the translations that run had just
+          # produced were thrown away, and the pages that had been retried
+          # stayed behind. Runs #16 and #17 (8 and 9 August) were both lost this
+          # way, which is how installation.md fell behind the rest.
+          #
+          # So continue the existing branch when there is one: its commits are
+          # the earlier attempt at this same upstream commit, and today's retry
+          # belongs on top of them.
+          if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
+            git stash --include-untracked --quiet
+            git fetch --quiet origin "$branch"
+            git checkout --quiet -B "$branch" "origin/$branch"
+            git stash pop --quiet
+          else
+            git checkout -b "$branch"
+          fi
+
           git add -- '*.md'
+
+          # Re-running against a branch that already carries today's work leaves
+          # nothing to commit; that is success, not a failure to report.
+          if git diff --cached --quiet; then
+            echo 'The branch is already up to date with this run.'
+            exit 0
+          fi
+
           git commit -m "chore(docs): підтягнути зміни апстріму ${HEAD:0:8}"
           git push --quiet origin "$branch"
 
@@ -141,6 +171,22 @@ jobs:
           # --repo is required because this is a fork of laravel/docs: without
           # it gh targets the upstream repository, where the token has no
           # access, and fails with "Resource not accessible by integration".
+          #
+          # A pull request may already exist for this branch, for the same
+          # reason the branch did: creating a second one is an error, so the
+          # open one is brought up to date with what this run added instead.
+          open=$(gh pr list --repo "${GITHUB_REPOSITORY}" \
+            --state open --head "$branch" \
+            --json number --jq '.[0].number // empty')
+
+          if [ -n "$open" ]; then
+            gh pr edit "$open" --repo "${GITHUB_REPOSITORY}" \
+              --title "Підтягнути зміни апстріму ${HEAD:0:8}" \
+              --body-file /tmp/body.md
+            echo "Updated pull request #$open."
+            exit 0
+          fi
+
           gh pr create \
             --repo "${GITHUB_REPOSITORY}" \
             --title "Підтягнути зміни апстріму ${HEAD:0:8}" \
@@ -148,14 +194,19 @@ jobs:
             --base 13.x \
             --head "$branch"
 
+      # Also runs on rejected pages, which the status step cannot know about:
+      # they are only discovered when translation has already failed twice.
+      # Without this they were named in the pull request body and nowhere else,
+      # and ai-sdk.md and installation.md sat unnoticed across three syncs.
       - name: Report what needs a person
-        if: steps.status.outputs.needs_person == 'true'
+        if: steps.status.outputs.needs_person == 'true' || steps.translate.outputs.rejected != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HEAD: ${{ steps.status.outputs.head }}
           BASE: ${{ steps.status.outputs.base }}
           HELD: ${{ steps.status.outputs.held }}
           NEW_PAGES: ${{ steps.status.outputs.new_pages }}
+          REJECTED: ${{ steps.translate.outputs.rejected }}
           REASON: ${{ steps.status.outputs.reason }}
           LABEL: upstream-manual
         run: |
@@ -193,6 +244,15 @@ jobs:
               printf -- '- %s\n' $NEW_PAGES
               echo
             fi
+
+            if [ -n "$REJECTED" ]; then
+              echo 'Не пройшли структурну перевірку навіть після повтору - автоматика'
+              echo 'їх не подужала, потрібен ручний переклад:'
+              echo
+              printf -- '- %s\n' $REJECTED
+              echo
+            fi
+
 
             echo "_${REASON}_"
           } > /tmp/issue.md
