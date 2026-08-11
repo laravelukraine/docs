@@ -1,5 +1,5 @@
 ---
-git: 8042e4ce5c44b0ad51476cb1fb915af086047edb
+git: 5e0a0edf75ca5f9ec60a27cece58fa9997958335
 ---
 # Laravel AI SDK
 
@@ -167,7 +167,39 @@ agent()->prompt('What is Laravel?', provider: 'local', model: 'local-model');
 ],
 ```
 
-Провайдери, сумісні з OpenAI, підтримують генерацію тексту, стримінг, інструменти, структурований вивід і вкладення зображень. Якщо ваш ендпоїнт потребує додаткових полів у тілі запиту, передайте їх через [опції провайдера](#provider-options).
+Ви можете додати власні HTTP-заголовки до кожного вихідного запиту провайдера, визначивши масив `headers` у його конфігурації. Це корисно, коли ендпоїнт потребує додаткового ідентифікаційного або автентифікаційного заголовка на додачу до bearer-токена:
+
+```php
+'local' => [
+    'driver' => 'openai-compatible',
+    'url' => env('LOCAL_AI_URL'),
+    'key' => env('LOCAL_AI_API_KEY'),
+    'headers' => [
+        'X-Tenant-Id' => env('LOCAL_AI_TENANT_ID'),
+    ],
+],
+```
+
+Провайдери, сумісні з OpenAI, підтримують генерацію тексту, стримінг, інструменти, структурований вивід, вкладення зображень і ембединги. Якщо ваш ендпоїнт потребує додаткових полів у тілі запиту, передайте їх через [опції провайдера](#provider-options).
+
+<a name="openai-compatible-embeddings"></a>
+#### Ембединги для провайдерів, сумісних з OpenAI
+
+Оскільки довільні ендпоїнти не мають відомих моделей, для використання `embeddings()` із провайдером, сумісним з OpenAI, ви повинні налаштувати модель ембедингів за замовчуванням. Ви також можете задати фіксоване значення `dimensions`; якщо його не вказано, запит надсилається без параметра `dimensions` і використовується власна розмірність моделі.
+
+```php
+'local' => [
+    'driver' => 'openai-compatible',
+    'url' => env('LOCAL_AI_URL'),
+    'key' => env('LOCAL_AI_API_KEY'),
+    'models' => [
+        'embeddings' => [
+            'default' => 'text-embedding-qwen3-embedding-0.6b',
+            'dimensions' => 1024, // необовʼязково
+        ],
+    ],
+],
+```
 
 <a name="provider-support"></a>
 ### Підтримка провайдерів
@@ -182,7 +214,7 @@ AI SDK підтримує різні провайдери для своїх мо
 | Images | OpenAI, Gemini, xAI, Azure, Bedrock, OpenRouter |
 | TTS | OpenAI, ElevenLabs, Gemini |
 | STT | OpenAI, ElevenLabs, Mistral, Gemini |
-| Embeddings | OpenAI, Gemini, Azure, Bedrock, Cohere, Mistral, Jina, VoyageAI, Ollama, OpenRouter |
+| Embeddings | OpenAI, OpenAI-Compatible, Gemini, Azure, Bedrock, Cohere, Mistral, Jina, VoyageAI, Ollama, OpenRouter |
 | Reranking | Cohere, Jina, VoyageAI |
 | Files | OpenAI, Anthropic, Gemini, Azure |
 
@@ -314,6 +346,30 @@ $response = (new SalesCoach)->prompt(
     timeout: 120,
 );
 ```
+
+<a name="raw-http-responses"></a>
+#### Сирі HTTP-відповіді
+
+Кожна відповідь, яку повертає агент генерації тексту, надає через властивість `raw` сиру HTTP-відповідь від виклику API провайдера. Це дає доступ до специфічної для провайдера інформації, якої немає в узагальненій відповіді AI SDK - заголовків ліміту запитів, ідентифікаторів запитів чи інших точних полів payload:
+
+```php
+$response = (new SalesCoach)->prompt('Analyze this sales transcript...');
+
+$response->raw; // Illuminate\Http\Client\Response|null
+
+$response->raw->header('X-RateLimit-Remaining-Requests');
+$response->raw->json('id');
+```
+
+У циклі виклику інструментів кожен крок зберігає сиру відповідь власного запиту:
+
+```php
+foreach ($response->steps as $step) {
+    $step->raw?->header('X-RateLimit-Remaining-Requests');
+}
+```
+
+> **Примітка:** Властивість `raw` має значення `null` під час стримінгу відповіді, при використанні провайдера Bedrock (який виконує виклики API через AWS SDK замість HTTP-клієнта), а також для підроблених відповідей, якщо її не надано явно через `withRawResponse`.
 
 <a name="conversation-context"></a>
 ### Контекст розмови
