@@ -1,5 +1,5 @@
 ---
-git: 5e0a0edf75ca5f9ec60a27cece58fa9997958335
+git: 4030a84b979f7420788dda14df439dd4d66d765d
 ---
 # Обробка зображень
 
@@ -261,10 +261,10 @@ $base64 = $image->toBase64();
 $dataUri = $image->toDataUri();
 ```
 
-Екземпляр зображення можна також привести до рядка, щоб отримати його оброблені байти:
+Екземпляр зображення можна також привести до рядка, щоб отримати data URI:
 
 ```php
-$bytes = (string) $image;
+$dataUri = (string) $image;
 ```
 
 <a name="storing-images"></a>

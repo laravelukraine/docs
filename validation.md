@@ -1,5 +1,5 @@
 ---
-git: 5e0a0edf75ca5f9ec60a27cece58fa9997958335
+git: 4030a84b979f7420788dda14df439dd4d66d765d
 ---
 # Валідація
 
@@ -2881,6 +2881,9 @@ $validator = Validator::make($request->all(), [
 // Require at least 8 characters...
 Password::min(8)
 
+// Require at most 256 characters...
+Password::min(16)->max(256)
+
 // Require at least one letter...
 Password::min(8)->letters()
 
@@ -2913,6 +2916,7 @@ Password::min(8)->uncompromised(3);
 
 ```php
 Password::min(8)
+    ->max(256)
     ->letters()
     ->mixedCase()
     ->numbers()
