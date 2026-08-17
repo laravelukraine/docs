@@ -166,8 +166,8 @@ def run(bad: int) -> tuple[int, str, int]:
     root = Path(tempfile.mkdtemp())
     base, head = build_repo(root)
 
-    sys.argv = ['translate_diff.py', 'installation.md',
-                '--base', base, '--head', head]
+    sys.argv = ['translate_diff.py', f'installation.md={base}',
+                '--head', head]
 
     code = translate_diff.main()
 

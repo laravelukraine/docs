@@ -20,7 +20,7 @@ from upstream_status import select
 
 
 def page(name: str, lines: int, known: bool = True) -> dict:
-    return {'file': name, 'lines': lines, 'known': known}
+    return {'file': name, 'lines': lines, 'known': known, 'base': 'a' * 40}
 
 
 def check(name: str, condition: bool) -> int:

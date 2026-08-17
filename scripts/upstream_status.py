@@ -32,10 +32,12 @@ def git(*args: str) -> str:
 
 
 def translated_at() -> tuple[str | None, dict[str, str]]:
-    """The upstream commit each page was translated from, and the common one.
+    """The upstream commit each page was translated from, and the oldest one.
 
-    Pages are normally all on the same commit - the translation moves in one
-    sweep - so the oldest is the base for the diff.
+    The per-page headers are what the diff actually runs from - a page is
+    behind by its own header and nothing else. The oldest is returned too, but
+    only to report the span of the gap and to link the compare view; it is not
+    a base to diff any particular file against.
     """
     per_file: dict[str, str] = {}
 
@@ -51,14 +53,53 @@ def translated_at() -> tuple[str | None, dict[str, str]]:
     if not per_file:
         return None, {}
 
-    # Oldest wins: translating from further back is safe, the reverse is not.
-    # Distance is counted towards upstream, so the furthest behind is the max.
+    # Furthest behind, for the report. Distance is counted towards upstream, so
+    # the one with the most commits still to come is the oldest.
     oldest = max(
         set(per_file.values()),
         key=lambda sha: int(git('rev-list', '--count', f'{sha}..upstream/13.x') or 0),
     )
 
     return oldest, per_file
+
+
+def changed_since(per_file: dict[str, str], head: str) -> list[dict]:
+    """What each page has to catch up on, measured from its own header.
+
+    A single shared base - the oldest header across the whole translation - is
+    wrong for any page not sitting on it, and wrong in the expensive direction:
+    the page is diffed across commits it has already been brought through, so
+    edits it already carries are offered for translation a second time.
+
+    head.md is how this surfaced. It was translated by hand and its header was
+    current, but the run diffed it from a commit predating the file's existence
+    upstream, which reported all 762 of its lines as pending and filed it as
+    "too large for automation" every morning. Measured from its own header it
+    has nothing to do at all.
+
+    The same arithmetic quietly inflated the rest: 1234 lines across 37 files
+    from the shared base, against 73 lines across 7 files from the real ones.
+    """
+    changed: list[dict] = []
+
+    for name, base in sorted(per_file.items()):
+        if base == head:
+            continue
+
+        rows = git('diff', '--numstat', base, head, '--', name).splitlines()
+
+        for row in rows:
+            added, removed, _ = row.split('\t')
+
+            # Binary files report '-'; upstream has none in *.md, but be safe.
+            count = ((int(added) if added != '-' else 0)
+                     + (int(removed) if removed != '-' else 0))
+
+            if count:
+                changed.append({'file': name, 'lines': count,
+                                'base': base, 'known': True})
+
+    return changed
 
 
 def select(changed: list[dict], new_pages: list[str], max_file_lines: int,
@@ -131,32 +172,29 @@ def main() -> int:
 
     head = git('rev-parse', args.upstream)
 
-    if base == head:
-        report = {'status': 'current', 'base': base, 'head': head,
-                  'files': [], 'lines': 0}
-        emit(report)
-        return 0
-
-    # --numstat over Markdown only: upstream also carries images and licences.
-    changed = []
-    total = 0
-
-    for row in git('diff', '--numstat', base, head, '--', '*.md').splitlines():
-        added, removed, name = row.split('\t')
-
-        if name in NOT_TRANSLATIONS:
-            continue
-
-        # Binary files report '-'; upstream has none in *.md, but be safe.
-        count = (int(added) if added != '-' else 0) + (int(removed) if removed != '-' else 0)
-        changed.append({'file': name, 'lines': count,
-                        'known': name in per_file})
-        total += count
+    # Each page is measured from the commit it was itself translated from.
+    changed = changed_since(per_file, head)
 
     # A file upstream has that we have never translated is a new page, not an
     # edit - it needs a title, a slug and a sidebar entry, so it goes to a
-    # person regardless of how few lines it is.
-    new_pages = [c['file'] for c in changed if not c['known']]
+    # person regardless of how few lines it is. It has no header to measure
+    # from, so it is found by listing upstream rather than by diffing.
+    new_pages = sorted(
+        name for name in git('ls-tree', '--name-only', head, '--', '*.md').splitlines()
+        if name not in NOT_TRANSLATIONS and name not in per_file
+    )
+
+    for name in new_pages:
+        lines = len(git('show', f'{head}:{name}').splitlines())
+        changed.append({'file': name, 'lines': lines, 'base': None,
+                        'known': False})
+
+    total = sum(c['lines'] for c in changed)
+
+    if not changed:
+        emit({'status': 'current', 'base': base, 'head': head,
+              'files': [], 'lines': 0})
+        return 0
 
     routine, oversized, over_budget = select(
         changed, new_pages, args.max_file_lines, args.max_lines,
@@ -178,7 +216,10 @@ def main() -> int:
           'lines': total, 'files': changed, 'new_pages': new_pages,
           'held': oversized + over_budget, 'oversized': oversized,
           'over_budget': over_budget,
-          'translate': [c['file'] for c in routine]})
+          'translate': [c['file'] for c in routine],
+          # Each page travels with the commit it is behind by, because there is
+          # no single base any more.
+          'bases': {c['file']: c['base'] for c in routine}})
 
     return 0
 
@@ -192,7 +233,12 @@ def emit(report: dict) -> None:
             handle.write(f"lines={report['lines']}\n")
             handle.write(f"base={report['base']}\n")
             handle.write(f"head={report['head']}\n")
-            handle.write(f"files={' '.join(report.get('translate', []))}\n")
+            # `name=sha` pairs: translate_diff.py diffs each page from its own
+            # header, so the base cannot be passed once for the whole run.
+            bases = report.get('bases', {})
+            handle.write('files={}\n'.format(' '.join(
+                f'{name}={bases[name]}' for name in report.get('translate', [])
+            )))
             handle.write(f"held={' '.join(report.get('held', []))}\n")
             handle.write(f"oversized={' '.join(report.get('oversized', []))}\n")
             handle.write(f"over_budget={' '.join(report.get('over_budget', []))}\n")

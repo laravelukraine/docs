@@ -63,6 +63,9 @@ jobs:
       - name: Check an over-budget run still clears what it can
         run: python3 scripts/tests/test_select.py
 
+      - name: Check each page is measured from its own header
+        run: python3 scripts/tests/test_per_file_base.py
+
       - name: Measure the gap
         id: status
         run: |
@@ -97,8 +100,9 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
+          # Each entry is `page.md=<sha>`: pages are behind by their own
+          # `git:` header, so there is no single base for the run.
           python3 scripts/translate_diff.py ${{ steps.status.outputs.files }} \
-            --base "${{ steps.status.outputs.base }}" \
             --head "${{ steps.status.outputs.head }}"
 
       - name: Open a pull request

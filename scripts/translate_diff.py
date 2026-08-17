@@ -329,10 +329,32 @@ def section_diff(base: str, head: str, path: str, anchor: str) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument('files', nargs='+')
-    parser.add_argument('--base', required=True, help='commit we translated from')
+    # `page.md=<sha>`: every page is behind by its own `git:` header, so the
+    # base travels per file. A single --base for the run diffed pages across
+    # commits they had already been brought through, which is how a page that
+    # was fully translated and current still reported its whole length as
+    # pending.
+    parser.add_argument('files', nargs='+', metavar='FILE=BASE')
     parser.add_argument('--head', required=True, help='commit to catch up to')
     args = parser.parse_args()
+
+    # Arguments first, so a malformed one is reported as such rather than as a
+    # traceback from somewhere further in.
+    #
+    # The header stores the full hash, and callers pass whatever git gave them
+    # - an abbreviated one would be written straight through and quietly fail
+    # the header check on the next run.
+    head = git('rev-parse', args.head).strip()
+
+    targets: list[tuple[str, str]] = []
+
+    for argument in args.files:
+        if '=' not in argument:
+            print(f'{argument}: expected FILE=BASE', file=sys.stderr)
+            return 1
+
+        name, _, base = argument.partition('=')
+        targets.append((name, git('rev-parse', base).strip()))
 
     if not os.environ.get('ANTHROPIC_API_KEY'):
         print('ANTHROPIC_API_KEY is not set', file=sys.stderr)
@@ -340,17 +362,11 @@ def main() -> int:
 
     import anthropic
 
-    # The header stores the full hash, and callers pass whatever git gave them
-    # - an abbreviated one would be written straight through and quietly fail
-    # the header check on the next run.
-    base = git('rev-parse', args.base).strip()
-    head = git('rev-parse', args.head).strip()
-
     client = anthropic.Anthropic()
     glossary = Path('GLOSSARY.md').read_text()
     held: list[str] = []
 
-    for name in args.files:
+    for name, base in targets:
         path = Path(name)
 
         if not path.exists():
