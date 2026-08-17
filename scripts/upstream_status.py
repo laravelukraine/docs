@@ -61,6 +61,59 @@ def translated_at() -> tuple[str | None, dict[str, str]]:
     return oldest, per_file
 
 
+def select(changed: list[dict], new_pages: list[str], max_file_lines: int,
+           max_lines: int) -> tuple[list[dict], list[str], list[str]]:
+    """Split the changed pages into what this run translates and what waits.
+
+    Two limits, and they defer for different reasons - which is why the two
+    lists come back separately rather than as one bag of "too big".
+
+    The per-file limit is the real one: a page rewritten at length wants a
+    person, and deferring it must not hold back the one-line fixes that came
+    with it. Those are exactly what automation should be clearing.
+
+    The run-wide limit is only a budget. It used to discard the whole run on
+    overflow, which is how thirty-six pages of one and two line fixes came to
+    be reported as "too large for automation" behind a single 762-line page:
+    the budget was 400, the small pages added up to 472, and all of them were
+    thrown away over the 72-line excess. Worse, it could not recover - nothing
+    translated meant no `git:` header moved, so the next day's diff spanned the
+    same commits and overflowed again.
+
+    So the budget is filled instead of abandoned, smallest first: the run
+    clears as many pages as it can afford, their headers move, and the pages
+    left over are a smaller diff tomorrow rather than the same one.
+    """
+    oversized = [c['file'] for c in changed if c['lines'] > max_file_lines]
+    eligible = [c for c in changed
+                if c['lines'] <= max_file_lines and c['file'] not in new_pages]
+
+    routine: list[dict] = []
+    over_budget: list[str] = []
+    spent = 0
+
+    # Smallest first, so the budget buys the most pages. A page skipped for
+    # want of budget is not skipped for want of room after it: once the budget
+    # is spent, everything larger waits too, rather than letting a later small
+    # page jump a queue it did not earn.
+    for page in sorted(eligible, key=lambda c: c['lines']):
+        if spent + page['lines'] > max_lines:
+            over_budget.append(page['file'])
+            continue
+
+        routine.append(page)
+        spent += page['lines']
+
+    # Back into the order the diff reported, which is upstream's own: the file
+    # list travels to git as arguments and reads better alphabetically than by
+    # size.
+    order = [c['file'] for c in changed]
+    routine.sort(key=lambda c: order.index(c['file']))
+    over_budget.sort(key=order.index)
+
+    return routine, oversized, over_budget
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument('--max-lines', type=int, default=400,
@@ -105,19 +158,9 @@ def main() -> int:
     # person regardless of how few lines it is.
     new_pages = [c['file'] for c in changed if not c['known']]
 
-    # The limit is per file rather than per run. One rewritten page - a new
-    # feature documented at length - would otherwise hold back the handful of
-    # one-line fixes that came with it, and those are exactly what automation
-    # should be clearing. Oversized files are deferred, the rest still go.
-    held = [c['file'] for c in changed if c['lines'] > args.max_file_lines]
-    routine = [c for c in changed
-               if c['lines'] <= args.max_file_lines and c['file'] not in new_pages]
-
-    # Second guard, on the run as a whole: many small files still add up, and
-    # a month of missed runs should not turn into one enormous pull request.
-    if sum(c['lines'] for c in routine) > args.max_lines:
-        held.extend(c['file'] for c in routine)
-        routine = []
+    routine, oversized, over_budget = select(
+        changed, new_pages, args.max_file_lines, args.max_lines,
+    )
 
     if not routine:
         status = 'escalate'
@@ -127,9 +170,15 @@ def main() -> int:
         reason = (f'{sum(c["lines"] for c in routine)} changed lines '
                   f'across {len(routine)} files')
 
+        if over_budget:
+            reason += (f'; {len(over_budget)} more deferred to keep the run '
+                       f'under {args.max_lines} lines')
+
     emit({'status': status, 'reason': reason, 'base': base, 'head': head,
           'lines': total, 'files': changed, 'new_pages': new_pages,
-          'held': held, 'translate': [c['file'] for c in routine]})
+          'held': oversized + over_budget, 'oversized': oversized,
+          'over_budget': over_budget,
+          'translate': [c['file'] for c in routine]})
 
     return 0
 
@@ -145,12 +194,16 @@ def emit(report: dict) -> None:
             handle.write(f"head={report['head']}\n")
             handle.write(f"files={' '.join(report.get('translate', []))}\n")
             handle.write(f"held={' '.join(report.get('held', []))}\n")
+            handle.write(f"oversized={' '.join(report.get('oversized', []))}\n")
+            handle.write(f"over_budget={' '.join(report.get('over_budget', []))}\n")
             handle.write(f"new_pages={' '.join(report.get('new_pages', []))}\n")
 
-            # Held files and new pages still want a person even when the rest
-            # of the run translated cleanly, so the workflow opens an issue
-            # alongside the pull request.
-            needs_person = bool(report.get('held') or report.get('new_pages'))
+            # Oversized pages and new pages want a person even when the rest of
+            # the run translated cleanly, so the workflow opens an issue
+            # alongside the pull request. Pages merely over budget do not: no
+            # one need read about them, because tomorrow's run picks them up on
+            # its own once today's translations have moved their headers.
+            needs_person = bool(report.get('oversized') or report.get('new_pages'))
             handle.write(f"needs_person={'true' if needs_person else 'false'}\n")
 
             if reason := report.get('reason'):
