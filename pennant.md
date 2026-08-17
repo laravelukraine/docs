@@ -1,5 +1,5 @@
 ---
-git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
+git: 4030a84b979f7420788dda14df439dd4d66d765d
 ---
 # Laravel Pennant
 
@@ -17,6 +17,7 @@ git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
     - [Кеш у пам'яті](#in-memory-cache)
 - [Скоп](#scope)
     - [Визначення скопу](#specifying-the-scope)
+    - [Глобальний скоп](#global-scope)
     - [Скоп за замовчуванням](#default-scope)
     - [Скоп, що допускає null](#nullable-scope)
     - [Ідентифікація скопу](#identifying-scope)
@@ -547,6 +548,17 @@ if (Feature::for($user->team)->active('billing-v2')) {
 }
 
 // ...
+```
+
+<a name="global-scope"></a>
+### Глобальний скоп
+
+Щоб перевірити функцію або взаємодіяти з нею, використовуючи глобальний скоп, незалежно від налаштованого резолвера скопу за замовчуванням, використовуйте метод `globally`. Це корисно для загальноапплікаційних feature-прапорців, наприклад для тимчасового увімкнення режиму обслуговування або розгортання функції для всіх користувачів:
+
+```php
+Feature::globally()->active('new-api');
+
+Feature::globally()->activate('new-api');
 ```
 
 <a name="default-scope"></a>
