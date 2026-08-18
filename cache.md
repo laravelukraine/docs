@@ -1,5 +1,5 @@
 ---
-git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
+git: b2300431921ec68c8ba31bbef248bff1511e8eff
 ---
 # Кеш
 
@@ -15,6 +15,9 @@ git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
     - [Мемоізація кешу](#cache-memoization)
     - [Хелпер кешу](#the-cache-helper)
 - [Теги кешу](#cache-tags)
+    - [Збереження елементів із тегами](#storing-tagged-cache-items)
+    - [Доступ до елементів із тегами](#accessing-tagged-cache-items)
+    - [Видалення елементів із тегами](#removing-tagged-cache-items)
 - [Атомарні блокування](#atomic-locks)
     - [Керування блокуваннями](#managing-locks)
     - [Керування блокуваннями між процесами](#managing-locks-across-processes)
