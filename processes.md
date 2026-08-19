@@ -1,5 +1,5 @@
 ---
-git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
+git: 57ae1e7dbd4bda3bae24ce93e527f1807ae49a43
 ---
 # Процеси
 
@@ -596,6 +596,14 @@ use Illuminate\Support\Facades\Process;
 Process::assertRan('ls -la');
 ```
 
+Коли процес було викликано з масивом аргументів, ви можете передати той самий масив до перевірки:
+
+```php
+Process::assertRan(['php', 'artisan', 'migrate']);
+```
+
+Методи `assertRanTimes` і `assertDidntRun` також приймають команди у вигляді масиву.
+
 Метод `assertRan` також приймає замикання, яке отримає екземпляр процесу та результат процесу, дозволяючи оглянути налаштовані опції процесу. Якщо це замикання поверне `true`, перевірка «пройде»:
 
 ```php
@@ -645,6 +653,20 @@ Process::assertRanTimes(function (PendingProcess $process, ProcessResult $result
     return $process->command === 'ls -la';
 }, times: 3);
 ```
+
+<a name="assert-processes-ran-in-order"></a>
+#### assertRanInOrder
+
+Перевірте, що процеси були викликані в заданому порядку:
+
+```php
+Process::assertRanInOrder([
+    'git fetch',
+    'composer install',
+]);
+```
+
+Метод `assertRanInOrder` приймає рядки команд, масиви аргументів команд або замикання, як і інші твердження процесів.
 
 <a name="preventing-stray-processes"></a>
 ### Запобігання «блукаючим» процесам

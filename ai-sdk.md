@@ -1,5 +1,5 @@
 ---
-git: 5e0a0edf75ca5f9ec60a27cece58fa9997958335
+git: 57ae1e7dbd4bda3bae24ce93e527f1807ae49a43
 ---
 # Laravel AI SDK
 
@@ -866,6 +866,28 @@ public function tools(): iterable
     ];
 }
 ```
+
+<a name="repairing-tool-calls"></a>
+#### Виправлення викликів інструментів
+
+Використовуйте атрибут `RepairToolCalls`, щоб дозволити агенту відновитися, коли модель викликає невідомий локальний інструмент. Laravel повертає невдалий виклик моделі з іменами доступних локальних інструментів, дозволяючи їй виправити виклик:
+
+```php
+use Laravel\Ai\Attributes\RepairToolCalls;
+use Laravel\Ai\Contracts\Agent;
+use Laravel\Ai\Contracts\HasTools;
+use Laravel\Ai\Promptable;
+
+#[RepairToolCalls]
+class SupportAgent implements Agent, HasTools
+{
+    use Promptable;
+
+    // ...
+}
+```
+
+Коли Laravel визначає максимальну кількість кроків автоматично, цей атрибут додає один крок для виправленого виклику. Явні обмеження `MaxSteps` залишаються незмінними.
 
 <a name="similarity-search"></a>
 #### Пошук за схожістю

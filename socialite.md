@@ -1,5 +1,5 @@
 ---
-git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
+git: 57ae1e7dbd4bda3bae24ce93e527f1807ae49a43
 ---
 # Laravel Socialite
 
@@ -221,7 +221,11 @@ use Laravel\Socialite\Socialite;
 $user = Socialite::driver('github')->userFromToken($token);
 ```
 
-Якщо ви користуєтеся Facebook Limited Login через застосунок для iOS, Facebook поверне токен OIDC замість токена доступу. Як і токен доступу, токен OIDC можна передати методу `userFromToken`, щоб отримати дані користувача.
+Якщо ви користуєтеся Facebook Limited Login через застосунок для iOS, Facebook поверне токен OIDC замість токена доступу. Щоб отримати дані користувача з токена OIDC, передайте методу `userFromToken` nonce, використаний для ініціації входу:
+
+```php
+$user = Socialite::driver('facebook')->userFromToken($token, $nonce);
+```
 
 <a name="stateless-authentication"></a>
 #### Автентифікація без збереження стану

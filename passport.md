@@ -1,5 +1,5 @@
 ---
-git: 5e0a0edf75ca5f9ec60a27cece58fa9997958335
+git: 57ae1e7dbd4bda3bae24ce93e527f1807ae49a43
 ---
 # Laravel Passport
 
@@ -34,6 +34,7 @@ git: 5e0a0edf75ca5f9ec60a27cece58fa9997958335
     - [Зміна валідації пароля](#customizing-the-password-validation)
 - [Implicit Grant](#implicit-grant)
 - [Client Credentials Grant](#client-credentials-grant)
+    - [Отримання токенів](#retrieving-tokens)
 - [Персональні токени доступу](#personal-access-tokens)
     - [Створення клієнта персонального доступу](#creating-a-personal-access-client)
     - [Зміна провайдера користувачів](#customizing-the-user-provider-for-pat)

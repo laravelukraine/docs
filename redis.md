@@ -1,5 +1,5 @@
 ---
-git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
+git: 57ae1e7dbd4bda3bae24ce93e527f1807ae49a43
 ---
 # Redis
 
@@ -230,6 +230,15 @@ Laravel також підтримує шардинг на боці клієнт�
     'backoff_algorithm' => env('REDIS_BACKOFF_ALGORITHM', 'decorrelated_jitter'),
     'backoff_base' => env('REDIS_BACKOFF_BASE', 100),
     'backoff_cap' => env('REDIS_BACKOFF_CAP', 1000),
+],
+```
+
+Laravel автоматично повторює безпечні команди читання один раз після тимчасового збою підключення. Опцію `command_retries` можна використати для налаштування кількості повторних спроб для всіх команд Redis:
+
+```php
+'default' => [
+    // ...
+    'command_retries' => env('REDIS_COMMAND_RETRIES', 0),
 ],
 ```
 
