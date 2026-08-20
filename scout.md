@@ -1,5 +1,5 @@
 ---
-git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
+git: 57ae1e7dbd4bda3bae24ce93e527f1807ae49a43
 ---
 # Laravel Scout
 
@@ -7,6 +7,9 @@ git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
 - [Встановлення](#installation)
     - [Черги](#queueing)
 - [Передумови для драйверів](#driver-prerequisites)
+    - [Algolia](#algolia)
+    - [Meilisearch](#meilisearch)
+    - [Typesense](#typesense)
 - [Конфігурація](#configuration)
     - [Налаштування даних для пошуку](#configuring-searchable-data)
 - [Рушії database і collection](#database-and-collection-engines)

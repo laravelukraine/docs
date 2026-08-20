@@ -1,5 +1,5 @@
 ---
-git: 5e0a0edf75ca5f9ec60a27cece58fa9997958335
+git: 57ae1e7dbd4bda3bae24ce93e527f1807ae49a43
 ---
 # База даних: конструктор запитів
 
@@ -366,7 +366,7 @@ $orders = DB::table('orders')
 ```
 
 <a name="groupbyraw"></a>
-### `groupByRaw`
+#### `groupByRaw`
 
 Метод `groupByRaw` задає сирий рядок як значення виразу `group by`:
 

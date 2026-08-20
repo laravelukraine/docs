@@ -1,5 +1,5 @@
 ---
-git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
+git: 57ae1e7dbd4bda3bae24ce93e527f1807ae49a43
 ---
 # Події
 
@@ -19,6 +19,7 @@ git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
     - [Унікальні слухачі подій](#unique-event-listeners)
         - [Тримати слухачів унікальними до початку обробки](#keeping-listeners-unique-until-processing-begins)
         - [Блокування унікальних слухачів](#unique-listener-locks)
+    - [Слухачі подій з дебаунсом](#debounced-event-listeners)
     - [Обробка невдалих завдань](#handling-failed-jobs)
 - [Диспетчеризація подій](#dispatching-events)
     - [Диспетчеризація подій після транзакцій бази даних](#dispatching-events-after-database-transactions)
@@ -652,6 +653,70 @@ class AcquireProductKey implements ShouldQueue, ShouldBeUnique
 
 > [!NOTE]
 > Якщо вам потрібно лише обмежити одночасну обробку слухача, скористайтеся натомість middleware завдання [WithoutOverlapping](/docs/{{version}}/queues#preventing-job-overlaps).
+
+<a name="debounced-event-listeners"></a>
+### Слухачі подій з дебаунсом
+
+Іноді вам може знадобитися обробити лише останній екземпляр події, яка надсилається повторно протягом короткого періоду. Ви можете зробити це, додавши атрибут `DebounceFor` до слухача черги:
+
+```php
+<?php
+
+namespace App\Listeners;
+
+use App\Events\ProductUpdated;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\Attributes\DebounceFor;
+
+#[DebounceFor(30)]
+class UpdateProductSearchIndex implements ShouldQueue
+{
+    /**
+     * Handle the event.
+     */
+    public function handle(ProductUpdated $event): void
+    {
+        // Update the product's search index...
+    }
+
+    /**
+     * Get the debounce ID for the listener.
+     */
+    public function debounceId(ProductUpdated $event): string
+    {
+        return (string) $event->product->getKey();
+    }
+}
+```
+
+У наведеному прикладі повторне надсилання подій `ProductUpdated` для того самого продукту протягом `30` секунд призведе до дебаунсу слухача, щоб обробити лише останню подію. Різні ідентифікатори дебаунсу обробляються незалежно.
+
+Щоб обмежити, як довго часто надсилана подія може відкладати слухача, передайте атрибуту `DebounceFor` аргумент `maxWait`:
+
+```php
+#[DebounceFor(30, maxWait: 120)]
+class UpdateProductSearchIndex implements ShouldQueue
+{
+    // ...
+}
+```
+
+Сховище кешу, у якому відстежується дебаунс, налаштовується методом `debounceVia` у слухачі. Метод отримує екземпляр події і має повернути репозиторій кешу:
+
+```php
+use Illuminate\Contracts\Cache\Repository;
+use Illuminate\Support\Facades\Cache;
+
+public function debounceVia(ProductUpdated $event): Repository
+{
+    return Cache::driver('redis');
+}
+```
+
+Слухачі з дебаунсом та унікальні слухачі є взаємовиключними. Слухач, який використовує атрибут `DebounceFor`, не повинен реалізовувати `ShouldBeUnique`.
+
+> [!WARNING]
+> Якщо ваш застосунок надсилає події з кількох веб-серверів або контейнерів, ви маєте переконатися, що всі ваші сервери взаємодіють з одним і тим самим центральним сервером кешу.
 
 <a name="handling-failed-jobs"></a>
 ### Обробка невдалих завдань
