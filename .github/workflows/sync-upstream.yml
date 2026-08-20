@@ -136,11 +136,41 @@ jobs:
           # So continue the existing branch when there is one: its commits are
           # the earlier attempt at this same upstream commit, and today's retry
           # belongs on top of them.
+          #
+          # Not with a stash, though. Both runs translate the same pages, so
+          # popping this run's work onto a branch that already carries the
+          # earlier run's translation of those pages conflicts on every shared
+          # page: git keeps the stash and exits non-zero, which lost run #29
+          # (20 August) the same way the rejected push lost #16 and #17.
+          #
+          # Nor by simply carrying the working tree over. It was built from
+          # 13.x and holds only the pages this run touched, so committing all
+          # of it would revert the earlier run's translations of the pages this
+          # run left alone - untranslating them back to upstream English.
+          #
+          # So: set this run's pages aside, take the branch exactly as it
+          # stands, and lay those pages back on top. Pages this run retranslated
+          # are superseded by today's version, pages only the earlier run did
+          # keep its version, and new pages are added.
           if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
-            git stash --include-untracked --quiet
+            saved=$(mktemp -d)
+            git status --porcelain -- '*.md' | awk '{print $2}' > "$saved/list"
+            while read -r page; do
+              mkdir -p "$saved/files/$(dirname "$page")"
+              cp "$page" "$saved/files/$page"
+            done < "$saved/list"
+
             git fetch --quiet origin "$branch"
+            # Safe: every changed page is copied aside above.
+            git reset --hard --quiet HEAD
+            git clean -fdq
             git checkout --quiet -B "$branch" "origin/$branch"
-            git stash pop --quiet
+
+            while read -r page; do
+              mkdir -p "$(dirname "$page")"
+              cp "$saved/files/$page" "$page"
+            done < "$saved/list"
+            rm -rf "$saved"
           else
             git checkout -b "$branch"
           fi
