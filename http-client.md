@@ -1,5 +1,5 @@
 ---
-git: 5e0a0edf75ca5f9ec60a27cece58fa9997958335
+git: 501e8cf7f5e69e26b3c64d1a0656cacef2b4d413
 ---
 # HTTP-клієнт
 
@@ -552,6 +552,18 @@ return $responses['first']->ok();
 $responses = Http::pool(fn (Pool $pool) => [
     // ...
 ], concurrency: 5);
+```
+
+Якщо запит з пулу не зміг встановити з'єднання (наприклад, через тайм-аут чи помилку DNS), відповідний елемент у масиві `$responses` буде екземпляром `Illuminate\Http\Client\ConnectionException`, а не екземпляром `Response`:
+
+```php
+foreach ($responses as $response) {
+    if ($response instanceof Throwable) {
+        // Запит не зміг встановити з'єднання...
+    } elseif ($response->failed()) {
+        // Запит встановив з'єднання, але отримав відповідь про помилку...
+    }
+}
 ```
 
 <a name="customizing-concurrent-requests"></a>
