@@ -1,5 +1,5 @@
 ---
-git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
+git: 8939b76399f8f72cc76ffb494479a275abf5de23
 ---
 # Шаблони Blade
 
@@ -34,7 +34,7 @@ git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
     - [Анонімні індексні компоненти](#anonymous-index-components)
     - [Властивості даних та атрибути](#data-properties-attributes)
     - [Доступ до даних батьківського компонента](#accessing-parent-data)
-    - [Шляхи анонімних компонентів](#anonymous-component-paths)
+    - [Шляхи анонімного компонента](#anonymous-component-paths)
 - [Створення макетів](#building-layouts)
     - [Макети на компонентах](#layouts-using-components)
     - [Макети на успадкуванні шаблонів](#layouts-using-template-inheritance)

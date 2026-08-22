@@ -1,5 +1,5 @@
 ---
-git: 57ae1e7dbd4bda3bae24ce93e527f1807ae49a43
+git: 8939b76399f8f72cc76ffb494479a275abf5de23
 ---
 # Laravel AI SDK
 
@@ -18,6 +18,7 @@ git: 57ae1e7dbd4bda3bae24ce93e527f1807ae49a43
     - [Бродкастинг](#broadcasting)
     - [Черги](#queueing)
     - [Інструменти](#tools)
+    - [Відкладене завантаження інструментів](#deferred-tool-loading)
     - [Інструменти файлового сховища](#file-storage-tools)
     - [MCP-інструменти](#mcp-tools)
     - [Інструменти провайдера](#provider-tools)
@@ -180,7 +181,7 @@ agent()->prompt('What is Laravel?', provider: 'local', model: 'local-model');
 ],
 ```
 
-Провайдери, сумісні з OpenAI, підтримують генерацію тексту, стримінг, інструменти, структурований вивід, вкладення зображень і ембединги. Якщо ваш ендпоїнт потребує додаткових полів у тілі запиту, передайте їх через [опції провайдера](#provider-options).
+Провайдери, сумісні з OpenAI, підтримують генерацію тексту, стримінг, інструменти, структурований вивід, вкладення зображень, ембединги та транскрипцію. Якщо ваш ендпоїнт потребує додаткових полів у тілі запиту, передайте їх через [опції провайдера](#provider-options).
 
 <a name="openai-compatible-embeddings"></a>
 #### Ембединги для провайдерів, сумісних з OpenAI
@@ -201,6 +202,27 @@ agent()->prompt('What is Laravel?', provider: 'local', model: 'local-model');
 ],
 ```
 
+<a name="openai-compatible-transcriptions"></a>
+#### Транскрипції, сумісні з OpenAI
+
+Так само ви маєте налаштувати модель транскрипції за замовчуванням, щоб використовувати `Transcription` з провайдером, сумісним з OpenAI. Аудіо буде завантажено на маршрут `/audio/transcriptions` кінцевої точки як стандартний multipart-запит:
+
+```php
+'local' => [
+    'driver' => 'openai-compatible',
+    'url' => env('LOCAL_AI_URL'),
+    'key' => env('LOCAL_AI_API_KEY'),
+    'models' => [
+        'transcription' => [
+            'default' => 'whisper-1',
+        ],
+    ],
+],
+```
+
+> [!NOTE]
+> Провайдери, сумісні з OpenAI, та Groq не підтримують діаризацію. Виклик методу `diarize` при використанні цих провайдерів призведе до винятку.
+
 <a name="provider-support"></a>
 ### Підтримка провайдерів
 
@@ -213,8 +235,8 @@ AI SDK підтримує різні провайдери для своїх мо
 | Text | OpenAI, OpenAI Compatible, Anthropic, Gemini, Azure, Bedrock, Groq, xAI, DeepSeek, Mistral, Ollama, OpenRouter |
 | Images | OpenAI, Gemini, xAI, Azure, Bedrock, OpenRouter |
 | TTS | OpenAI, ElevenLabs, Gemini |
-| STT | OpenAI, ElevenLabs, Mistral, Gemini |
-| Embeddings | OpenAI, OpenAI-Compatible, Gemini, Azure, Bedrock, Cohere, Mistral, Jina, VoyageAI, Ollama, OpenRouter |
+| STT | OpenAI, OpenAI Compatible, ElevenLabs, Groq, Mistral, Gemini |
+| Embeddings | OpenAI, OpenAI Compatible, Gemini, Azure, Bedrock, Cohere, Mistral, Jina, VoyageAI, Ollama, OpenRouter |
 | Reranking | Cohere, Jina, VoyageAI |
 | Files | OpenAI, Anthropic, Gemini, Azure |
 
@@ -949,6 +971,47 @@ SimilaritySearch::usingModel(Document::class, 'embedding')
     ->withDescription('Search the knowledge base for relevant articles.'),
 ```
 
+<a name="deferred-tool-loading"></a>
+### Відкладене завантаження інструментів
+
+За замовчуванням кожен інструмент, який надає агент, передається провайдеру з кожним запитом. Коли агент надає велику кількість інструментів, це споживає токени й може зменшити точність вибору інструментів моделлю. Використовуючи інструмент провайдера `ToolSearch` з OpenAI або Anthropic, ви можете відкласти визначення інструментів, щоб провайдер завантажував їх лише тоді, коли вони потрібні:
+
+```php
+use App\Ai\Tools\RefundOrder;
+use App\Ai\Tools\SearchInvoices;
+use App\Ai\Tools\Weather;
+use Laravel\Ai\Providers\Tools\ToolSearch;
+
+public function tools(): iterable
+{
+    return [
+        new Weather,
+        new ToolSearch(tools: [
+            new SearchInvoices,
+            new RefundOrder,
+        ]),
+    ];
+}
+```
+
+Обгорнуті інструменти не потребують жодних змін. Провайдер шукатиме й завантажуватиме їх, коли вони стануть релевантними до промпта, після чого агент зможе викликати їх як будь-який інший інструмент.
+
+При використанні Anthropic аргумент `strategy` може використовуватися для визначення того, як провайдер має шукати відкладені інструменти. Підтримувані стратегії - `regex` (за замовчуванням) і `bm25`:
+
+```php
+new ToolSearch(tools: [new SearchInvoices], strategy: 'bm25'),
+```
+
+При використанні Anthropic додаткові опції, специфічні для провайдера, можуть передаватися до інструмента пошуку за допомогою методу `withProviderOptions`:
+
+```php
+(new ToolSearch(tools: [new SearchInvoices]))
+    ->withProviderOptions(['cache_control' => ['type' => 'ephemeral']]),
+```
+
+> [!WARNING]
+> Провайдери, які не підтримують пошук інструментів, викинуть виняток замість того, щоб мовчки відкинути відкладені інструменти. Крім того, Anthropic вимагає, щоб принаймні один інструмент був наданий поза обгорткою `ToolSearch`.
+
 <a name="file-storage-tools"></a>
 ### Інструменти файлового сховища
 
@@ -1049,7 +1112,7 @@ public function tools(): iterable
 
 Інструмент провайдера `WebSearch` дозволяє агентам шукати в мережі інформацію в реальному часі. Це корисно для відповідей на питання про поточні події, свіжі дані чи теми, які могли змінитися після дати відсічення тренувальних даних моделі.
 
-**Підтримувані провайдери:** Anthropic, OpenAI, Gemini, OpenRouter
+**Підтримувані провайдери:** Anthropic, OpenAI, Azure, Gemini, xAI, OpenRouter
 
 ```php
 use Laravel\Ai\Providers\Tools\WebSearch;
@@ -1083,7 +1146,7 @@ public function tools(): iterable
 
 Інструмент провайдера `WebFetch` дозволяє агентам завантажувати й читати вміст вебсторінок. Це корисно, коли вам потрібно, щоб агент проаналізував конкретні URL чи отримав докладну інформацію з відомих вебсторінок.
 
-**Підтримувані провайдери:** Anthropic, Gemini
+**Підтримувані провайдери:** Anthropic, Gemini, OpenRouter
 
 ```php
 use Laravel\Ai\Providers\Tools\WebFetch;
@@ -1107,7 +1170,7 @@ public function tools(): iterable
 
 Інструмент провайдера `FileSearch` дозволяє агентам шукати серед [файлів](#files), збережених у [векторних сховищах](#vector-stores). Це уможливлює retrieval-augmented generation (RAG), дозволяючи агенту шукати релевантну інформацію у ваших завантажених документах.
 
-**Підтримувані провайдери:** OpenAI, Gemini
+**Підтримувані провайдери:** OpenAI, Gemini, xAI
 
 ```php
 use Laravel\Ai\Providers\Tools\FileSearch;
@@ -2409,6 +2472,8 @@ $response = (new SalesCoach)->prompt(
 <a name="testing"></a>
 ## Тестування
 
+Коли ви фейкуєте поставлені в чергу зображення, аудіо, транскрипцію або генерацію embeddings, будь-який колбек `then`, зареєстрований на поставленій у чергу генерації, буде викликано з підробленою відповіддю, що дозволяє вам тестувати логіку всередині колбека. Якщо ви вважаєте за краще, щоб ці колбеки не викликалися, ви можете додатково зафейкувати чергу за допомогою `Queue::fake()`.
+
 <a name="testing-agents"></a>
 ### Агенти
 
@@ -2475,6 +2540,8 @@ SalesCoach::assertPrompted('Analyze this...');
 SalesCoach::assertPrompted(function (AgentPrompt $prompt) {
     return $prompt->contains('Analyze');
 });
+
+SalesCoach::assertPromptedTimes(3);
 
 SalesCoach::assertNotPrompted('Missing prompt');
 
@@ -2907,6 +2974,8 @@ $store->assertAdded(fn (StorableFile $file) => $file->content() === 'Hello, Worl
 Laravel AI SDK диспетчеризує різноманітні [події](/docs/{{version}}/events), зокрема:
 
 - `AddingFileToStore`
+- `AgentFailed`
+- `AgentFailedOver`
 - `AgentPrompted`
 - `AgentStreamed`
 - `AudioGenerated`
@@ -2923,14 +2992,20 @@ Laravel AI SDK диспетчеризує різноманітні [події](
 - `ImageGenerated`
 - `InvokingTool`
 - `PromptingAgent`
+- `ProviderFailedOver`
 - `RemovingFileFromStore`
 - `Reranked`
 - `Reranking`
+- `StartingStep`
+- `StepCompleted`
+- `StepFailed`
 - `StoreCreated`
+- `StoreDeleted`
 - `StoringFile`
 - `StreamingAgent`
 - `ToolApprovalRequested`
 - `ToolApprovalResolved`
+- `ToolFailed`
 - `ToolInvoked`
 - `TranscriptionGenerated`
 
