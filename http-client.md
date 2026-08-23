@@ -554,14 +554,14 @@ $responses = Http::pool(fn (Pool $pool) => [
 ], concurrency: 5);
 ```
 
-Якщо запит у пулі не зміг встановити з'єднання (наприклад, через тайм-аут або збій DNS), відповідний елемент у масиві `$responses` буде екземпляром `Illuminate\Http\Client\ConnectionException` замість екземпляра `Response`:
+Якщо запит у пулі зазнає невдачі на рівні підключення (наприклад, тайм-аут або помилка DNS), відповідний елемент у масиві `$responses` буде екземпляром `Illuminate\Http\Client\ConnectionException` замість екземпляра `Response`:
 
 ```php
 foreach ($responses as $response) {
     if ($response instanceof Throwable) {
-        // The request failed to connect...
+        // Запит не зміг підключитися...
     } elseif ($response->failed()) {
-        // The request connected but received an error response...
+        // Запит підключився, але отримав помилкову відповідь...
     }
 }
 ```
