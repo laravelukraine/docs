@@ -554,7 +554,7 @@ $responses = Http::pool(fn (Pool $pool) => [
 ], concurrency: 5);
 ```
 
-Якщо запит у пулі не вдається на рівні підключення (наприклад, через таймаут або помилку DNS), відповідний елемент у масиві `$responses` буде екземпляром `Illuminate\Http\Client\ConnectionException`, а не екземпляром `Response`:
+Якщо запит із пулу не вдався на рівні підключення (наприклад, таймаут або збій DNS), відповідний елемент у масиві `$responses` буде екземпляром `Illuminate\Http\Client\ConnectionException` замість екземпляра `Response`:
 
 ```php
 foreach ($responses as $response) {
