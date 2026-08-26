@@ -530,7 +530,7 @@ class Option implements Arrayable, JsonSerializable
 ```
 
 <a name="vector-casting"></a>
-### Приведення векторів
+### Приведення до вектора
 
 Ви можете використовувати клас `Illuminate\Database\Eloquent\Casts\AsVector` для приведення векторного стовпця бази даних до та з PHP-масиву:
 

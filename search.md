@@ -111,7 +111,7 @@ $articles = Article::whereFullText(
 Базовий робочий процес векторного пошуку такий: згенерувати ембединг (числовий масив) для кожної одиниці контенту й зберегти його поруч із даними, а під час пошуку згенерувати ембединг запиту користувача й знайти збережені ембединги, найближчі до нього у векторному просторі.
 
 > [!NOTE]
-> Векторний пошук потребує [Laravel AI SDK](/docs/{{version}}/ai-sdk) і підтримується PostgreSQL (потрібне розширення `pgvector`), MariaDB 11.7 або новіша версія, та MongoDB (потрібен [пакет Laravel MongoDB](https://laravel.com/docs/13.x/mongodb)). Усі бази Postgres на [Laravel Cloud](https://laravel.com/cloud) уже мають встановлений `pgvector`.
+> Векторний пошук потребує [Laravel AI SDK](/docs/{{version}}/ai-sdk) і підтримується PostgreSQL (потрібне розширення `pgvector`), MariaDB 11.7 або новішою версією, та MongoDB (потрібен [пакет Laravel MongoDB](https://laravel.com/docs/13.x/mongodb)). Усі бази Postgres на [Laravel Cloud](https://laravel.com/cloud) уже мають встановлений `pgvector`.
 
 <a name="generating-embeddings"></a>
 ### Генерація ембедингів
@@ -158,7 +158,7 @@ Schema::create('documents', function (Blueprint $table) {
 
 Метод `Schema::ensureVectorExtensionExists` переконується, що розширення `pgvector` увімкнено у вашій базі PostgreSQL, перед створенням таблиці.
 
-У моделі Eloquent використовуйте каст `AsVector`, щоб Laravel автоматично конвертував між PHP-масивами й векторним форматом бази:
+У моделі Eloquent використовуйте приведення `AsVector`, щоб Laravel автоматично конвертував між PHP-масивами й векторним форматом бази:
 
 ```php
 use Illuminate\Database\Eloquent\Casts\AsVector;

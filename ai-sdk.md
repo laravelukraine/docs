@@ -2050,7 +2050,7 @@ Schema::create('documents', function (Blueprint $table) {
 $table->vector('embedding', dimensions: 1536)->index();
 ```
 
-У своїй Eloquent-моделі вам слід привести векторну колонку за допомогою касту `AsVector`:
+У своїй Eloquent-моделі вам слід привести векторну колонку за допомогою приведення `AsVector`:
 
 ```php
 use Illuminate\Database\Eloquent\Casts\AsVector;

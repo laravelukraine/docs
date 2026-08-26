@@ -34,7 +34,7 @@ git: bb48eb2a640f8f91dc6f2452dd3c84a2d4d5a52c
     - [Анонімні індексні компоненти](#anonymous-index-components)
     - [Властивості даних та атрибути](#data-properties-attributes)
     - [Доступ до даних батьківського компонента](#accessing-parent-data)
-    - [Шляхи анонімного компонента](#anonymous-component-paths)
+    - [Шляхи анонімних компонентів](#anonymous-component-paths)
 - [Створення макетів](#building-layouts)
     - [Макети на компонентах](#layouts-using-components)
     - [Макети на успадкуванні шаблонів](#layouts-using-template-inheritance)
