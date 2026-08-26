@@ -1,5 +1,5 @@
 ---
-git: 57ae1e7dbd4bda3bae24ce93e527f1807ae49a43
+git: bb48eb2a640f8f91dc6f2452dd3c84a2d4d5a52c
 ---
 # Події
 

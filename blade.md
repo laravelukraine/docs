@@ -1,5 +1,5 @@
 ---
-git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
+git: bb48eb2a640f8f91dc6f2452dd3c84a2d4d5a52c
 ---
 # Шаблони Blade
 

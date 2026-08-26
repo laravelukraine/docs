@@ -1,5 +1,5 @@
 ---
-git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
+git: bb48eb2a640f8f91dc6f2452dd3c84a2d4d5a52c
 ---
 # Хелпери
 
@@ -286,7 +286,7 @@ $array = Arr::add(['name' => 'Desk', 'price' => null], 'price', 100);
 
 Метод `Arr::array` дістає значення з глибоко вкладеного масиву за «крапковою» нотацією (так само, як [Arr::get()](#method-array-get)), але викидає `InvalidArgumentException`, якщо запитане значення не є `array`:
 
-```
+```php
 use Illuminate\Support\Arr;
 
 $array = ['name' => 'Joe', 'languages' => ['PHP', 'Ruby']];
@@ -305,7 +305,7 @@ $value = Arr::array($array, 'name');
 
 Метод `Arr::boolean` дістає значення з глибоко вкладеного масиву за «крапковою» нотацією (так само, як [Arr::get()](#method-array-get)), але викидає `InvalidArgumentException`, якщо запитане значення не є `boolean`:
 
-```
+```php
 use Illuminate\Support\Arr;
 
 $array = ['name' => 'Joe', 'available' => true];
@@ -523,7 +523,7 @@ $flattened = Arr::flatten($array);
 
 Метод `Arr::float` дістає значення з глибоко вкладеного масиву за «крапковою» нотацією (так само, як [Arr::get()](#method-array-get)), але викидає `InvalidArgumentException`, якщо запитане значення не є `float`:
 
-```
+```php
 use Illuminate\Support\Arr;
 
 $array = ['name' => 'Joe', 'balance' => 123.45];
@@ -660,7 +660,7 @@ $contains = Arr::hasAny($array, ['category', 'product.discount']);
 
 Метод `Arr::integer` дістає значення з глибоко вкладеного масиву за «крапковою» нотацією (так само, як [Arr::get()](#method-array-get)), але викидає `InvalidArgumentException`, якщо запитане значення не є `int`:
 
-```
+```php
 use Illuminate\Support\Arr;
 
 $array = ['name' => 'Joe', 'age' => 42];
@@ -1289,7 +1289,7 @@ $sorted = Arr::sortRecursiveDesc($array);
 
 Метод `Arr::string` дістає значення з глибоко вкладеного масиву за «крапковою» нотацією (так само, як [Arr::get()](#method-array-get)), але викидає `InvalidArgumentException`, якщо запитане значення не є `string`:
 
-```
+```php
 use Illuminate\Support\Arr;
 
 $array = ['name' => 'Joe', 'languages' => ['PHP', 'Ruby']];

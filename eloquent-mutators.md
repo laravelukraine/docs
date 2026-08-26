@@ -1,5 +1,5 @@
 ---
-git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
+git: bb48eb2a640f8f91dc6f2452dd3c84a2d4d5a52c
 ---
 # Eloquent: мутатори та приведення типів
 
@@ -9,6 +9,7 @@ git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
     - [Опис мутатора](#defining-a-mutator)
 - [Приведення типів атрибутів](#attribute-casting)
     - [Приведення до масиву та JSON](#array-and-json-casting)
+    - [Приведення до вектора](#vector-casting)
     - [Бінарне приведення](#binary-casting)
     - [Приведення дат](#date-casting)
     - [Приведення до enum](#enum-casting)
@@ -221,6 +222,7 @@ protected function address(): Attribute
 - `AsFluent::class`
 - `AsStringable::class`
 - `AsUri::class`
+- `AsVector::class`
 - `boolean`
 - `collection`
 - `date`
@@ -526,6 +528,29 @@ class Option implements Arrayable, JsonSerializable
     }
 }
 ```
+
+<a name="vector-casting"></a>
+### Приведення до вектора
+
+Ви можете використовувати клас `Illuminate\Database\Eloquent\Casts\AsVector` для приведення векторного стовпця бази даних до та з PHP-масиву:
+
+```php
+use Illuminate\Database\Eloquent\Casts\AsVector;
+
+/**
+ * Get the attributes that should be cast.
+ *
+ * @return array<string, string>
+ */
+protected function casts(): array
+{
+    return [
+        'embedding' => AsVector::class,
+    ];
+}
+```
+
+При встановленні атрибута приведення приймає PHP-масив або екземпляр `Arrayable`, наприклад колекцію Laravel. При отриманні атрибута приведення повертає масив дробових чисел.
 
 <a name="binary-casting"></a>
 ### Бінарне приведення

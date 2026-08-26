@@ -1,5 +1,5 @@
 ---
-git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
+git: bb48eb2a640f8f91dc6f2452dd3c84a2d4d5a52c
 ---
 # Посібник з внеску
 
@@ -30,6 +30,7 @@ git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
 
 <div class="content-list" markdown="1">
 
+- [Laravel AI SDK](https://github.com/laravel/ai)
 - [Laravel Application](https://github.com/laravel/laravel)
 - [Laravel Art](https://github.com/laravel/art)
 - [Laravel Boost](https://github.com/laravel/boost)
