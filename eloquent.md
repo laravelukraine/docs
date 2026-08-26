@@ -1,5 +1,5 @@
 ---
-git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
+git: bb48eb2a640f8f91dc6f2452dd3c84a2d4d5a52c
 ---
 # Eloquent: початок роботи
 
@@ -495,6 +495,16 @@ $flight->number = 'FR 456';
 $flight->refresh();
 
 $flight->number; // "FR 900"
+```
+
+Якщо потрібно оновити модель і встановити песимістичне блокування всередині транзакції, використовуйте метод `refreshForUpdate`. Цей метод перезавантажує модель із блокуванням `FOR UPDATE`:
+
+```php
+DB::transaction(function () use ($flight) {
+    $flight->refreshForUpdate();
+
+    // Оновіть заблоковану модель...
+});
 ```
 
 <a name="collections"></a>

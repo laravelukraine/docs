@@ -1,5 +1,5 @@
 ---
-git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
+git: bb48eb2a640f8f91dc6f2452dd3c84a2d4d5a52c
 ---
 # Пошук
 
@@ -36,7 +36,7 @@ git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
 <a name="introduction-semantic-vector-search"></a>
 #### Семантичний / векторний пошук
 
-Для семантичного пошуку на базі AI, який добирає результати за *змістом*, а не за точними ключовими словами, метод конструктора запитів `whereVectorSimilarTo` використовує векторні ембединги, збережені в PostgreSQL із розширенням `pgvector`. Наприклад, пошук за «best wineries in Napa Valley» може підняти статтю «Top Vineyards to Visit», хоч слова й не перетинаються. Векторний пошук потребує PostgreSQL із розширенням `pgvector` та [Laravel AI SDK](/docs/{{version}}/ai-sdk).
+Для семантичного пошуку на базі AI, який добирає результати за *змістом*, а не за точними ключовими словами, метод конструктора запитів `whereVectorSimilarTo` використовує векторні ембединги, збережені в PostgreSQL із розширенням `pgvector` або в MariaDB. Наприклад, пошук за «best wineries in Napa Valley» може підняти статтю «Top Vineyards to Visit», хоч слова й не перетинаються. Векторний пошук потребує PostgreSQL із розширенням `pgvector` або MariaDB 11.7 чи новішої версії, а також [Laravel AI SDK](/docs/{{version}}/ai-sdk).
 
 <a name="introduction-reranking"></a>
 #### Переранжування
@@ -46,7 +46,7 @@ git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
 <a name="introduction-scout-search-engines"></a>
 #### Пошук через Laravel Scout
 
-Для застосунків, яким потрібен трейт `Searchable`, що автоматично тримає пошукові індекси синхронізованими з моделями Eloquent, [Laravel Scout](/docs/{{version}}/scout) пропонує і вбудований рушій бази даних, і драйвери для сторонніх сервісів на кшталт Algolia, Meilisearch та Typesense.
+Для застосунків, яким потрібен трейт `Searchable`, що автоматично тримає пошукові індекси синхронізованими з моделями Eloquent, [Laravel Scout](/docs/{{version}}/scout) пропонує і вбудований рушій бази даних, і драйвери для сторонніх сервісів на кшталт Algolia, Meilisearch, Typesense та Turbopuffer.
 
 <a name="full-text-search"></a>
 ## Повнотекстовий пошук
@@ -111,7 +111,7 @@ $articles = Article::whereFullText(
 Базовий робочий процес векторного пошуку такий: згенерувати ембединг (числовий масив) для кожної одиниці контенту й зберегти його поруч із даними, а під час пошуку згенерувати ембединг запиту користувача й знайти збережені ембединги, найближчі до нього у векторному просторі.
 
 > [!NOTE]
-> Векторний пошук потребує [Laravel AI SDK](/docs/{{version}}/ai-sdk) і підтримується PostgreSQL (потрібне розширення `pgvector`) та MongoDB (потрібен [пакет Laravel MongoDB](https://laravel.com/docs/13.x/mongodb)). Усі бази Postgres на [Laravel Cloud](https://laravel.com/cloud) уже мають встановлений `pgvector`.
+> Векторний пошук потребує [Laravel AI SDK](/docs/{{version}}/ai-sdk) і підтримується PostgreSQL (потрібне розширення `pgvector`), MariaDB 11.7 або новіша версія, та MongoDB (потрібен [пакет Laravel MongoDB](https://laravel.com/docs/13.x/mongodb)). Усі бази Postgres на [Laravel Cloud](https://laravel.com/cloud) уже мають встановлений `pgvector`.
 
 <a name="generating-embeddings"></a>
 ### Генерація ембедингів
@@ -158,13 +158,15 @@ Schema::create('documents', function (Blueprint $table) {
 
 Метод `Schema::ensureVectorExtensionExists` переконується, що розширення `pgvector` увімкнено у вашій базі PostgreSQL, перед створенням таблиці.
 
-У моделі Eloquent приведіть векторний стовпець до `array`, щоб Laravel автоматично конвертував між PHP-масивами й векторним форматом бази:
+У моделі Eloquent використовуйте каст `AsVector`, щоб Laravel автоматично конвертував між PHP-масивами й векторним форматом бази:
 
 ```php
+use Illuminate\Database\Eloquent\Casts\AsVector;
+
 protected function casts(): array
 {
     return [
-        'embedding' => 'array',
+        'embedding' => AsVector::class,
     ];
 }
 ```
