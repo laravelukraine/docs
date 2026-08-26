@@ -1,5 +1,5 @@
 ---
-git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
+git: bb48eb2a640f8f91dc6f2452dd3c84a2d4d5a52c
 ---
 # Стартові набори
 
@@ -22,6 +22,7 @@ git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
     - [Обмеження частоти](#rate-limiting)
 - [Команди](#teams)
 - [Автентифікація через WorkOS AuthKit](#workos)
+    - [Налаштування вашого стартового набору WorkOS](#configuring-your-workos-starter-kit)
 - [Inertia SSR](#inertia-ssr)
 - [Стартові набори від спільноти](#community-maintained-starter-kits)
 - [Часті запитання](#faqs)
@@ -491,6 +492,7 @@ RateLimiter::for('login', function ($request) {
 
 Щоб використовувати WorkOS AuthKit як провайдера автентифікації вашого застосунку, оберіть варіант WorkOS під час створення нового застосунку зі стартовим набором через `laravel new`.
 
+<a name="configuring-your-workos-starter-kit"></a>
 ### Налаштування вашого стартового набору WorkOS
 
 Після створення нового застосунку зі стартовим набором на основі WorkOS задайте змінні середовища `WORKOS_CLIENT_ID`, `WORKOS_API_KEY` і `WORKOS_REDIRECT_URL` у файлі `.env` вашого застосунку. Ці значення мають збігатися з тими, що надані вам у панелі WorkOS для вашого застосунку:
@@ -506,7 +508,7 @@ WORKOS_REDIRECT_URL="${APP_URL}/authenticate"
 <a name="configuring-authkit-authentication-methods"></a>
 #### Налаштування методів автентифікації AuthKit
 
-Використовуючи стартовий набір на основі WorkOS, ми радимо вимкнути автентифікацію «Email + Password» у налаштуваннях WorkOS AuthKit вашого застосунку, дозволивши користувачам автентифікуватися лише через провайдерів соціальної автентифікації, passkey, «Magic Auth» і SSO. Це дозволяє вашому застосунку взагалі не мати справи з паролями користувачів.
+Коли ви використовуєте стартовий набір на основі WorkOS, ми радимо вимкнути автентифікацію «Email + Password» у налаштуваннях WorkOS AuthKit вашого застосунку, дозволивши користувачам автентифікуватися лише через провайдерів соціальної автентифікації, passkey, «Magic Auth» і SSO. Це дозволяє вашому застосунку взагалі не мати справи з паролями користувачів.
 
 <a name="configuring-authkit-session-timeouts"></a>
 #### Налаштування тайм-аутів сесії AuthKit
@@ -587,7 +589,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 Можливо, ви захочете налаштувати типовий шаблон листа, щоб він краще відповідав брендингу вашого застосунку. Щоб змінити цей шаблон, опублікуйте представлення листів у своєму застосунку такою командою:
 
-```
+```shell
 php artisan vendor:publish --tag=laravel-mail
 ```
 
