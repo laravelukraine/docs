@@ -119,23 +119,54 @@ jobs:
             exit 0
           fi
 
-          branch="sync/upstream-${HEAD:0:8}"
+          # One rolling branch, not one per upstream commit.
+          #
+          # The name used to carry the upstream SHA, which meant it only stayed
+          # put while upstream did. As soon as upstream landed another commit
+          # the name moved, the lookup for an open pull request matched nothing,
+          # and a second pull request opened beside the first - which nothing
+          # ever closed. Upstream 6bc0513c and 7c2d03a8 landed the same day and
+          # produced #19 and #20, both translating the same contributions.md
+          # paragraph, independently, to different wording. Merging either one
+          # would have left the other conflicting on that line.
+          #
+          # A fixed name keeps every unmerged run on one pull request: the
+          # branch is the open review, and upstream moving is just more work
+          # arriving on it.
+          branch='sync/upstream'
 
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
 
-          # The branch name is derived from the upstream commit, so while
-          # upstream sits still every run aims at the same branch - and one is
-          # already there from the run that first reached this commit. Starting
-          # it afresh from 13.x and pushing rejected the push as non-fast-forward,
-          # which failed the whole step: the translations that run had just
-          # produced were thrown away, and the pages that had been retried
-          # stayed behind. Runs #16 and #17 (8 and 9 August) were both lost this
-          # way, which is how installation.md fell behind the rest.
+          # The commit this run was built from, captured before any checkout
+          # moves HEAD. Used as the base for listing what the branch carries, so
+          # the list stays correct even if 13.x moves mid-run.
+          base=$(git rev-parse HEAD)
+
+          # --repo throughout: this is a fork of laravel/docs, and without it
+          # gh queries upstream, where the token has no access.
+          open=$(gh pr list --repo "${GITHUB_REPOSITORY}" \
+            --state open --head "$branch" \
+            --json number --jq '.[0].number // empty')
+
+          # Unconditionally, before either path: the push below leases against
+          # the remote-tracking ref, and without a fetch there is nothing for it
+          # to compare - the reset path would push unchecked. Ignore the failure
+          # when the branch is not on the remote yet; that is the first run.
+          git fetch --quiet origin "$branch" || true
+
+          # Continue the branch only while a pull request is open on it. The
+          # branch outlives its pull request - a merged one leaves it behind on
+          # the remote - so existence alone is the wrong question: building on a
+          # merged branch would re-propose commits that are already in 13.x.
+          # An open pull request means the work is still unreviewed, and today's
+          # translation belongs on top of it.
           #
-          # So continue the existing branch when there is one: its commits are
-          # the earlier attempt at this same upstream commit, and today's retry
-          # belongs on top of them.
+          # Starting afresh from 13.x and pushing rejected the push as
+          # non-fast-forward, which failed the whole step: the translations that
+          # run had just produced were thrown away, and the pages that had been
+          # retried stayed behind. Runs #16 and #17 (8 and 9 August) were both
+          # lost this way, which is how installation.md fell behind the rest.
           #
           # Not with a stash, though. Both runs translate the same pages, so
           # popping this run's work onto a branch that already carries the
@@ -152,7 +183,7 @@ jobs:
           # stands, and lay those pages back on top. Pages this run retranslated
           # are superseded by today's version, pages only the earlier run did
           # keep its version, and new pages are added.
-          if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
+          if [ -n "$open" ]; then
             saved=$(mktemp -d)
             git status --porcelain -- '*.md' | awk '{print $2}' > "$saved/list"
             while read -r page; do
@@ -160,7 +191,6 @@ jobs:
               cp "$page" "$saved/files/$page"
             done < "$saved/list"
 
-            git fetch --quiet origin "$branch"
             # Safe: every changed page is copied aside above.
             git reset --hard --quiet HEAD
             git clean -fdq
@@ -172,7 +202,15 @@ jobs:
             done < "$saved/list"
             rm -rf "$saved"
           else
-            git checkout -b "$branch"
+            # No open pull request: start the branch over from 13.x, discarding
+            # whatever a merged (or abandoned) run left on the remote. -B rather
+            # than -b so a leftover branch of the same name is simply reset onto
+            # today's base instead of failing as already existing.
+            #
+            # Branched from HEAD, not origin/13.x: the working tree's
+            # translations were built against the commit this run checked out,
+            # and that is the base they belong on even if 13.x has moved since.
+            git checkout --quiet -B "$branch"
           fi
 
           git add -- '*.md'
@@ -185,15 +223,32 @@ jobs:
           fi
 
           git commit -m "chore(docs): підтягнути зміни апстріму ${HEAD:0:8}"
-          git push --quiet origin "$branch"
+
+          # --force-with-lease, not --force: the reset case above rewrites a
+          # stale branch left by a merged run, so the push is deliberately not a
+          # fast-forward. The lease still refuses if the remote moved since this
+          # run fetched it, which is the case worth failing on - somebody
+          # pushing a correction onto the open branch by hand.
+          git push --quiet --force-with-lease origin "$branch"
 
           {
             echo "Автоматичний переклад змін з [laravel/docs@${HEAD:0:8}](https://github.com/laravel/docs/commit/$HEAD)."
             echo
-            # The files actually committed, rather than everything the run set
-            # out to do: a page that failed validation is not in the branch.
-            echo "Оновлено: $(git diff --name-only HEAD~1 | tr '\n' ' ')"
+            # Everything on the branch, not just this run's commit: the pull
+            # request rolls, so by now it may carry several upstream commits and
+            # the reviewer is reading all of them at once. Still the files
+            # actually committed, rather than everything the runs set out to do
+            # - a page that failed validation is not in the branch.
+            echo "Оновлено: $(git diff --name-only "$base"...HEAD | tr '\n' ' ')"
             echo
+            # Named only once there are several, so the ordinary single-commit
+            # case reads exactly as it always did.
+            if [ "$(git rev-list --count "$base"..HEAD)" -gt 1 ]; then
+              echo 'Гілка збирає кілька комітів апстріму:'
+              echo
+              git log --reverse --format='- %s' "$base"..HEAD
+              echo
+            fi
             if [ -n "$HELD" ]; then
               echo "> Відкладено як завеликі для автоматики: $HELD"
               echo
@@ -218,13 +273,8 @@ jobs:
           # it gh targets the upstream repository, where the token has no
           # access, and fails with "Resource not accessible by integration".
           #
-          # A pull request may already exist for this branch, for the same
-          # reason the branch did: creating a second one is an error, so the
-          # open one is brought up to date with what this run added instead.
-          open=$(gh pr list --repo "${GITHUB_REPOSITORY}" \
-            --state open --head "$branch" \
-            --json number --jq '.[0].number // empty')
-
+          # $open was resolved before the branch work above, and it decided
+          # which branch path ran; reuse it rather than asking again.
           if [ -n "$open" ]; then
             gh pr edit "$open" --repo "${GITHUB_REPOSITORY}" \
               --title "Підтягнути зміни апстріму ${HEAD:0:8}" \
