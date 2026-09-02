@@ -1,5 +1,5 @@
 ---
-git: 5e0a0edf75ca5f9ec60a27cece58fa9997958335
+git: 8760508f20115194438f6cae7adb20a0a4b83051
 ---
 # Колекції
 
@@ -115,6 +115,7 @@ $translated = $collection->toLocale('es');
 [avg](#method-avg)
 [before](#method-before)
 [chunk](#method-chunk)
+[chunkBy](#method-chunkby)
 [chunkWhile](#method-chunkwhile)
 [collapse](#method-collapse)
 [collapseWithKeys](#method-collapsewithkeys)
@@ -404,6 +405,27 @@ $chunks->all();
         @endforeach
     </div>
 @endforeach
+```
+
+<a name="method-chunkby"></a>
+#### `chunkBy()` {.collection-method}
+
+Метод `chunkBy` розбиває колекцію на кілька менших колекцій, групуючи сусідні елементи, які мають однакове значення для заданого ключа або колбеку. Наприклад, ви можете згрупувати сусідні продукти, які мають однакового батька:
+
+```php
+$chunks = $products->chunkBy('parent');
+```
+
+На відміну від методу `groupBy`, елементи з однаковим значенням, які не є сусідніми, розміщуються в окремих частинах:
+
+```php
+$collection = collect([1, 1, 2, 2, 1]);
+
+$chunks = $collection->chunkBy(fn (int $value) => $value);
+
+$chunks->all();
+
+// [[1, 1], [2, 2], [1]]
 ```
 
 <a name="method-chunkwhile"></a>
@@ -4204,6 +4226,7 @@ LazyCollection::make(function () {
 [average](#method-average)
 [avg](#method-avg)
 [chunk](#method-chunk)
+[chunkBy](#method-chunkby)
 [chunkWhile](#method-chunkwhile)
 [collapse](#method-collapse)
 [collect](#method-collect)
