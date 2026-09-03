@@ -1,5 +1,5 @@
 ---
-git: 147b82e4939f9d061353aef30a787fae9118ce22
+git: ccefc99cd9f671ef3c60b2e1b3ee3188df8fadf2
 ---
 # Laravel AI SDK
 
@@ -27,6 +27,7 @@ git: 147b82e4939f9d061353aef30a787fae9118ce22
     - [Анонімні агенти](#anonymous-agents)
     - [Конфігурація агента](#agent-configuration)
     - [Опції провайдера](#provider-options)
+    - [Кешування промптів](#prompt-caching)
 - [Схвалення інструментів людиною](#human-tool-approval)
     - [Повний потік схвалення](#complete-approval-flow)
 - [Зображення](#images)
@@ -234,10 +235,10 @@ AI SDK підтримує різні провайдери для своїх мо
 |---|---|
 | Text | OpenAI, OpenAI Compatible, Anthropic, Gemini, Azure, Bedrock, Groq, xAI, DeepSeek, Mistral, Ollama, OpenRouter |
 | Images | OpenAI, Gemini, xAI, Azure, Bedrock, OpenRouter |
-| TTS | OpenAI, ElevenLabs, Gemini |
+| TTS | OpenAI, ElevenLabs, Gemini, Mistral |
 | STT | OpenAI, OpenAI Compatible, ElevenLabs, Groq, Mistral, Gemini |
 | Embeddings | OpenAI, OpenAI Compatible, Gemini, Azure, Bedrock, Cohere, Mistral, Jina, VoyageAI, Ollama, OpenRouter |
-| Reranking | Cohere, Jina, VoyageAI |
+| Reranking | Cohere, Jina, VoyageAI, Bedrock |
 | Files | OpenAI, Anthropic, Gemini, Azure |
 
 </div>
@@ -889,6 +890,25 @@ public function tools(): iterable
 }
 ```
 
+<a name="validating-tool-arguments"></a>
+#### Валідація аргументів інструменту
+
+Хоча схема вашого інструменту обмежує аргументи, які може надати модель, ви можете валідувати вхідні аргументи за допомогою методу `validate` запиту:
+
+```php
+public function handle(Request $request): Stringable|string
+{
+    $validated = $request->validate([
+        'city' => 'required|string',
+        'days' => 'required|integer|max:7',
+    ]);
+
+    return $this->forecast($validated['city'], $validated['days']);
+}
+```
+
+Коли валідація не проходить, повідомлення валідації повертаються моделі як результат роботи інструменту, що дозволяє їй виправити аргументи й викликати інструмент знову.
+
 <a name="repairing-tool-calls"></a>
 #### Виправлення викликів інструментів
 
@@ -1533,7 +1553,49 @@ class SalesCoach implements Agent, HasProviderOptions
 
 Метод `providerOptions` отримує провайдера, який використовується зараз (enum `Lab` чи рядок), що дозволяє повертати різні опції для різних провайдерів. Це особливо корисно під час використання [резервування](#failover), оскільки кожен резервний провайдер може отримати власну конфігурацію.
 
-Наведений вище приклад з Anthropic також вмикає [кешування промптів](https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching) через `cache_control`.
+Наведений вище приклад з Anthropic також вмикає [кешування промптів](#prompt-caching) через `cache_control`.
+
+<a name="prompt-caching"></a>
+### Кешування промптів
+
+Більшість провайдерів автоматично кешує повторювані префікси промптів і виставляє рахунок за кешовану частину зі знижкою. OpenAI, Gemini, Groq, DeepSeek та xAI не потребують налаштування, і ви можете перевірити економію через використання у відповіді:
+
+```php
+$response->usage->cacheReadInputTokens;
+$response->usage->cacheWriteInputTokens;
+```
+
+Провайдери `anthropic` і `bedrock` кешують лише на вимогу. Атрибути `CacheInstructions` і `CacheToolDefinitions` розміщують точку кешування на кінці інструкцій вашого агента та визначень інструментів, тому кожна розмова читає цей префікс з кешу замість того, щоб писати його знову:
+
+```php
+use Laravel\Ai\Attributes\CacheInstructions;
+use Laravel\Ai\Attributes\CacheToolDefinitions;
+
+#[CacheInstructions]
+#[CacheToolDefinitions]
+class SalesCoach implements Agent
+{
+    use Promptable;
+
+    // ...
+}
+```
+
+Якщо ваші інструкції змінюються з кожним запитом, наприклад, коли вони містять поточну дату, використовуйте лише `CacheToolDefinitions`. Кешування префікса, який змінюється з кожним запитом, створює новий запис у кеші щоразу, тому ви платите за запис до кешу, ніколи не використовуючи його повторно.
+
+Провайдери, які не підтримують ці атрибути, ігнорують їх, тому агент може безпечно оголошувати їх під час використання [failover](#failover).
+
+Кешовані префікси зберігаються протягом п'яти хвилин за замовчуванням. Anthropic може зберігати їх протягом години, якщо ви передасте TTL до атрибута:
+
+```php
+#[CacheInstructions('1h')]
+#[CacheToolDefinitions('1h')]
+```
+
+Як альтернатива, автоматичне кешування Anthropic може бути увімкнено через верхньорівневу [опцію провайдера](#provider-options) `cache_control`. Це розміщує одну точку кешування після останнього блоку запиту, тому точка кешування переміщується в міру зростання розмови, і кожен хід читає попередні ходи з кешу. Обидва механізми можуть бути поєднані.
+
+> [!WARNING]
+> Оскільки провайдери будують промпти в порядку інструменти, інструкції та повідомлення, кешування інструкцій протягом години також вимагає кешування визначень інструментів протягом години. Змішування цих двох викликає `InvalidArgumentException`.
 
 <a name="human-tool-approval"></a>
 ## Схвалення інструментів людиною
@@ -2110,12 +2172,15 @@ $documents = Document::query()
     'embeddings' => [
         'cache' => true,
         'store' => env('CACHE_STORE', 'database'),
+        'individually' => true,
         // ...
     ],
 ],
 ```
 
 Коли кешування увімкнено, ембединги кешуються на 30 днів. Ключ кешу базується на провайдері, моделі, розмірності та вхідному вмісті, що гарантує повернення закешованих результатів для однакових запитів і генерацію свіжих ембедингів для інших конфігурацій.
+
+За замовчуванням ембединг кожного вхідного тексту кешується під власним ключем, тож наступний запит може знайти в кеші дані для тих вхідних текстів, які вже траплялися раніше, навіть якщо набір текстів чи їхній порядок змінився. Щоб натомість кешувати весь набір вхідних текстів під одним ключем, встановіть параметр конфігурації `ai.caching.embeddings.individually` у `false`.
 
 Ви також можете увімкнути кешування для конкретного запиту методом `cache`, навіть коли глобальне кешування вимкнено:
 

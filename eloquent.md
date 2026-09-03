@@ -1,5 +1,5 @@
 ---
-git: 8760508f20115194438f6cae7adb20a0a4b83051
+git: ccefc99cd9f671ef3c60b2e1b3ee3188df8fadf2
 ---
 # Eloquent: початок роботи
 
