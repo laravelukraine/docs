@@ -1,5 +1,5 @@
 ---
-git: ccefc99cd9f671ef3c60b2e1b3ee3188df8fadf2
+git: 2914ba0b06c6be40c2f1f992555853f6266707d6
 ---
 # Консоль Artisan
 
@@ -1024,7 +1024,7 @@ DevCommands::only('server', 'vite');
 DevCommands::except('queue');
 ```
 
-Ви можете виключити команди, зареєстровані пакетами або стандартні команди Laravel, за допомогою методів `withoutVendorCommands` і `withoutDefaultCommands`:
+Ви можете виключити команди, зареєстровані пакетами, або стандартні команди Laravel за допомогою методів `withoutVendorCommands` і `withoutDefaultCommands`:
 
 ```php
 DevCommands::withoutVendorCommands();
