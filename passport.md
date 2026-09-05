@@ -1,5 +1,5 @@
 ---
-git: 57ae1e7dbd4bda3bae24ce93e527f1807ae49a43
+git: 89e91b5cff48e1b9b1a7921300653eb1ceb7bfcb
 ---
 # Laravel Passport
 
@@ -23,7 +23,7 @@ git: 57ae1e7dbd4bda3bae24ce93e527f1807ae49a43
     - [Створення клієнта](#creating-a-auth-pkce-grant-client)
     - [Запит токенів](#requesting-auth-pkce-grant-tokens)
 - [Device Authorization Grant](#device-authorization-grant)
-    - [Створення клієнта Device Code Grant](#creating-a-device-authorization-grant-client)
+    - [Створення клієнта Device Authorization Grant](#creating-a-device-authorization-grant-client)
     - [Запит токенів](#requesting-device-authorization-grant-tokens)
 - [Password Grant](#password-grant)
     - [Створення клієнта Password Grant](#creating-a-password-grant-client)
