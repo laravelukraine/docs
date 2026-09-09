@@ -1,5 +1,5 @@
 ---
-git: 4030a84b979f7420788dda14df439dd4d66d765d
+git: b6f07c64593f655f75d5b53c4eb8cf21139be7f3
 ---
 # Сповіщення
 
@@ -1793,6 +1793,9 @@ test('orders can be shipped', function () {
     // Assert a notification was sent twice...
     Notification::assertSentTimes(WeeklyReminder::class, 2);
 
+    // Assert that a notification was sent to a user exactly once...
+    Notification::assertSentToOnce($user, OrderShipped::class);
+
     // Assert that a given number of notifications were sent...
     Notification::assertCount(3);
 });
@@ -1831,6 +1834,9 @@ class ExampleTest extends TestCase
         // Assert a notification was sent twice...
         Notification::assertSentTimes(WeeklyReminder::class, 2);
 
+        // Assert that a notification was sent to a user exactly once...
+        Notification::assertSentToOnce($user, OrderShipped::class);
+
         // Assert that a given number of notifications were sent...
         Notification::assertCount(3);
     }
@@ -1855,6 +1861,7 @@ Notification::assertSentTo(
 
 ```php
 Notification::assertSentOnDemand(OrderShipped::class);
+Notification::assertSentOnDemandOnce(OrderShipped::class);
 ```
 
 Передавши замикання другим аргументом методу `assertSentOnDemand`, ви можете визначити, чи надіслано сповіщення на льоту за правильною «маршрутною» адресою:
