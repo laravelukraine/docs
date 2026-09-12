@@ -1,5 +1,5 @@
 ---
-git: bb48eb2a640f8f91dc6f2452dd3c84a2d4d5a52c
+git: b6f07c64593f655f75d5b53c4eb8cf21139be7f3
 ---
 # Laravel Scout
 
@@ -620,6 +620,40 @@ User::class => [
 ],
 ```
 
+<a name="typesense-embeddings"></a>
+#### Ембединги
+
+Щоб увімкнути семантичний і гібридний пошук, визначте налаштування `embedding` і векторне поле в конфігурації Typesense моделі. За замовчуванням Scout використовує [Laravel AI SDK](/docs/{{version}}/ai-sdk) для генерації ембедингів:
+
+```php
+use App\Models\Article;
+
+'model-settings' => [
+    Article::class => [
+        'collection-schema' => [
+            'fields' => [
+                ['name' => 'title', 'type' => 'string'],
+                ['name' => 'embedding', 'type' => 'float[]', 'num_dim' => 1536],
+            ],
+        ],
+        'search-parameters' => ['query_by' => 'title'],
+        'embedding' => [
+            'attribute' => 'embedding',
+            'dimensions' => 1536,
+        ],
+    ],
+],
+```
+
+Метод `toSearchableEmbedding` вашої моделі має повертати вихідний текст, який Scout має перетворити на ембединг, або попередньо обчислений масив ембединга:
+
+```php
+public function toSearchableEmbedding(): string|array
+{
+    return $this->title.' '.$this->body;
+}
+```
+
 <a name="typesense-dynamic-search-parameters"></a>
 #### Динамічні параметри пошуку
 
@@ -965,7 +999,7 @@ $orders = Order::search('Star Trek')->raw();
 <a name="semantic-search"></a>
 ### Семантичний пошук
 
-Рушії database, Meilisearch і Turbopuffer підтримують семантичний пошук, який добирає записи за змістом запиту. Коли ембединги генерує Scout, семантичний і гібридний пошук потребують [Laravel AI SDK](/docs/{{version}}/ai-sdk). [Нативні ембединги](#turbopuffer-configuration) Turbopuffer і заздалегідь обчислені вектори запиту Laravel AI SDK не потребують.
+Рушії database, Meilisearch, Typesense і Turbopuffer підтримують семантичний пошук, який добирає записи за змістом запиту. Коли ембединги генерує Scout, семантичний і гібридний пошук потребують [Laravel AI SDK](/docs/{{version}}/ai-sdk). [Нативні ембединги Typesense](#typesense-embeddings), [нативні ембединги Turbopuffer](#turbopuffer-configuration) і заздалегідь обчислені вектори запиту Laravel AI SDK не потребують.
 
 Налаштувавши ембединги для обраного рушія, викличте на пошуковому запиті метод `semantic`:
 

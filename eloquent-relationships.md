@@ -1,5 +1,5 @@
 ---
-git: 5e0a0edf75ca5f9ec60a27cece58fa9997958335
+git: b6f07c64593f655f75d5b53c4eb8cf21139be7f3
 ---
 # Eloquent: зв'язки
 
@@ -17,6 +17,7 @@ git: 5e0a0edf75ca5f9ec60a27cece58fa9997958335
     - [Фільтрація запитів за стовпцями проміжної таблиці](#filtering-queries-via-intermediate-table-columns)
     - [Сортування запитів за стовпцями проміжної таблиці](#ordering-queries-via-intermediate-table-columns)
     - [Визначення власних моделей проміжної таблиці](#defining-custom-intermediate-table-models)
+        - [Автоматична гідратація зв'язків Pivot](#automatically-hydrating-pivot-relationships)
 - [Поліморфні зв'язки](#polymorphic-relationships)
     - [Один до одного](#one-to-one-polymorphic-relations)
     - [Один до багатьох](#one-to-many-polymorphic-relations)
@@ -1015,6 +1016,49 @@ class RoleUser extends Pivot
 {
     // ...
 }
+```
+
+<a name="automatically-hydrating-pivot-relationships"></a>
+#### Автоматична гідратація зв'язків проміжної моделі
+
+Коли власна проміжна модель визначає зв'язки `belongsTo` для оголошуючої та зв'язаної моделей, ви можете викликати `chaperone`, щоб автоматично гідратувати ці зв'язки на кожній проміжній моделі. Це уникає додаткових запитів при доступі до моделей через проміжну:
+
+```php
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\Pivot;
+
+class RoleUser extends Pivot
+{
+    public function role(): BelongsTo
+    {
+        return $this->belongsTo(Role::class);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+}
+
+class Role extends Model
+{
+    public function users(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class)
+            ->using(RoleUser::class)
+            ->chaperone();
+    }
+}
+```
+
+Eloquent спробує вивести імена зв'язків проміжної моделі. Якщо ваша проміжна модель використовує нестандартні імена, передайте імена оголошуючого та зв'язаного зв'язків до `chaperone`:
+
+```php
+return $this->belongsToMany(User::class)
+    ->using(RoleUser::class)
+    ->chaperone(declaring: 'role', related: 'user');
 ```
 
 <a name="polymorphic-relationships"></a>
