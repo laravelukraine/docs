@@ -645,7 +645,7 @@ use App\Models\Article;
 ],
 ```
 
-Метод `toSearchableEmbedding` вашої моделі має повертати вихідний текст, який Scout має перетворити на ембединг, або попередньо обчислений масив ембединга:
+Метод `toSearchableEmbedding` вашої моделі повинен повертати вихідний текст, який Scout має перетворити на ембединг, або попередньо обчислений масив ембедингу:
 
 ```php
 public function toSearchableEmbedding(): string|array
