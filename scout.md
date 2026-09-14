@@ -1,5 +1,5 @@
 ---
-git: b6f07c64593f655f75d5b53c4eb8cf21139be7f3
+git: 0a69ca9ff3a3122b8cc075ea5a8e906afb657701
 ---
 # Laravel Scout
 
@@ -623,7 +623,7 @@ User::class => [
 <a name="typesense-embeddings"></a>
 #### Ембединги
 
-Щоб увімкнути семантичний і гібридний пошук, визначте налаштування `embedding` і векторне поле в конфігурації Typesense моделі. За замовчуванням Scout використовує [Laravel AI SDK](/docs/{{version}}/ai-sdk) для генерації ембедингів:
+Щоб увімкнути семантичний та гібридний пошук, визначте налаштування `embedding` та векторне поле в конфігурації Typesense моделі. За замовчуванням Scout використовує [Laravel AI SDK](/docs/{{version}}/ai-sdk) для генерації ембедингів:
 
 ```php
 use App\Models\Article;
@@ -645,7 +645,7 @@ use App\Models\Article;
 ],
 ```
 
-Метод `toSearchableEmbedding` вашої моделі повинен повертати вихідний текст, який Scout має перетворити на ембединг, або попередньо обчислений масив ембедингу:
+Метод `toSearchableEmbedding` вашої моделі має повертати вихідний текст, який Scout має перетворити на ембединг, або попередньо обчислений масив ембедингу:
 
 ```php
 public function toSearchableEmbedding(): string|array
