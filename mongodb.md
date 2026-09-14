@@ -1,5 +1,5 @@
 ---
-git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
+git: 0a69ca9ff3a3122b8cc075ea5a8e906afb657701
 ---
 # MongoDB
 
@@ -34,6 +34,12 @@ composer require mongodb/laravel-mongodb
 
 ```shell
 pecl install mongodb
+```
+
+Як варіант, можна встановити розширення через [PIE](https://github.com/php/pie), офіційний інсталятор розширень PHP:
+
+```shell
+pie install mongodb/mongodb-extension
 ```
 
 Докладніше про встановлення розширення MongoDB для PHP читайте в [інструкції зі встановлення розширення MongoDB PHP](https://www.php.net/manual/en/mongodb.installation.php).

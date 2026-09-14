@@ -1,5 +1,5 @@
 ---
-git: b6f07c64593f655f75d5b53c4eb8cf21139be7f3
+git: 0a69ca9ff3a3122b8cc075ea5a8e906afb657701
 ---
 # Сповіщення
 

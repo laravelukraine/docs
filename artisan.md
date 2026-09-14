@@ -1,5 +1,5 @@
 ---
-git: 89e91b5cff48e1b9b1a7921300653eb1ceb7bfcb
+git: 0a69ca9ff3a3122b8cc075ea5a8e906afb657701
 ---
 # Консоль Artisan
 
