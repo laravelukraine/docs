@@ -1,5 +1,5 @@
 ---
-git: 0a69ca9ff3a3122b8cc075ea5a8e906afb657701
+git: e232d85d9300a354f6a62c24975173d5aed84ec9
 ---
 # Eloquent: зв'язки
 
@@ -17,7 +17,7 @@ git: 0a69ca9ff3a3122b8cc075ea5a8e906afb657701
     - [Фільтрація запитів за стовпцями проміжної таблиці](#filtering-queries-via-intermediate-table-columns)
     - [Сортування запитів за стовпцями проміжної таблиці](#ordering-queries-via-intermediate-table-columns)
     - [Визначення власних моделей проміжної таблиці](#defining-custom-intermediate-table-models)
-        - [Автоматична гідратація зв'язків Pivot](#automatically-hydrating-pivot-relationships)
+        - [Автоматична гідратація зв'язків pivot](#automatically-hydrating-pivot-relationships)
 - [Поліморфні зв'язки](#polymorphic-relationships)
     - [Один до одного](#one-to-one-polymorphic-relations)
     - [Один до багатьох](#one-to-many-polymorphic-relations)
@@ -1019,9 +1019,9 @@ class RoleUser extends Pivot
 ```
 
 <a name="automatically-hydrating-pivot-relationships"></a>
-#### Автоматична гідратація зв'язків проміжної таблиці
+#### Автоматична гідратація зв'язків проміжної моделі
 
-Коли власна проміжна модель визначає зв'язки `belongsTo` для оголошувальної та пов'язаної моделей, ви можете викликати `chaperone`, щоб автоматично гідратувати ці зв'язки на кожній проміжній моделі. Це дозволяє уникнути додаткових запитів при доступі до моделей через проміжну таблицю:
+Коли власна проміжна модель визначає зв'язки `belongsTo` для оголошувальної та пов'язаної моделей, ви можете викликати `chaperone`, щоб автоматично гідратувати ці зв'язки на кожній проміжній моделі. Це уникає додаткових запитів при доступі до моделей через проміжну модель:
 
 ```php
 use Illuminate\Database\Eloquent\Model;
@@ -1053,7 +1053,7 @@ class Role extends Model
 }
 ```
 
-Eloquent спробує визначити імена зв'язків проміжної таблиці автоматично. Якщо ваша проміжна модель використовує нестандартні імена, передайте імена оголошувального та пов'язаного зв'язків до `chaperone`:
+Eloquent спробує визначити назви зв'язків проміжної моделі. Якщо ваша проміжна модель використовує нестандартні назви, передайте назви оголошувального та пов'язаного зв'язків до `chaperone`:
 
 ```php
 return $this->belongsToMany(User::class)
