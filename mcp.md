@@ -1,5 +1,5 @@
 ---
-git: 5e0a0edf75ca5f9ec60a27cece58fa9997958335
+git: e232d85d9300a354f6a62c24975173d5aed84ec9
 ---
 # Laravel MCP
 
@@ -10,8 +10,10 @@ git: 5e0a0edf75ca5f9ec60a27cece58fa9997958335
     - [Реєстрація сервера](#server-registration)
     - [Вебсервери](#web-servers)
     - [Локальні сервери](#local-servers)
+    - [Підказки кешу](#cache-hints)
 - [Інструменти](#tools)
     - [Створення інструментів](#creating-tools)
+    - [Каталоги інструментів з пошуком](#searchable-tool-catalogs)
     - [Вхідні схеми інструментів](#tool-input-schemas)
     - [Вихідні схеми інструментів](#tool-output-schemas)
     - [Валідація аргументів інструмента](#validating-tool-arguments)
@@ -176,6 +178,48 @@ Mcp::local('weather', WeatherServer::class);
 
 Щойно сервер зареєстровано, вам зазвичай не потрібно вручну запускати артизан-команду `mcp:start`. Натомість налаштуйте свій MCP-клієнт (AI-агента) запускати сервер або скористайтеся [MCP Inspector](#mcp-inspector).
 
+<a name="cache-hints"></a>
+### Підказки кешування
+
+Laravel MCP включає підказки кешування з відповідями, які можуть бути кешовані, такими як виявлення сервера, список примітивів і читання ресурсів. За замовчуванням ці відповіді позначаються як приватні з часом життя нуль мілісекунд.
+
+Ви можете налаштувати підказку кешування за замовчуванням для сервера, використовуючи атрибут `Cacheable`:
+
+```php
+use Laravel\Mcp\Enums\CacheScope;
+use Laravel\Mcp\Server\Attributes\Cacheable;
+
+#[Cacheable(ttlMs: 60_000, scope: CacheScope::Public)]
+class WeatherServer extends Server
+{
+    /**
+     * Get the cache hints for individual MCP methods.
+     *
+     * @return array<string, \Laravel\Mcp\Server\Attributes\Cacheable>
+     */
+    protected function cacheHints(): array
+    {
+        return [
+            'tools/list' => new Cacheable(ttlMs: 30_000, scope: CacheScope::Public),
+        ];
+    }
+}
+```
+
+Область `CacheScope::Private` обмежує кешовані відповіді тим самим контекстом авторизації, тоді як `CacheScope::Public` дозволяє спільно використовувати відповіді між користувачами. Підказки кешування є рекомендаційними; MCP-клієнт або хост визначає, чи фактично кешується відповідь. Підказки для конкретних методів, що повертаються `cacheHints`, мають пріоритет над атрибутом `Cacheable` сервера.
+
+Ви можете перевизначити підказку кешування сервера для окремого ресурсу, застосувавши атрибут `Cacheable` до класу ресурсу:
+
+```php
+#[Cacheable(ttlMs: 300_000, scope: CacheScope::Public)]
+class WeatherGuidelinesResource extends Resource
+{
+    // ...
+}
+```
+
+Атрибут `Cacheable` ресурсу має пріоритет як над підказкою для конкретного методу, так і над підказкою сервера за замовчуванням.
+
 <a name="tools"></a>
 ## Інструменти
 
@@ -255,6 +299,46 @@ class WeatherServer extends Server
 }
 ```
 
+<a name="searchable-tool-catalogs"></a>
+### Каталоги інструментів із пошуком
+
+Сервери з великою кількістю інструментів можуть розмістити деякі інструменти в каталозі з пошуком замість того, щоб рекламувати кожен інструмент AI-клієнту. Каталог із пошуком надає два інструменти: `search_tools`, який шукає в каталозі за назвою інструменту, описом та схемою вхідних даних; і `execute_tools`, який викликає один або більше інструментів, повернутих пошуком.
+
+Щоб створити каталог із пошуком, використовуйте клас `ToolSearch` як ключ масиву у властивості `$tools` вашого сервера:
+
+```php
+<?php
+
+namespace App\Mcp\Servers;
+
+use App\Mcp\Tools\CurrentWeatherTool;
+use App\Mcp\Tools\HistoricalWeatherTool;
+use App\Mcp\Tools\WeatherAlertsTool;
+use Laravel\Mcp\Server;
+use Laravel\Mcp\Server\Tools\ToolSearch;
+
+class WeatherServer extends Server
+{
+    /**
+     * The tools registered with this MCP server.
+     *
+     * @var array<int|string, \Laravel\Mcp\Server\Tool|class-string<\Laravel\Mcp\Server\Tool>|array<int, \Laravel\Mcp\Server\Tool|class-string<\Laravel\Mcp\Server\Tool>>>
+     */
+    protected array $tools = [
+        CurrentWeatherTool::class,
+
+        ToolSearch::class => [
+            HistoricalWeatherTool::class,
+            WeatherAlertsTool::class,
+        ],
+    ];
+}
+```
+
+У цьому прикладі `CurrentWeatherTool` рекламується безпосередньо, тоді як інструменти історичної погоди та погодних сповіщень доступні через каталог із пошуком. Умовна реєстрація інструментів все ще враховується, коли інструменти з каталогу шукаються або виконуються.
+
+Максимальна кількість інструментів, які можуть бути виконані в одному виклику `execute_tools`, та максимальний розмір відповіді контролюються значеннями конфігурації `mcp.tool_search.max_tool_calls` і `mcp.tool_search.max_output_bytes`.
+
 <a name="tool-name-title-description"></a>
 #### Ім'я, заголовок і опис інструмента
 
@@ -326,7 +410,7 @@ class CurrentWeatherTool extends Tool
 <a name="tool-output-schemas"></a>
 ### Вихідні схеми інструментів
 
-Інструменти можуть визначати [вихідні схеми](https://modelcontextprotocol.io/specification/2025-06-18/server/tools#output-schema), щоб указати структуру своїх відповідей. Це дає кращу інтеграцію з AI-клієнтами, яким потрібні придатні до розбору результати інструментів. Скористайтеся методом `outputSchema`, щоб визначити структуру виводу вашого інструмента:
+Інструменти можуть визначати [вихідні схеми](https://modelcontextprotocol.io/specification/2026-07-28/server/tools#output-schema), щоб указати структуру своїх відповідей. Це дає кращу інтеграцію з AI-клієнтами, яким потрібні придатні до розбору результати інструментів. Скористайтеся методом `outputSchema`, щоб визначити структуру виводу вашого інструмента:
 
 ```php
 <?php
@@ -464,7 +548,7 @@ class CurrentWeatherTool extends Tool
 <a name="tool-annotations"></a>
 ### Анотації інструментів
 
-Ви можете збагатити свої інструменти [анотаціями](https://modelcontextprotocol.io/specification/2025-06-18/schema#toolannotations), щоб надати AI-клієнтам додаткові метадані. Ці анотації допомагають AI-моделям зрозуміти поведінку й можливості інструмента. Анотації додаються до інструментів через атрибути:
+Ви можете збагатити свої інструменти [анотаціями](https://modelcontextprotocol.io/specification/2026-07-28/schema#toolannotations), щоб надати AI-клієнтам додаткові метадані. Ці анотації допомагають AI-моделям зрозуміти поведінку й можливості інструмента. Анотації додаються до інструментів через атрибути:
 
 ```php
 <?php
@@ -620,7 +704,7 @@ public function handle(Request $request): array
 <a name="structured-responses"></a>
 #### Структуровані відповіді
 
-Інструменти можуть повертати [структурований вміст](https://modelcontextprotocol.io/specification/2025-06-18/server/tools#structured-content) методом `structured`. Це дає AI-клієнтам придатні до розбору дані, водночас зберігаючи зворотну сумісність із текстовим представленням у форматі JSON:
+Інструменти можуть повертати [структурований вміст](https://modelcontextprotocol.io/specification/2026-07-28/server/tools#structured-content) методом `structured`. Це дає AI-клієнтам придатні до розбору дані, водночас зберігаючи зворотну сумісність із текстовим представленням у форматі JSON:
 
 ```php
 return Response::structured([
@@ -685,7 +769,7 @@ class CurrentWeatherTool extends Tool
 <a name="prompts"></a>
 ## Промпти
 
-[Промпти](https://modelcontextprotocol.io/specification/2025-06-18/server/prompts) дозволяють вашому серверу ділитися багаторазовими шаблонами промптів, які AI-клієнти можуть використовувати для взаємодії з мовними моделями. Вони дають стандартизований спосіб структурувати типові запити й взаємодії.
+[Промпти](https://modelcontextprotocol.io/specification/2026-07-28/server/prompts) дозволяють вашому серверу ділитися багаторазовими шаблонами промптів, які AI-клієнти можуть використовувати для взаємодії з мовними моделями. Вони дають стандартизований спосіб структурувати типові запити й взаємодії.
 
 <a name="creating-prompts"></a>
 ### Створення промптів
@@ -949,7 +1033,7 @@ class DescribeWeatherPrompt extends Prompt
 <a name="resources"></a>
 ## Ресурси
 
-[Ресурси](https://modelcontextprotocol.io/specification/2025-06-18/server/resources) дозволяють вашому серверу надавати дані й вміст, які AI-клієнти можуть читати й використовувати як контекст під час взаємодії з мовними моделями. Вони дають спосіб ділитися статичною чи динамічною інформацією: документацією, конфігурацією чи будь-якими даними, що допомагають формувати відповіді AI.
+[Ресурси](https://modelcontextprotocol.io/specification/2026-07-28/server/resources) дозволяють вашому серверу надавати дані й вміст, які AI-клієнти можуть читати й використовувати як контекст під час взаємодії з мовними моделями. Вони дають спосіб ділитися статичною чи динамічною інформацією: документацією, конфігурацією чи будь-якими даними, що допомагають формувати відповіді AI.
 
 <a name="creating-resources"></a>
 ## Створення ресурсів
@@ -1018,7 +1102,7 @@ class WeatherGuidelinesResource extends Resource
 <a name="resource-templates"></a>
 ### Шаблони ресурсів
 
-[Шаблони ресурсів](https://modelcontextprotocol.io/specification/2025-06-18/server/resources#resource-templates) дозволяють вашому серверу надавати динамічні ресурси, що відповідають URI-шаблонам зі змінними. Замість визначати статичний URI для кожного ресурсу, ви можете створити один ресурс, який обробляє кілька URI за шаблоном.
+[Шаблони ресурсів](https://modelcontextprotocol.io/specification/2026-07-28/server/resources#resource-templates) дозволяють вашому серверу надавати динамічні ресурси, що відповідають URI-шаблонам зі змінними. Замість визначати статичний URI для кожного ресурсу, ви можете створити один ресурс, який обробляє кілька URI за шаблоном.
 
 <a name="creating-resource-templates"></a>
 #### Створення шаблонів ресурсів
@@ -1226,7 +1310,7 @@ class WeatherGuidelinesResource extends Resource
 <a name="resource-annotations"></a>
 ### Анотації ресурсів
 
-Ви можете збагатити свої ресурси [анотаціями](https://modelcontextprotocol.io/specification/2025-06-18/schema#resourceannotations), щоб надати AI-клієнтам додаткові метадані. Анотації додаються до ресурсів через атрибути:
+Ви можете збагатити свої ресурси [анотаціями](https://modelcontextprotocol.io/specification/2026-07-28/schema#annotations), щоб надати AI-клієнтам додаткові метадані. Анотації додаються до ресурсів через атрибути:
 
 ```php
 <?php
@@ -1466,7 +1550,7 @@ class ShowWeatherDashboard extends Tool
 }
 ```
 
-Laravel MCP автоматично оголошує можливість `io.modelcontextprotocol/ui`, щойно зареєстровано будь-який `AppResource`, тож додаткова конфігурація сервера не потрібна.
+Laravel MCP автоматично оголошує розширення `io.modelcontextprotocol/ui` у можливості `extensions` сервера, щойно зареєстровано будь-який `AppResource`, тож додаткова конфігурація сервера не потрібна.
 
 <a name="app-tool-visibility"></a>
 ### Видимість інструментів застосунку
@@ -1521,7 +1605,7 @@ Laravel MCP містить окремий довідник скіла [Boost](/d
 <a name="metadata"></a>
 ## Метадані
 
-Laravel MCP також підтримує поле `_meta`, визначене в [специфікації MCP](https://modelcontextprotocol.io/specification/2025-06-18/basic#meta), яке потрібне деяким MCP-клієнтам чи інтеграціям. Метадані можна застосувати до всіх примітивів MCP, включно з інструментами, ресурсами й промптами, а також до їхніх відповідей.
+Laravel MCP також підтримує поле `_meta`, визначене в [специфікації MCP](https://modelcontextprotocol.io/specification/2026-07-28/basic#_meta), яке потрібне деяким MCP-клієнтам чи інтеграціям. Метадані можна застосувати до всіх примітивів MCP, включно з інструментами, ресурсами й промптами, а також до їхніх відповідей.
 
 Ви можете прикріпити метадані до окремого вмісту відповіді методом `withMeta`:
 
@@ -1757,15 +1841,14 @@ use Laravel\Mcp\Client;
 $client = Client::local('php', ['artisan', 'mcp:start']);
 ```
 
-Клієнт підключається ліниво, автоматично встановлюючи з'єднання під час першого переліку чи виклику інструментів. Якщо вам потрібно керувати з'єднанням вручну, скористайтеся методами `connect`, `connected`, `ping` і `disconnect`:
+Клієнт підключається ліниво, автоматично встановлюючи з'єднання під час першого переліку чи виклику інструментів. Якщо вам потрібно керувати з'єднанням вручну, скористайтеся методами `connect`, `connected` і `disconnect`:
 
 ```php
 $client->connect();
 
-$client->ping();
-
 if ($client->connected()) {
-    // ...
+    $capabilities = $client->capabilities();
+    $server = $client->serverInfo();
 }
 
 $client->disconnect();
@@ -1828,7 +1911,9 @@ Mcp::registerClient('github', fn () => Client::web('https://mcp.example.com')->w
 ```
 
 > [!NOTE]
-> Аргументи `clientId` і `clientSecret` можна опустити, коли MCP-сервер підтримує [динамічну реєстрацію клієнтів](https://datatracker.ietf.org/doc/html/rfc7591) - у цьому разі клієнт реєструється сам автоматично.
+> Аргументи `clientId` і `clientSecret` можна опустити. Laravel використає [Client ID Metadata Document](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization/client-registration#client-id-metadata-documents), коли сервер авторизації їх підтримує, відкидаючись до [динамічної реєстрації клієнтів](https://datatracker.ietf.org/doc/html/rfc7591) для застарілих серверів.
+
+Сервер авторизації має оголосити підтримку методу виклику коду PKCE `S256` у своїх метаданих. Laravel відхилить спробу авторизації, якщо підтримка PKCE не оголошена.
 
 Далі зареєструйте OAuth-маршрути для іменованого клієнта у файлі `routes/ai.php` методом `oAuthRoutesFor`. Замикання, яке ви надаєте, отримує ім'я клієнта й отриманий `TokenSet` після обміну коду авторизації на токен доступу:
 
@@ -1846,7 +1931,28 @@ Mcp::oAuthRoutesFor('github', function (string $client, TokenSet $token) {
 });
 ```
 
-Це реєструє два іменовані маршрути: маршрут підключення (`mcp.oauth.{client}.connect`), який перенаправляє користувача на сервер авторизації, і маршрут зворотного виклику (`mcp.oauth.{client}.callback`), який обмінює код авторизації й викликає ваш обробник. Обидва маршрути за замовчуванням використовують групу `middleware` `web`, яку ви можете перевизначити аргументом `middleware`.
+Це реєструє три іменовані маршрути: маршрут підключення (`mcp.oauth.{client}.connect`), який перенаправляє користувача на сервер авторизації, маршрут зворотного виклику (`mcp.oauth.{client}.callback`), який обмінює код авторизації й викликає ваш обробник, і публічний маршрут Client ID Metadata Document (`mcp.oauth.{client}.client-metadata`). Маршрути підключення й зворотного виклику за замовчуванням використовують групу `middleware` `web`, яку ви можете перевизначити аргументом `middleware`. Маршрут метаданих цей `middleware` не використовує, бо сервер авторизації має мати змогу його отримати.
+
+Документ метаданих описує ваш застосунок як публічного OAuth-клієнта й використовує `APP_URL` вашого застосунку для генерації ідентифікатора клієнта та URL зворотного виклику. Тому переконайтеся, що змінна оточення `APP_URL` правильно встановлена у продакшені. Ви можете налаштувати маршрут метаданих і надати додаткові метадані за допомогою аргументів `clientMetadataUri` і `clientMetadata`:
+
+```php
+use Laravel\Mcp\Client\OAuth\TokenSet;
+use Laravel\Mcp\Facades\Mcp;
+
+Mcp::oAuthRoutesFor(
+    'github',
+    function (string $client, TokenSet $token) {
+        // Store the token...
+
+        return redirect('/dashboard');
+    },
+    clientMetadataUri: 'oauth/github/client.json',
+    clientMetadata: [
+        'client_name' => 'Acme Weather Dashboard',
+        'logo_uri' => 'https://acme.com/logo.png',
+    ],
+);
+```
 
 Щоб розпочати потік авторизації, перенаправте користувача на маршрут підключення:
 
