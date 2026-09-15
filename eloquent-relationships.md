@@ -17,7 +17,7 @@ git: e232d85d9300a354f6a62c24975173d5aed84ec9
     - [Фільтрація запитів за стовпцями проміжної таблиці](#filtering-queries-via-intermediate-table-columns)
     - [Сортування запитів за стовпцями проміжної таблиці](#ordering-queries-via-intermediate-table-columns)
     - [Визначення власних моделей проміжної таблиці](#defining-custom-intermediate-table-models)
-        - [Автоматична гідратація зв'язків pivot](#automatically-hydrating-pivot-relationships)
+        - [Автоматична гідратація зв'язків pivot-моделі](#automatically-hydrating-pivot-relationships)
 - [Поліморфні зв'язки](#polymorphic-relationships)
     - [Один до одного](#one-to-one-polymorphic-relations)
     - [Один до багатьох](#one-to-many-polymorphic-relations)
@@ -1019,9 +1019,9 @@ class RoleUser extends Pivot
 ```
 
 <a name="automatically-hydrating-pivot-relationships"></a>
-#### Автоматична гідратація зв'язків проміжної моделі
+#### Автоматична гідратація зв'язків pivot-моделі
 
-Коли власна проміжна модель визначає зв'язки `belongsTo` для оголошувальної та пов'язаної моделей, ви можете викликати `chaperone`, щоб автоматично гідратувати ці зв'язки на кожній проміжній моделі. Це уникає додаткових запитів при доступі до моделей через проміжну модель:
+Коли власна pivot-модель визначає зв'язки `belongsTo` для моделі, що оголошує зв'язок, і пов'язаної моделі, ви можете викликати `chaperone`, щоб автоматично гідратувати ці зв'язки на кожній pivot-моделі. Це уникає додаткових запитів при доступі до моделей через pivot-модель:
 
 ```php
 use Illuminate\Database\Eloquent\Model;
@@ -1053,7 +1053,7 @@ class Role extends Model
 }
 ```
 
-Eloquent спробує визначити назви зв'язків проміжної моделі. Якщо ваша проміжна модель використовує нестандартні назви, передайте назви оголошувального та пов'язаного зв'язків до `chaperone`:
+Eloquent спробує визначити назви зв'язків pivot-моделі. Якщо ваша pivot-модель використовує нестандартні назви, передайте до `chaperone` назви зв'язку, що оголошує, і пов'язаного зв'язку:
 
 ```php
 return $this->belongsToMany(User::class)
