@@ -1,5 +1,5 @@
 ---
-git: 57ae1e7dbd4bda3bae24ce93e527f1807ae49a43
+git: e7797baf2a199e0f9b5ef769a39d9ada72471a7d
 ---
 # Файлове сховище
 
@@ -527,6 +527,16 @@ Storage::append('file.log', 'Appended Text');
 Storage::copy('old/file.jpg', 'new/file.jpg');
 
 Storage::move('old/file.jpg', 'new/file.jpg');
+```
+
+Ви можете скористатися методами `copyToDisk` і `moveToDisk`, щоб скопіювати чи перемістити файл на інший диск. Шлях вихідного файлу буде використано на цільовому диску, якщо ви не передасте третій аргумент:
+
+```php
+Storage::disk('local')->copyToDisk('s3', 'reports/report.csv');
+
+Storage::disk('local')->moveToDisk(
+    's3', 'reports/report.csv', 'archive/report.csv'
+);
 ```
 
 <a name="automatic-streaming"></a>

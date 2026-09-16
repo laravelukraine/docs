@@ -1,5 +1,5 @@
 ---
-git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
+git: e7797baf2a199e0f9b5ef769a39d9ada72471a7d
 ---
 # Бродкастинг
 
@@ -9,10 +9,12 @@ git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
     - [Reverb](#reverb)
     - [Pusher Channels](#pusher-channels)
     - [Ably](#ably)
+    - [Mercure](#mercure)
 - [Встановлення на боці клієнта](#client-side-installation)
     - [Reverb](#client-reverb)
     - [Pusher Channels](#client-pusher-channels)
     - [Ably](#client-ably)
+    - [Mercure](#client-mercure)
 - [Огляд концепції](#concept-overview)
     - [На прикладі застосунку](#using-example-application)
 - [Опис подій для бродкастингу](#defining-broadcast-events)
@@ -58,7 +60,7 @@ git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
 <a name="supported-drivers"></a>
 #### Підтримувані драйвери
 
-За замовчуванням Laravel містить три серверні драйвери бродкастингу на вибір: [Laravel Reverb](https://reverb.laravel.com), [Pusher Channels](https://pusher.com/channels) та [Ably](https://ably.com).
+За замовчуванням Laravel містить чотири серверні драйвери бродкастингу на вибір: [Laravel Reverb](https://reverb.laravel.com), [Pusher Channels](https://pusher.com/channels), [Ably](https://ably.com) та [Mercure](https://mercure.rocks).
 
 > [!NOTE]
 > Перш ніж занурюватися в бродкастинг подій, обов'язково прочитайте документацію Laravel про [події та слухачів](/docs/{{version}}/events).
@@ -74,7 +76,7 @@ php artisan install:broadcasting
 
 Команда `install:broadcasting` запитає, який сервіс бродкастингу подій ви хочете використовувати. Крім того, вона створить файл конфігурації `config/broadcasting.php` і файл `routes/channels.php`, де ви можете реєструвати маршрути та колбеки авторизації бродкастингу вашого застосунку.
 
-Laravel «з коробки» підтримує кілька драйверів бродкастингу: [Laravel Reverb](/docs/{{version}}/reverb), [Pusher Channels](https://pusher.com/channels), [Ably](https://ably.com), а також драйвер `log` для локальної розробки й налагодження. Крім того, є драйвер `null`, який дозволяє вимкнути бродкастинг під час тестування. Приклад конфігурації для кожного з цих драйверів є у файлі `config/broadcasting.php`.
+Laravel «з коробки» підтримує кілька драйверів бродкастингу: [Laravel Reverb](/docs/{{version}}/reverb), [Pusher Channels](https://pusher.com/channels), [Ably](https://ably.com), [Mercure](https://mercure.rocks), а також драйвер `log` для локальної розробки й налагодження. Крім того, є драйвер `null`, який дозволяє вимкнути бродкастинг під час тестування. Приклад конфігурації для кожного з цих драйверів є у файлі `config/broadcasting.php`.
 
 Уся конфігурація бродкастингу подій вашого застосунку зберігається у файлі `config/broadcasting.php`. Не переймайтеся, якщо цього файлу у вашому застосунку немає, - його буде створено, коли ви виконаєте команду Artisan `install:broadcasting`.
 
@@ -195,6 +197,27 @@ BROADCAST_CONNECTION=ably
 ```
 
 Нарешті, ви готові встановити й налаштувати [Laravel Echo](#client-side-installation), яка отримуватиме події бродкастингу на боці клієнта.
+
+<a name="mercure"></a>
+### Mercure
+
+[Mercure](https://mercure.rocks) - це протокол реального часу, який використовує server-sent events. Щоб транслювати події через Mercure hub, налаштуйте підключення `mercure` у файлі `.env` вашого застосунку:
+
+```ini
+BROADCAST_CONNECTION=mercure
+
+MERCURE_URL=https://mercure.example.com/.well-known/mercure
+MERCURE_PUBLIC_URL=https://mercure.example.com/.well-known/mercure
+MERCURE_JWT_SECRET=<your-mercure-jwt-secret>
+```
+
+Значення `MERCURE_URL` - це URL, який Laravel використовує для публікації оновлень, тоді як `MERCURE_PUBLIC_URL` - це URL, який браузерні клієнти використовують для підписки. Ваш Mercure hub має бути налаштований з тим самим JWT-секретом.
+
+Щоб використовувати наскрізно зашифровані приватні канали, налаштуйте 32-байтну змінну оточення `MERCURE_ENCRYPTION_KEY`:
+
+```ini
+MERCURE_ENCRYPTION_KEY=<your-32-byte-encryption-key>
+```
 
 <a name="client-side-installation"></a>
 ## Встановлення на боці клієнта
@@ -499,10 +522,60 @@ npm run dev
 > [!NOTE]
 > Щоб дізнатися більше про компіляцію JavaScript-ресурсів вашого застосунку, зверніться до документації про [Vite](/docs/{{version}}/vite).
 
+<a name="client-mercure"></a>
+### Mercure
+
+Щоб використовувати Mercure з Laravel Echo, встановіть пакет `laravel-echo`:
+
+```shell
+npm install --save-dev laravel-echo
+```
+
+Далі створіть екземпляр Echo з бродкастером `mercure`. Параметр `host` за замовчуванням дорівнює `/.well-known/mercure` на поточному домені:
+
+```js tab=JavaScript
+import Echo from 'laravel-echo';
+
+window.Echo = new Echo({
+    broadcaster: 'mercure',
+    host: import.meta.env.VITE_MERCURE_HUB_URL,
+});
+```
+
+```js tab=React
+import { configureEcho } from "@laravel/echo-react";
+
+configureEcho({
+    broadcaster: "mercure",
+});
+```
+
+```js tab=Vue
+import { configureEcho } from "@laravel/echo-vue";
+
+configureEcho({
+    broadcaster: "mercure",
+});
+```
+
+```js tab=Svelte
+import { configureEcho } from "@laravel/echo-svelte";
+
+configureEcho({
+    broadcaster: "mercure",
+});
+```
+
+Визначте URL хабу у вашому файлі `.env`:
+
+```ini
+VITE_MERCURE_HUB_URL="${MERCURE_PUBLIC_URL}"
+```
+
 <a name="concept-overview"></a>
 ## Огляд концепції
 
-Бродкастинг подій у Laravel дозволяє надсилати серверні події Laravel до клієнтського застосунку на JavaScript, використовуючи драйверний підхід до WebSocket. Наразі Laravel постачається з драйверами [Laravel Reverb](https://reverb.laravel.com), [Pusher Channels](https://pusher.com/channels) та [Ably](https://ably.com). Події легко спожити на боці клієнта за допомогою JavaScript-пакета [Laravel Echo](#client-side-installation).
+Бродкастинг подій у Laravel дозволяє надсилати серверні події Laravel до клієнтського застосунку на JavaScript, використовуючи драйверний підхід. Наразі Laravel постачається з драйверами [Laravel Reverb](https://reverb.laravel.com), [Pusher Channels](https://pusher.com/channels), [Ably](https://ably.com) та [Mercure](https://mercure.rocks). Події легко спожити на боці клієнта за допомогою JavaScript-пакета [Laravel Echo](#client-side-installation).
 
 Події надсилаються через «канали», які можуть бути публічними або приватними. Будь-який відвідувач вашого застосунку може підписатися на публічний канал без автентифікації чи авторизації; натомість, щоб підписатися на приватний канал, користувач має бути автентифікований і авторизований слухати цей канал.
 
