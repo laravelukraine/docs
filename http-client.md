@@ -1,5 +1,5 @@
 ---
-git: bb48eb2a640f8f91dc6f2452dd3c84a2d4d5a52c
+git: b94b890362111c44de223e09502c610a9d9f20d8
 ---
 # HTTP-клієнт
 
@@ -773,7 +773,7 @@ Http::fake([
 Щоб перевірити поведінку застосунку, коли викинуто `Illuminate\Http\Client\RequestException`, скористайтеся методом `failedRequest`:
 
 ```php
-$this->mock(GithubService::class);
+$this->mock(GithubService::class)
     ->shouldReceive('getUser')
     ->andThrow(
         Http::failedRequest(['code' => 'not_found'], 404)

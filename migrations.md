@@ -1,5 +1,5 @@
 ---
-git: 5e0a0edf75ca5f9ec60a27cece58fa9997958335
+git: b94b890362111c44de223e09502c610a9d9f20d8
 ---
 # База даних: міграції
 
@@ -1490,7 +1490,7 @@ $table->string('email')->unique()->online();
 Щоб перейменувати індекс, скористайтеся методом `renameIndex` blueprint конструктора схеми. Він приймає поточну назву індексу першим аргументом і бажану назву - другим:
 
 ```php
-$table->renameIndex('from', 'to')
+$table->renameIndex('from', 'to');
 ```
 
 <a name="dropping-indexes"></a>

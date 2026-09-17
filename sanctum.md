@@ -1,5 +1,5 @@
 ---
-git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
+git: b94b890362111c44de223e09502c610a9d9f20d8
 ---
 # Laravel Sanctum
 
@@ -204,7 +204,7 @@ Route::get('/orders', function () {
 
 ```php
 return $request->user()->id === $server->user_id &&
-       $request->user()->tokenCan('server:update')
+       $request->user()->tokenCan('server:update');
 ```
 
 Спершу може здатися дивним, що метод `tokenCan` можна викликати й він завжди повертає `true` для запитів, ініційованих власним UI; проте зручно завжди мати змогу припускати, що API-токен доступний і його можна перевірити методом `tokenCan`. Завдяки такому підходу ви можете завжди викликати метод `tokenCan` у політиках авторизації вашого застосунку, не переймаючись тим, чи запит надійшов з UI вашого застосунку, чи його ініціював хтось зі сторонніх споживачів вашого API.
@@ -383,6 +383,7 @@ return Application::configure(basePath: dirname(__DIR__))
         __DIR__.'/../routes/channels.php',
         ['prefix' => 'api', 'middleware' => ['api', 'auth:sanctum']],
     )
+    ->create();
 ```
 
 Далі, щоб запити авторизації Pusher були успішними, вам треба передати власний `authorizer` для Pusher під час ініціалізації [Laravel Echo](/docs/{{version}}/broadcasting#client-side-installation). Це дозволить вашому застосунку налаштувати Pusher на використання екземпляра `axios`, [належно налаштованого для міждоменних запитів](#cors-and-cookies):

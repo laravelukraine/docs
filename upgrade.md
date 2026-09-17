@@ -1,5 +1,5 @@
 ---
-git: 4030a84b979f7420788dda14df439dd4d66d765d
+git: b94b890362111c44de223e09502c610a9d9f20d8
 ---
 # Посібник з оновлення
 
@@ -478,7 +478,7 @@ Arr::first($array, function ($value) {
 
 Внутрішні імена представлень пагінації для типових налаштувань Bootstrap 3 тепер явні:
 
-```nothing
+```text
 // Laravel <= 12.x
 pagination::default
 pagination::simple-default
