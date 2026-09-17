@@ -1,5 +1,5 @@
 ---
-git: e7797baf2a199e0f9b5ef769a39d9ada72471a7d
+git: b94b890362111c44de223e09502c610a9d9f20d8
 ---
 # Бродкастинг
 
@@ -201,7 +201,7 @@ BROADCAST_CONNECTION=ably
 <a name="mercure"></a>
 ### Mercure
 
-[Mercure](https://mercure.rocks) - це протокол реального часу, який використовує server-sent events. Щоб транслювати події через Mercure hub, налаштуйте підключення `mercure` у файлі `.env` вашого застосунку:
+[Mercure](https://mercure.rocks) - це протокол реального часу, що використовує server-sent events. Щоб транслювати події через Mercure-хаб, налаштуйте підключення `mercure` у файлі `.env` вашого застосунку:
 
 ```ini
 BROADCAST_CONNECTION=mercure
@@ -211,9 +211,9 @@ MERCURE_PUBLIC_URL=https://mercure.example.com/.well-known/mercure
 MERCURE_JWT_SECRET=<your-mercure-jwt-secret>
 ```
 
-Значення `MERCURE_URL` - це URL, який Laravel використовує для публікації оновлень, тоді як `MERCURE_PUBLIC_URL` - це URL, який браузерні клієнти використовують для підписки. Ваш Mercure hub має бути налаштований з тим самим JWT-секретом.
+Значення `MERCURE_URL` - це URL, який Laravel використовує для публікації оновлень, тоді як `MERCURE_PUBLIC_URL` - це URL, який браузерні клієнти використовують для підписки. Ваш Mercure-хаб має бути налаштований з тим самим JWT-секретом.
 
-Щоб використовувати наскрізно зашифровані приватні канали, налаштуйте 32-байтну змінну оточення `MERCURE_ENCRYPTION_KEY`:
+Щоб використовувати наскрізно зашифровані приватні канали, налаштуйте 32-байтову змінну оточення `MERCURE_ENCRYPTION_KEY`:
 
 ```ini
 MERCURE_ENCRYPTION_KEY=<your-32-byte-encryption-key>
@@ -531,7 +531,7 @@ npm run dev
 npm install --save-dev laravel-echo
 ```
 
-Далі створіть екземпляр Echo з бродкастером `mercure`. Параметр `host` за замовчуванням дорівнює `/.well-known/mercure` на поточному домені:
+Далі створіть екземпляр Echo з бродкастером `mercure`. Опція `host` за замовчуванням вказує на `/.well-known/mercure` на поточному origin:
 
 ```js tab=JavaScript
 import Echo from 'laravel-echo';
@@ -781,7 +781,7 @@ public function broadcastAs(): string
 
 Якщо ви змінюєте ім'я бродкасту методом `broadcastAs`, обов'язково реєструйте слухача з провідною крапкою `.`. Це скаже Echo не додавати до події простір імен застосунку:
 
-```javascript
+```js
 .listen('.server.created', function (e) {
     // ...
 });

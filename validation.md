@@ -1,5 +1,5 @@
 ---
-git: bb48eb2a640f8f91dc6f2452dd3c84a2d4d5a52c
+git: b94b890362111c44de223e09502c610a9d9f20d8
 ---
 # Валідація
 
@@ -1622,7 +1622,7 @@ Validator::make($data, [
 Ви також можете скористатися методами `minRatio`, `maxRatio` та `ratioBetween`, щоб плинно задати обмеження співвідношення:
 
 ```php
-Rule::dimensions()->ratioBetween(min: 1 / 2, max: 3 / 2)
+Rule::dimensions()->ratioBetween(min: 1 / 2, max: 3 / 2);
 ```
 
 <a name="rule-distinct"></a>
@@ -2501,19 +2501,19 @@ Validator::make($data, [
 Замість передавати методу `ignore` значення ключа моделі, ви можете передати весь екземпляр моделі. Laravel автоматично витягне з неї ключ:
 
 ```php
-Rule::unique('users')->ignore($user)
+Rule::unique('users')->ignore($user);
 ```
 
 Якщо ваша таблиця використовує ім'я колонки первинного ключа, відмінне від `id`, ви можете вказати його під час виклику методу `ignore`:
 
 ```php
-Rule::unique('users')->ignore($user->id, 'user_id')
+Rule::unique('users')->ignore($user->id, 'user_id');
 ```
 
 За замовчуванням правило `unique` перевіряє унікальність колонки, ім'я якої збігається з іменем атрибута, що валідується. Утім, ви можете передати інше ім'я колонки другим аргументом методу `unique`:
 
 ```php
-Rule::unique('users', 'email_address')->ignore($user->id)
+Rule::unique('users', 'email_address')->ignore($user->id);
 ```
 
 **Додавання додаткових умов Where:**
@@ -2895,28 +2895,28 @@ $validator = Validator::make($request->all(), [
 
 ```php
 // Require at least 8 characters...
-Password::min(8)
+Password::min(8);
 
 // Require at most 256 characters...
-Password::min(16)->max(256)
+Password::min(16)->max(256);
 
 // Require at least one letter...
-Password::min(8)->letters()
+Password::min(8)->letters();
 
 // Require at least one uppercase and one lowercase letter...
-Password::min(8)->mixedCase()
+Password::min(8)->mixedCase();
 
 // Require at least one number...
-Password::min(8)->numbers()
+Password::min(8)->numbers();
 
 // Require at least one symbol...
-Password::min(8)->symbols()
+Password::min(8)->symbols();
 ```
 
 Крім того, ви можете переконатися, що пароль не було скомпрометовано в публічному витоку даних, за допомогою методу `uncompromised`:
 
 ```php
-Password::min(8)->uncompromised()
+Password::min(8)->uncompromised();
 ```
 
 Внутрішньо об'єкт правила `Password` використовує модель [k-анонімності](https://en.wikipedia.org/wiki/K-anonymity), щоб визначити, чи пароль витік, через сервіс [haveibeenpwned.com](https://haveibeenpwned.com), не жертвуючи приватністю чи безпекою користувача.
@@ -2937,7 +2937,7 @@ Password::min(8)
     ->mixedCase()
     ->numbers()
     ->symbols()
-    ->uncompromised()
+    ->uncompromised();
 ```
 
 Ви можете перетворити об'єкт правила `Password` на рядок, придатний для HTML-атрибута `passwordrules`, методом `toPasswordRulesString`:

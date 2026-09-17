@@ -1,5 +1,5 @@
 ---
-git: 5e0a0edf75ca5f9ec60a27cece58fa9997958335
+git: b94b890362111c44de223e09502c610a9d9f20d8
 ---
 # Laravel Cashier (Stripe)
 
@@ -1599,7 +1599,7 @@ $user = User::find(1);
 
 $meterUsage = $user->meterEventSummaries($meterId);
 
-$meterUsage->first()->aggregated_value // 10
+$meterUsage->first()->aggregated_value; // 10
 ```
 
 Докладніше про зведення подій лічильника дивіться в [документації Stripe щодо об'єкта Meter Event Summary](https://docs.stripe.com/api/billing/meter-event_summary/object).

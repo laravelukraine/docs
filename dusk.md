@@ -1,5 +1,5 @@
 ---
-git: 5e0a0edf75ca5f9ec60a27cece58fa9997958335
+git: b94b890362111c44de223e09502c610a9d9f20d8
 ---
 # Laravel Dusk
 
@@ -2006,7 +2006,7 @@ $browser->assertAriaAttribute($selector, $attribute, $value);
 Наприклад, для розмітки `<button aria-label="Add"></button>` ви можете зробити твердження щодо атрибута `aria-label` ось так:
 
 ```php
-$browser->assertAriaAttribute('button', 'label', 'Add')
+$browser->assertAriaAttribute('button', 'label', 'Add');
 ```
 
 <a name="assert-data-attribute"></a>
@@ -2021,7 +2021,7 @@ $browser->assertDataAttribute($selector, $attribute, $value);
 Наприклад, для розмітки `<tr id="row-1" data-content="attendees"></tr>` ви можете зробити твердження щодо атрибута `data-content` ось так:
 
 ```php
-$browser->assertDataAttribute('#row-1', 'content', 'attendees')
+$browser->assertDataAttribute('#row-1', 'content', 'attendees');
 ```
 
 <a name="assert-visible"></a>

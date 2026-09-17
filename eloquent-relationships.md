@@ -1,5 +1,5 @@
 ---
-git: e232d85d9300a354f6a62c24975173d5aed84ec9
+git: b94b890362111c44de223e09502c610a9d9f20d8
 ---
 # Eloquent: зв'язки
 

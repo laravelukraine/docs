@@ -1,5 +1,5 @@
 ---
-git: 4030a84b979f7420788dda14df439dd4d66d765d
+git: b94b890362111c44de223e09502c610a9d9f20d8
 ---
 # Laravel Pennant
 
@@ -151,7 +151,8 @@ class NewApi
 Якщо ви хочете вручну отримати екземпляр можливості на основі класу, викличте метод `instance` на фасаді `Feature`:
 
 ```php
-use Illuminate\Support\Facades\Feature;
+use App\Features\NewApi;
+use Laravel\Pennant\Feature;
 
 $instance = Feature::instance(NewApi::class);
 ```

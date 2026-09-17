@@ -1,5 +1,5 @@
 ---
-git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
+git: b94b890362111c44de223e09502c610a9d9f20d8
 ---
 # Laravel Folio
 
@@ -25,7 +25,7 @@ git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
 
 Наприклад, щоб створити сторінку, доступну за URL `/greeting`, просто створіть файл `greeting.blade.php` у каталозі `resources/views/pages` вашого застосунку:
 
-```php
+```blade
 <div>
     Hello World
 </div>
@@ -269,7 +269,7 @@ name('users.index');
 
 Так само як і з іменованими маршрутами Laravel, ви можете скористатися функцією `route`, щоб згенерувати URL до сторінок Folio, яким призначено ім'я:
 
-```php
+```blade
 <a href="{{ route('users.index') }}">
     All Users
 </a>

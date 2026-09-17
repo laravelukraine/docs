@@ -1,5 +1,5 @@
 ---
-git: 89e91b5cff48e1b9b1a7921300653eb1ceb7bfcb
+git: b94b890362111c44de223e09502c610a9d9f20d8
 ---
 # Колекції
 
@@ -1462,7 +1462,7 @@ collect([1, 2, 3])->hasMany();
 collect([
     ['age' => 2],
     ['age' => 3],
-])->hasMany(fn ($item) => $item['age'] === 2)
+])->hasMany(fn ($item) => $item['age'] === 2);
 
 // false
 ```

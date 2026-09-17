@@ -1,5 +1,5 @@
 ---
-git: bb48eb2a640f8f91dc6f2452dd3c84a2d4d5a52c
+git: b94b890362111c44de223e09502c610a9d9f20d8
 ---
 # Шаблони Blade
 
@@ -159,7 +159,7 @@ Hello, @{{ name }}.
 
 Іноді ви можете передавати представленню масив, щоб відрендерити його як JSON і ініціалізувати JavaScript-змінну. Наприклад:
 
-```php
+```blade
 <script>
     var app = <?php echo json_encode($array); ?>;
 </script>

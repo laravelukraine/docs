@@ -1,5 +1,5 @@
 ---
-git: bb48eb2a640f8f91dc6f2452dd3c84a2d4d5a52c
+git: b94b890362111c44de223e09502c610a9d9f20d8
 ---
 # Хелпери
 
@@ -2677,7 +2677,7 @@ event(new UserRegistered($user));
 За замовчуванням функція `fake` використовує опцію конфігурації `app.faker_locale` у вашому `config/app.php`. Зазвичай цю опцію задають через змінну середовища `APP_FAKER_LOCALE`. Ви також можете вказати локаль, передавши її функції `fake`. Для кожної локалі буде розв'язано окремий сінглтон:
 
 ```php
-fake('nl_NL')->name()
+fake('nl_NL')->name();
 ```
 
 <a name="method-filled"></a>
