@@ -1,5 +1,5 @@
 ---
-git: bb48eb2a640f8f91dc6f2452dd3c84a2d4d5a52c
+git: eea8b121cba77e6f5f62405a9334b1d075eb5c3a
 ---
 # Події
 
@@ -391,6 +391,8 @@ public function withDelay(OrderShipped $event): int
     return $event->highPriority ? 0 : 60;
 }
 ```
+
+Якщо ви хочете, щоб усі ваші слухачі з чергою використовували одну й ту саму чергу без налаштування кожного класу слухача окремо, можете натомість [маршрутизувати контракт `ShouldQueue` на чергу](/docs/{{version}}/queues#queue-routing).
 
 <a name="conditionally-queueing-listeners"></a>
 #### Умовна постановка слухачів у чергу
