@@ -1192,13 +1192,13 @@ $table->uuid('id');
 <a name="column-method-"></a>
 #### `()` {.collection-method}
 
-Метод `vector` створює колонку еквівалентного типу `vector`:
+Метод `vector` створює колонку з еквівалентним типом `vector`:
 
 ```php
 $table->vector('embedding', dimensions: 1536);
 ```
 
-Векторні колонки підтримуються на підключеннях PostgreSQL з розширенням `pgvector` та MariaDB версії 11.7 або новіше. При використанні PostgreSQL, `pgvector` має бути завантажено перед створенням колонок `vector`:
+Колонки `vector` підтримуються на підключеннях PostgreSQL з використанням розширення `pgvector` та MariaDB 11.7 або новіших версіях. При використанні PostgreSQL `pgvector` має бути завантажено перед тим, як можна створювати колонки `vector`:
 
 ```php
 Schema::ensureVectorExtensionExists();
