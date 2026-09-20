@@ -1192,19 +1192,19 @@ $table->uuid('id');
 <a name="column-method-"></a>
 #### `()` {.collection-method}
 
-Метод `vector` створює колонку з еквівалентним типом `vector`:
+Метод `vector` створює стовпець, еквівалентний `vector`:
 
 ```php
 $table->vector('embedding', dimensions: 1536);
 ```
 
-Колонки `vector` підтримуються на підключеннях PostgreSQL з використанням розширення `pgvector` та MariaDB 11.7 або новіших версіях. При використанні PostgreSQL `pgvector` має бути завантажено перед тим, як можна створювати колонки `vector`:
+Стовпці `vector` підтримуються на підключеннях PostgreSQL з розширенням `pgvector` та на MariaDB 11.7 або новіших. При використанні PostgreSQL `pgvector` має бути завантажено, перш ніж можна створювати стовпці `vector`:
 
 ```php
 Schema::ensureVectorExtensionExists();
 ```
 
-Щоб прискорити [запити подібності векторів](/docs/{{version}}/queries#vector-similarity-clauses), ви можете додати векторний індекс до колонки. Виклик методу `index` на колонці `vector` створює векторний індекс з використанням косинусної відстані:
+Щоб прискорити [запити подібності векторів](/docs/{{version}}/queries#vector-similarity-clauses), ви можете додати векторний індекс до стовпця. Виклик методу `index` на стовпці `vector` створює векторний індекс з використанням косинусної відстані:
 
 ```php
 $table->vector('embedding', dimensions: 1536)->index();
