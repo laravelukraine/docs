@@ -1,5 +1,5 @@
 ---
-git: b94b890362111c44de223e09502c610a9d9f20d8
+git: eea8b121cba77e6f5f62405a9334b1d075eb5c3a
 ---
 # Бродкастинг
 
@@ -844,6 +844,8 @@ public function broadcastQueue(): string
     return 'default';
 }
 ```
+
+Якщо ви хочете, щоб усі події бродкастингу використовували ту саму чергу без налаштування кожного класу події, можете натомість [спрямувати контракт `ShouldBroadcast` у чергу](/docs/{{version}}/queues#queue-routing).
 
 Якщо ви хочете надсилати подію через чергу `sync` замість драйвера черги за замовчуванням, реалізуйте інтерфейс `ShouldBroadcastNow` замість `ShouldBroadcast`:
 

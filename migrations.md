@@ -1,5 +1,5 @@
 ---
-git: b94b890362111c44de223e09502c610a9d9f20d8
+git: eea8b121cba77e6f5f62405a9334b1d075eb5c3a
 ---
 # База даних: міграції
 
@@ -1189,19 +1189,25 @@ $table->ulid('id');
 $table->uuid('id');
 ```
 
-<a name="column-method-vector"></a>
-#### `vector()` {.collection-method}
+<a name="column-method-"></a>
+#### `()` {.collection-method}
 
 Метод `vector` створює стовпець, еквівалентний `vector`:
 
 ```php
-$table->vector('embedding', dimensions: 100);
+$table->vector('embedding', dimensions: 1536);
 ```
 
-На PostgreSQL розширення `pgvector` має бути завантажене, перш ніж можна створювати стовпці `vector`:
+Стовпці `vector` підтримуються на підключеннях PostgreSQL з розширенням `pgvector` та на MariaDB 11.7 або новіших. При використанні PostgreSQL `pgvector` має бути завантажено, перш ніж можна створювати стовпці `vector`:
 
 ```php
 Schema::ensureVectorExtensionExists();
+```
+
+Щоб прискорити [запити подібності векторів](/docs/{{version}}/queries#vector-similarity-clauses), ви можете додати векторний індекс до стовпця. Виклик методу `index` на стовпці `vector` створює векторний індекс з використанням косинусної відстані:
+
+```php
+$table->vector('embedding', dimensions: 1536)->index();
 ```
 
 <a name="column-method-year"></a>
@@ -1470,6 +1476,7 @@ $table->unique('email', 'unique_email');
 | `$table->fullText('body');`                      | Додає повнотекстовий індекс (MariaDB / MySQL / PostgreSQL).     |
 | `$table->fullText('body')->language('english');` | Додає повнотекстовий індекс заданої мови (PostgreSQL).          |
 | `$table->spatialIndex('location');`              | Додає просторовий індекс (окрім SQLite).                        |
+| `$table->vectorIndex('embedding');`              | Додає векторний індекс (MariaDB / PostgreSQL).                  |
 
 </div>
 
@@ -1500,13 +1507,14 @@ $table->renameIndex('from', 'to');
 
 <div class="overflow-auto">
 
-| Команда                                                  | Опис                                                        |
-| -------------------------------------------------------- | ----------------------------------------------------------- |
-| `$table->dropPrimary('users_id_primary');`               | Видалити первинний ключ із таблиці «users».                  |
-| `$table->dropUnique('users_email_unique');`              | Видалити унікальний індекс із таблиці «users».               |
-| `$table->dropIndex('geo_state_index');`                  | Видалити базовий індекс із таблиці «geo».                    |
-| `$table->dropFullText('posts_body_fulltext');`           | Видалити повнотекстовий індекс із таблиці «posts».           |
-| `$table->dropSpatialIndex('geo_location_spatialindex');` | Видалити просторовий індекс із таблиці «geo» (окрім SQLite). |
+| Команда                                                       | Опис                                                        |
+| ------------------------------------------------------------- | ----------------------------------------------------------- |
+| `$table->dropPrimary('users_id_primary');`                    | Видалити первинний ключ із таблиці «users».                  |
+| `$table->dropUnique('users_email_unique');`                   | Видалити унікальний індекс із таблиці «users».               |
+| `$table->dropIndex('geo_state_index');`                       | Видалити базовий індекс із таблиці «geo».                    |
+| `$table->dropFullText('posts_body_fulltext');`                | Видалити повнотекстовий індекс із таблиці «posts».           |
+| `$table->dropSpatialIndex('geo_location_spatialindex');`      | Видалити просторовий індекс із таблиці «geo» (окрім SQLite). |
+| `$table->dropVectorIndex('documents_embedding_vectorindex');` | Видалити векторний індекс із таблиці «documents».            |
 
 </div>
 
