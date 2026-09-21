@@ -1,5 +1,5 @@
 ---
-git: eea8b121cba77e6f5f62405a9334b1d075eb5c3a
+git: 7d1e82b9330a75ac740c905c80f44945cd29213b
 ---
 # База даних: міграції
 
@@ -1189,22 +1189,22 @@ $table->ulid('id');
 $table->uuid('id');
 ```
 
-<a name="column-method-"></a>
-#### `()` {.collection-method}
+<a name="column-method-vector"></a>
+#### `vector()` {.collection-method}
 
-Метод `vector` створює стовпець, еквівалентний `vector`:
+Метод `vector` створює стовпець типу `vector`:
 
 ```php
 $table->vector('embedding', dimensions: 1536);
 ```
 
-Стовпці `vector` підтримуються на підключеннях PostgreSQL з розширенням `pgvector` та на MariaDB 11.7 або новіших. При використанні PostgreSQL `pgvector` має бути завантажено, перш ніж можна створювати стовпці `vector`:
+Векторні стовпці підтримуються на PostgreSQL-підключеннях, що використовують розширення `pgvector`, та MariaDB 11.7 чи новіше. При використанні PostgreSQL `pgvector` має бути завантажено перед створенням векторних стовпців:
 
 ```php
 Schema::ensureVectorExtensionExists();
 ```
 
-Щоб прискорити [запити подібності векторів](/docs/{{version}}/queries#vector-similarity-clauses), ви можете додати векторний індекс до стовпця. Виклик методу `index` на стовпці `vector` створює векторний індекс з використанням косинусної відстані:
+Щоб пришвидшити [запити на схожість векторів](/docs/{{version}}/queries#vector-similarity-clauses), ви можете додати векторний індекс до стовпця. Виклик методу `index` на стовпці `vector` створює векторний індекс, використовуючи косинусну відстань:
 
 ```php
 $table->vector('embedding', dimensions: 1536)->index();
