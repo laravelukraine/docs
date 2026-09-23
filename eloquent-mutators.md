@@ -1,5 +1,5 @@
 ---
-git: bb48eb2a640f8f91dc6f2452dd3c84a2d4d5a52c
+git: 9d4d158ed052bf5f82d05d6909f43bb3ee63b893
 ---
 # Eloquent: мутатори та приведення типів
 
@@ -438,6 +438,32 @@ protected function casts(): array
     ];
 }
 ```
+
+За замовчуванням призначення `null` атрибуту, приведеному через `AsArrayObject` або `AsCollection`, збереже JSON-значення `null` у базі даних. Якщо ви хочете, щоб значення `null` зберігалися як нативні SQL-значення `NULL`, викличте метод `nullable` під час визначення приведення:
+
+```php
+use Illuminate\Database\Eloquent\Casts\AsCollection;
+
+/**
+ * Get the attributes that should be cast.
+ *
+ * @return array<string, string>
+ */
+protected function casts(): array
+{
+    return [
+        'options' => AsCollection::nullable(),
+    ];
+}
+```
+
+Метод `nullable` також можна поєднувати з власним класом колекції:
+
+```php
+'options' => AsCollection::nullable(OptionCollection::class),
+```
+
+Приведення `AsArrayObject` теж надає метод `nullable` з тією самою поведінкою.
 
 Якщо ви хочете, щоб приведення `AsCollection` створювало екземпляр власного класу колекції замість базового класу Laravel, передайте назву класу колекції як аргумент приведення:
 

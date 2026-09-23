@@ -1,5 +1,5 @@
 ---
-git: 7d1e82b9330a75ac740c905c80f44945cd29213b
+git: 9d4d158ed052bf5f82d05d6909f43bb3ee63b893
 ---
 # База даних: міграції
 
@@ -1490,6 +1490,24 @@ $table->string('email')->unique()->online();
 ```
 
 На PostgreSQL це додає до запиту створення індексу опцію `CONCURRENTLY`. На SQL Server - опцію `WITH (online = on)`.
+
+На MySQL ви можете дописати до опису індексу чи зовнішнього ключа модифікатор `inplace`, щоб операція виконувалась за алгоритмом `INPLACE`:
+
+```php
+$table->index('email')->inplace();
+
+$table->foreign('user_id')->references('id')->on('users')->inplace();
+```
+
+Модифікатор `inplace` можна поєднувати з модифікатором `lock`, щоб контролювати блокування таблиці під час операції:
+
+```php
+$table->index('email')->inplace()->lock('none');
+```
+
+При використанні модифікатора `inplace` для операції із зовнішнім ключем перевірки зовнішніх ключів мають бути вимкнені.
+
+Дивіться [документацію MySQL](https://dev.mysql.com/doc/refman/8.0/en/innodb-online-ddl-operations.html), щоб дізнатися, які операції підтримують алгоритм `INPLACE` і режими блокування.
 
 <a name="renaming-indexes"></a>
 ### Перейменування індексів
