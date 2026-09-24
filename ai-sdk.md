@@ -1,5 +1,5 @@
 ---
-git: b94b890362111c44de223e09502c610a9d9f20d8
+git: eff8739e9090c2a0216fefac8e33dacdd689f8f6
 ---
 # Laravel AI SDK
 
@@ -39,9 +39,11 @@ git: b94b890362111c44de223e09502c610a9d9f20d8
     - [Запити до ембедингів](#querying-embeddings)
     - [Кешування ембедингів](#caching-embeddings)
 - [Переранжування](#reranking)
+- [Класифікація](#classification)
 - [Файли](#files)
 - [Векторні сховища](#vector-stores)
     - [Додавання файлів до сховищ](#adding-files-to-stores)
+- [Використання токенів](#usage)
 - [Резервні провайдери](#failover)
 - [Тестування](#testing)
     - [Агенти](#testing-agents)
@@ -50,6 +52,7 @@ git: b94b890362111c44de223e09502c610a9d9f20d8
     - [Транскрибування](#testing-transcriptions)
     - [Ембединги](#testing-embeddings)
     - [Переранжування](#testing-reranking)
+    - [Класифікація](#testing-classification)
     - [Файли](#testing-files)
     - [Векторні сховища](#testing-vector-stores)
 - [Події](#events)
@@ -100,6 +103,7 @@ OPENAI_COMPATIBLE_API_KEY=
 OPENAI_COMPATIBLE_URL=
 OPENROUTER_API_KEY=
 JINA_API_KEY=
+TYPESAFE_API_KEY=
 VOYAGEAI_API_KEY=
 XAI_API_KEY=
 ```
@@ -235,11 +239,12 @@ AI SDK підтримує різні провайдери для своїх мо
 |---|---|
 | Text | OpenAI, OpenAI Compatible, Anthropic, Gemini, Azure, Bedrock, Groq, xAI, DeepSeek, Mistral, Ollama, OpenRouter |
 | Images | OpenAI, Gemini, xAI, Azure, Bedrock, OpenRouter |
-| TTS | OpenAI, ElevenLabs, Gemini, Mistral |
-| STT | OpenAI, OpenAI Compatible, ElevenLabs, Groq, Mistral, Gemini |
+| TTS | OpenAI, ElevenLabs, Gemini, Mistral, OpenRouter |
+| STT | OpenAI, OpenAI Compatible, ElevenLabs, Groq, Mistral, Gemini, OpenRouter |
 | Embeddings | OpenAI, OpenAI Compatible, Gemini, Azure, Bedrock, Cohere, Mistral, Jina, VoyageAI, Ollama, OpenRouter |
-| Reranking | Cohere, Jina, VoyageAI, Bedrock |
-| Files | OpenAI, Anthropic, Gemini, Azure |
+| Reranking | Cohere, Jina, VoyageAI, Bedrock, OpenRouter |
+| Classification | TypeSafe, OpenRouter |
+| Files | OpenAI, Anthropic, Gemini, Azure, OpenRouter |
 
 </div>
 
@@ -400,24 +405,36 @@ foreach ($response->steps as $step) {
 Якщо ваш агент реалізує інтерфейс `Conversational`, ви можете скористатися методом `messages`, щоб повернути попередній контекст розмови, якщо він є:
 
 ```php
-use App\Models\History;
-use Laravel\Ai\Messages\Message;
-
 /**
  * Get the list of messages comprising the conversation so far.
  */
 public function messages(): iterable
 {
-    return History::where('user_id', $this->user->id)
+    return $this->user->history()
         ->latest()
         ->limit(50)
         ->get()
         ->reverse()
-        ->map(function ($message) {
-            return new Message($message->role, $message->content);
-        })->all();
+        ->map(fn ($message) => new Message(
+            $message->role, $message->content,
+        ))->all();
 }
 ```
+
+Якщо ваш агент не реалізує інтерфейс `Conversational`, ви можете передати історію розмови для одного запуску методом `withMessages` - наприклад, історію, яку надіслав фронтенд вашого застосунку:
+
+```php
+use Laravel\Ai\Messages\Message;
+
+$response = (new SalesCoach)
+    ->withMessages([
+        new Message('user', 'Analyze this sales transcript...'),
+        new Message('assistant', 'The rep never asked for the close.'),
+    ])
+    ->prompt('What should they say next time?');
+```
+
+Агенти, що реалізують інтерфейс `Conversational`, самі завантажують свою історію, тож поєднання цих двох підходів викидає `LogicException`.
 
 <a name="remembering-conversations"></a>
 #### Запам'ятовування розмов
@@ -492,7 +509,21 @@ $response = (new SalesCoach)
     ->prompt('Tell me more about that.');
 ```
 
-Використовуючи трейт `RemembersConversations`, попередні повідомлення автоматично завантажуються й додаються до контексту розмови під час промптингу. Нові повідомлення (як користувача, так і асистента) автоматично зберігаються після кожної взаємодії.
+Метод `continueOrStart` продовжує вказану розмову або починає нову, якщо переданий ID дорівнює `null`:
+
+```php
+$response = (new SalesCoach)
+    ->continueOrStart($conversationId, as: $user)
+    ->prompt('Hello!');
+```
+
+Використовуючи трейт `RemembersConversations`, попередні повідомлення автоматично завантажуються й додаються до контексту розмови під час промптингу. Нові повідомлення (як користувача, так і асистента) автоматично зберігаються після кожної взаємодії. Кожна відповідь також містить ID розмови та збережених повідомлень:
+
+```php
+$response->conversationId;
+$response->userMessageId;
+$response->assistantMessageId;
+```
 
 <a name="conversation-participants"></a>
 #### Учасники розмови
@@ -507,7 +538,7 @@ $response = (new SalesCoach)
 
 Morph-клас і первинний ключ учасника зберігаються разом з розмовою. Тому моделі різних типів з однаковим первинним ключем, як-от `User` з ID `1` і `Team` з ID `1`, мають окремі історії розмов. Метод `forUser` є аліасом до `forParticipant`.
 
-Ви можете продовжити найновішу розмову учасника методом `continueLastConversation`:
+Ви можете продовжити найновішу розмову учасника з агентом методом `continueLastConversation`. Розмови прив'язані до агента, тож продовжено буде лише ту розмову, у якій цей агент брав участь:
 
 ```php
 $response = (new SalesCoach)
@@ -534,7 +565,65 @@ $participant = $conversation->participant;
 Якщо ваш застосунок використовує кілька типів моделей-учасників, вам варто визначити [morph-мапу Eloquent](/docs/{{version}}/eloquent-relationships#custom-polymorphic-types), щоб збережені типи учасників не були прив'язані до імен ваших класів моделей.
 
 > [!WARNING]
-> Метод `continue` не перевіряє, чи заданий учасник володіє розмовою. Ваш застосунок має авторизувати доступ до розмови, перш ніж продовжувати її.
+> Методи `continue` і `continueOrStart` не перевіряють, чи заданий учасник володіє розмовою. Ваш застосунок має авторизувати доступ до розмови, перш ніж продовжувати її.
+
+<a name="inspecting-stored-conversations"></a>
+#### Перегляд збережених розмов
+
+Щоб показати розмову користувачам, зазвичай потрібні подробиці на кшталт ID повідомлень, часових позначок і викликів інструментів. Ви можете отримати сховище розмов із сервіс-контейнера й читати збережені повідомлення, не звертаючись напряму до таблиць AI SDK:
+
+```php
+use Laravel\Ai\Contracts\ConversationStore;
+
+$store = app(ConversationStore::class);
+```
+
+Повідомлення розбиваються на сторінки від найновіших за допомогою курсора й повертаються як екземпляри `StoredMessage`, що містять ID кожного повідомлення, часові позначки, використання токенів, метадані й вкладення:
+
+```php
+$messages = $store->paginateConversationMessages($conversationId, perPage: 25);
+
+foreach ($messages as $message) {
+    $message->id;
+    $message->role;
+    $message->content;
+    $message->createdAt;
+    $message->usage;
+    $message->status;
+}
+```
+
+Кожен хід - промпт користувача разом із відповіддю асистента - зберігається як список кроків. Крок - це один запит до провайдера, тож хід, у якому модель викликає інструменти, міститиме кілька кроків. Кожен результат інструмента записується на виклику інструмента, що його отримав. Методи `toolCalls`, `providerToolCalls` і `toolResults` послідовно розгортають ці кроки в плоский список, тож обходити їх самостійно не доведеться:
+
+```php
+$message->steps;
+
+$message->toolCalls();
+$message->providerToolCalls();
+$message->toolResults();
+```
+
+Виклик інструмента містить `result`, щойно його виконано. Виклики інструментів, що мають `approval_reason`, але не мають `result`, досі чекають на [схвалення інструмента](#human-tool-approval).
+
+Властивість `status` містить екземпляр `Laravel\Ai\Enums\MessageStatus`. Хід, що впав на півдорозі, зберігається зі статусом `Failed` разом із кроками, які вже встигли завершитися, тож виклики інструментів, виконані до збою, лишаються в історії. Коли розмова продовжується, кожен виклик інструмента без записаного результату надсилається моделі з позначкою «перервано», адже Laravel не може визначити, чи він виконався.
+
+Перш ніж продовжувати розмову за ID, який надав фронтенд вашого застосунку, перевірте, що розмову збережено саме для цього учасника:
+
+```php
+abort_unless($store->conversationBelongsTo(
+    $conversationId, $user->getMorphClass(), $user->getKey()
+), 403);
+```
+
+Якщо останній хід призупинено в очікуванні [схвалення інструмента](#human-tool-approval), ви можете після перезавантаження сторінки відрендерити його очікувані виклики інструментів, не відновлюючи запуск:
+
+```php
+foreach ($store->pendingApprovalsFor($conversationId) as $approval) {
+    // $approval->id, $approval->tool, $approval->arguments, $approval->reason...
+}
+```
+
+Ці методи визначено контрактами `PaginatesConversations`, `VerifiesConversationOwnership` і `ResolvesPendingApprovals`. Вбудоване сховище в базі даних реалізує всі три, а власне сховище може реалізувати лише ті контракти, які йому потрібні.
 
 <a name="structured-output"></a>
 ### Структурований вивід
@@ -728,8 +817,26 @@ foreach ($stream as $event) {
 }
 ```
 
+Відповідь також містить міркування моделі та джерела, на які вона послалася. Якщо використовується трейт `RemembersConversations`, і те, і інше зберігається разом із повідомленням асистента:
+
+```php
+use Laravel\Ai\Responses\StreamedAgentResponse;
+
+(new SalesCoach)
+    ->stream('Analyze this sales transcript...')
+    ->then(function (StreamedAgentResponse $response) {
+        $response->reasoning; // '' unless the model returned reasoning text...
+        $response->meta->citations;
+    });
+```
+
+Міркування доступні й у відповідях, які повертає метод `prompt`.
+
 <a name="streaming-using-the-vercel-ai-sdk-protocol"></a>
-#### Стримінг за протоколом Vercel AI SDK
+<a name="stream-protocols"></a>
+#### Протоколи стримінгу
+
+За замовчуванням потокові відповіді використовують власний формат подій AI SDK. Втім, замість нього ви можете використати фронтенд-протокол стримінгу - тоді агента можна поєднати з готовим чат-інтерфейсом, а не будувати власний.
 
 Ви можете стримити події за [протоколом стримінгу Vercel AI SDK](https://ai-sdk.dev/docs/ai-sdk-ui/stream-protocol), викликавши метод `usingVercelDataProtocol` на потоковій відповіді:
 
@@ -741,6 +848,93 @@ Route::get('/coach', function () {
         ->stream('Analyze this sales transcript...')
         ->usingVercelDataProtocol();
 });
+```
+
+Ви можете передати ID повідомлення, якщо фронтенд вашого застосунку призначає власний:
+
+```php
+->usingVercelDataProtocol($request->string('messageId'));
+```
+
+Альтернативно, метод `usingAgentUserInteractionProtocol` дозволяє стримити за [протоколом Agent User Interaction (AG-UI)](https://docs.ag-ui.com):
+
+```php
+Route::post('/coach', function (Request $request) {
+    return (new SalesCoach)
+        ->forUser($request->user())
+        ->stream($request->string('prompt'))
+        ->usingAgentUserInteractionProtocol();
+});
+```
+
+Аргументи `threadId` і `runId` необов'язкові; за замовчуванням вони дорівнюють ID розмови та ID виклику:
+
+```php
+->usingAgentUserInteractionProtocol(
+    threadId: $request->input('threadId'),
+    runId: $request->input('runId'),
+);
+```
+
+Щоб використати протокол, якого AI SDK не реалізує, передайте власну реалізацію `Laravel\Ai\Streaming\Protocols\StreamProtocol` у метод `usingProtocol`:
+
+```php
+use App\Ai\Protocols\CustomProtocol;
+
+return (new SalesCoach)
+    ->stream('Analyze this sales transcript...')
+    ->usingProtocol(new CustomProtocol);
+```
+
+<a name="chat-requests"></a>
+<a name="frontend-integration"></a>
+#### Інтеграція з фронтендом
+
+Чат-інтерфейси, побудовані на бібліотеках на кшталт `useChat` від Vercel чи CopilotKit, уже вміють рендерити повідомлення, виклики інструментів і запити на схвалення, тож вашому застосунку лишається лише обробляти запити, які вони надсилають. Кожен такий запит містить історію розмови, найновіше повідомлення користувача та відповіді на запити схвалення інструментів.
+
+Методи `Vercel::chat` і `AgentUserInteraction::chat` перетворюють такий запит на об'єкт, який можна передати безпосередньо в метод агента `stream`:
+
+```php
+use Laravel\Ai\Vercel\Vercel;
+
+Route::post('/chat', function (Request $request) {
+    $chat = Vercel::chat($request);
+
+    return (new SupportAgent)
+        ->withMessages($chat->history())
+        ->stream($chat)
+        ->usingProtocol($chat->protocol());
+});
+```
+
+Якщо запит містить [рішення щодо схвалення](#human-tool-approval), агент відновить роботу з цими рішеннями. Інакше агенту передається промптом найновіше повідомлення користувача з запиту та його вкладення. Метод `protocol` повертає протокол, який використовує клієнт.
+
+> [!NOTE]
+> Агенти, що реалізують інтерфейс `Conversational`, самі завантажують свою історію, тож метод `withMessages` можна пропустити.
+
+Метод `AgentUserInteraction::chat` надає той самий API для клієнтів AG-UI, а також ID потоку й запуску з запиту:
+
+```php
+use Laravel\Ai\AgentUserInteraction\AgentUserInteraction;
+
+$chat = AgentUserInteraction::chat($request);
+
+$chat->threadId();
+$chat->runId();
+```
+
+Ви також можете перетворити збережені повідомлення назад у формат, якого очікує клієнт, - тоді клієнт зможе показати попередню розмову, наприклад після перезавантаження сторінки:
+
+```php
+$messages = $conversation->messages()->oldest()->get();
+
+return ['messages' => Vercel::toUiMessages($messages)];
+```
+
+Метод `AgentUserInteraction::toClientState` робить таке саме перетворення для клієнтів AG-UI, а крім того повертає переривання для очікуваних схвалень:
+
+```php
+return AgentUserInteraction::toClientState($messages);
 ```
 
 <a name="broadcasting"></a>
@@ -888,6 +1082,25 @@ public function tools(): iterable
         new RandomNumberGenerator,
     ];
 }
+```
+
+<a name="runtime-tool-overrides"></a>
+#### Перевизначення інструментів під час виконання
+
+Метод `withTools` дозволяє замінити інструменти, оголошені екземпляром агента. Це зручно, коли набір інструментів залежить від клієнта (tenant) чи від фіче-флагу:
+
+```php
+$response = (new SupportAgent)
+    ->withTools([new LookupOrder])
+    ->prompt('Where is order 12345?');
+```
+
+Ви також можете передати замикання: воно отримує оголошені інструменти агента, тож їх можна доповнити чи відфільтрувати:
+
+```php
+$response = (new SupportAgent)
+    ->withTools(fn (array $tools) => [...$tools, new LookupOrder])
+    ->prompt('Where is order 12345?');
 ```
 
 <a name="validating-tool-arguments"></a>
@@ -1230,6 +1443,30 @@ new FileSearch(stores: ['store_id'], where: fn (FileSearchQuery $query) =>
 );
 ```
 
+<a name="code-execution"></a>
+#### Виконання коду
+
+Інструмент провайдера `CodeExecution` дозволяє агентам запускати код у пісочниці, яку розміщує AI-провайдер. Це зручно для обчислень і аналізу даних.
+
+**Підтримувані провайдери:** Anthropic, OpenAI, Azure, Gemini, xAI
+
+```php
+use Laravel\Ai\Providers\Tools\CodeExecution;
+
+public function tools(): iterable
+{
+    return [new CodeExecution];
+}
+```
+
+Із OpenAI чи Azure ви можете зробити [збережені файли](#files) доступними в пісочниці через опції провайдера:
+
+```php
+(new CodeExecution)->withProviderOptions([
+    'container' => ['type' => 'auto', 'file_ids' => ['file_123']],
+]);
+```
+
 <a name="sub-agents"></a>
 ### Субагенти
 
@@ -1275,31 +1512,13 @@ class CustomerSupportAgent implements Agent, HasTools
 Щоб налаштувати, як субагент подається батьківському агенту, реалізуйте на субагенті інтерфейс `CanActAsTool` і визначте ім'я та опис для інструмента:
 
 ```php
-<?php
-
-namespace App\Ai\Agents;
-
-use App\Ai\Tools\LookupOrder;
 use Laravel\Ai\Attributes\Provider;
-use Laravel\Ai\Contracts\Agent;
 use Laravel\Ai\Contracts\CanActAsTool;
-use Laravel\Ai\Contracts\HasTools;
 use Laravel\Ai\Enums\Lab;
-use Laravel\Ai\Promptable;
 
 #[Provider(Lab::Anthropic)]
 class RefundsAgent implements Agent, CanActAsTool, HasTools
 {
-    use Promptable;
-
-    /**
-     * Get the instructions that the agent should follow.
-     */
-    public function instructions(): string
-    {
-        return 'You are a refunds specialist. Use order details and the refund policy to give concise eligibility guidance.';
-    }
-
     /**
      * Get the agent's tool name.
      */
@@ -1316,26 +1535,32 @@ class RefundsAgent implements Agent, CanActAsTool, HasTools
         return 'Determine whether an order is eligible for a refund and explain the next step.';
     }
 
-    /**
-     * Get the tools available to the agent.
-     *
-     * @return Tool[]
-     */
-    public function tools(): iterable
-    {
-        return [
-            new LookupOrder,
-        ];
-    }
+    // ...
 }
 ```
 
 Якщо субагент не реалізує `CanActAsTool`, Laravel використає базове ім'я класу агента як ім'я інструмента й загальний опис, який просить батьківського агента передати чіткий, самодостатній опис завдання. Кожен виклик субагента виконується ізольовано й не отримує історії розмови батьківського агента.
 
+Коли батьківський агент [стримить](#streaming), його субагенти теж стримлять. Батьківський агент надсилає події `ToolResult` з текстом, який субагент уже встиг згенерувати. Ці події позначені як попередні, і за ними йде остаточний результат виклику інструмента, тож, перебираючи події вручну, їх можна пропускати:
+
+```php
+use Laravel\Ai\Streaming\Events\ToolResult;
+
+foreach ($stream as $event) {
+    if ($event instanceof ToolResult && $event->preliminary) {
+        continue;
+    }
+
+    // ...
+}
+```
+
+Значення відповіді на кшталт `text`, `usage` і `toolResults` попередні події ігнорують. [Протокол Vercel](#stream-protocols) рендерить їх як нативний потоковий вивід інструмента, тож `useChat` показує прогрес без жодного власного коду, а протокол AG-UI передає їх як знімки активності. Текст, міркування, джерела й використання токенів завершеної відповіді враховують і внесок субагента.
+
 <a name="middleware"></a>
 ### Middleware
 
-Агенти підтримують `middleware`, що дозволяє перехоплювати й змінювати промпти, перш ніж їх буде надіслано провайдеру. Створити `middleware` можна артизан-командою `make:agent-middleware`:
+Агенти підтримують `middleware`, що дозволяє перехоплювати й змінювати кожен крок генерації, перш ніж його буде надіслано провайдеру. `Middleware` викликається один раз на крок, тож запуск із трьох кроків викличе його тричі. Створити `middleware` можна артизан-командою `make:agent-middleware`:
 
 ```shell
 php artisan make:agent-middleware LogPrompts
@@ -1371,7 +1596,7 @@ class SalesCoach implements Agent, HasMiddleware
 }
 ```
 
-Кожен клас `middleware` має визначати метод `handle`, який отримує `AgentPrompt` і `Closure` для передавання промпта наступному `middleware`:
+Кожен клас `middleware` має визначати метод `handle`, який отримує `PendingStep` і `Closure`, що передає крок наступному `middleware`:
 
 ```php
 <?php
@@ -1379,32 +1604,87 @@ class SalesCoach implements Agent, HasMiddleware
 namespace App\Ai\Middleware;
 
 use Closure;
-use Laravel\Ai\Prompts\AgentPrompt;
+use Illuminate\Support\Facades\Log;
+use Laravel\Ai\PendingStep;
 
 class LogPrompts
 {
     /**
-     * Handle the incoming prompt.
+     * Handle the pending generation step.
      */
-    public function handle(AgentPrompt $prompt, Closure $next)
+    public function handle(PendingStep $step, Closure $next)
     {
-        Log::info('Prompting agent', ['prompt' => $prompt->prompt]);
+        Log::info('Prompting agent', ['model' => $step->model]);
 
-        return $next($prompt);
+        return $next($step);
     }
 }
 ```
 
-Ви можете скористатися методом `then` на відповіді, щоб виконати код після того, як агент завершить обробку. Це працює як для синхронних, так і для потокових відповідей:
+Окрім `provider`, `model`, `instructions`, `messages` і `tools`, які от-от буде надіслано, крок надає вже завершені кроки, їхнє сумарне використання токенів і прогрес запуску:
 
 ```php
-public function handle(AgentPrompt $prompt, Closure $next)
+$step->steps;
+$step->usage;
+
+$step->number;
+$step->isFirstStep();
+$step->isFinalStep;
+```
+
+Методи `withModel`, `withInstructions`, `withMessages`, `withTools`, `onlyTools`, `withoutTools`, `withToolChoice`, `withMaxTokens` і `withProviderOptions` повертають копію кроку. Наприклад, ви можете прибрати дорогий інструмент, щойно агент ним скористався:
+
+```php
+public function handle(PendingStep $step, Closure $next)
 {
-    return $next($prompt)->then(function (AgentResponse $response) {
+    if (! $step->isFirstStep()) {
+        $step = $step->withoutTools('SearchDocumentation');
+    }
+
+    return $next($step);
+}
+```
+
+Або можна втримати довгий цикл викликів інструментів у межах контекстного вікна, стиснувши середину розмови в короткий переказ:
+
+```php
+use App\Ai\Agents\Summarizer;
+use Laravel\Ai\Messages\UserMessage;
+
+public function handle(PendingStep $step, Closure $next)
+{
+    if (count($step->messages) > 40) {
+        $summary = (new Summarizer)->prompt(
+            collect(array_slice($step->messages, 1, -10))->map->content->implode("\n"),
+        )->text;
+
+        $step = $step->withMessages([
+            $step->messages[0],
+            new UserMessage("Summary of the conversation so far: {$summary}"),
+            ...array_slice($step->messages, -10),
+        ]);
+    }
+
+    return $next($step);
+}
+```
+
+Повідомлення, передані в метод `withMessages`, змінюють лише те, що надсилається на поточному кроці. Наступні кроки й збережена розмова й далі використовують повну історію, без переказу.
+
+Ви можете скористатися методом `then`, щоб виконати код, щойно модель відповіла на крок, але до виконання її викликів інструментів. Це працює як для синхронних, так і для потокових відповідей:
+
+```php
+use Laravel\Ai\Gateway\StepResponse;
+
+public function handle(PendingStep $step, Closure $next)
+{
+    return $next($step)->then(function (StepResponse $response) {
         Log::info('Agent responded', ['text' => $response->text]);
     });
 }
 ```
+
+`Middleware` має повертати результат `$next` або власний `StepResponse`, щоб відповісти на крок без виклику моделі - наприклад, віддаючи закешовану відповідь. Повернення будь-якого іншого значення викидає `LogicException`.
 
 <a name="anonymous-agents"></a>
 ### Анонімні агенти
@@ -1555,6 +1835,34 @@ class SalesCoach implements Agent, HasProviderOptions
 
 Наведений вище приклад з Anthropic також вмикає [кешування промптів](#prompt-caching) через `cache_control`.
 
+Опції провайдера приймають і виклики для [зображень](#images), [аудіо](#audio), [транскрибування](#transcription), [ембедингів](#embeddings) та [переранжування](#reranking):
+
+```php
+use Laravel\Ai\Audio;
+
+$audio = Audio::of('I love coding with Laravel.')
+    ->withProviderOptions(['speed' => 1.25])
+    ->generate();
+```
+
+Замість масиву можна передати замикання - воно отримає провайдер, який зараз використовується.
+
+<a name="custom-http-headers"></a>
+#### Власні HTTP-заголовки
+
+Заголовки, налаштовані для провайдера в конфігураційному файлі `config/ai.php` вашого застосунку, надсилаються з кожним запитом цього провайдера. Щоб надсилати заголовки для окремого запиту - наприклад, метадані для AI-шлюзу, - скористайтеся методом `withHeaders`. Він доступний для зображень, аудіо, транскрибування, ембедингів і переранжування, а також для [завантаження файлів](#files):
+
+```php
+use Laravel\Ai\Embeddings;
+
+$embeddings = Embeddings::for($chunks)
+    ->withHeaders(['cf-aig-metadata' => json_encode(['team' => $team->id])])
+    ->withProviderOptions(['dimensions' => 1024])
+    ->generate();
+```
+
+Заголовки також можна задати замиканням, яке отримує провайдер, що зараз використовується. Заголовки не потрапляють у тіло запиту й не впливають на [ключі кешу ембедингів](#caching-embeddings).
+
 <a name="prompt-caching"></a>
 ### Кешування промптів
 
@@ -1564,6 +1872,8 @@ class SalesCoach implements Agent, HasProviderOptions
 $response->usage->cacheReadInputTokens;
 $response->usage->cacheWriteInputTokens;
 ```
+
+Обидва ці лічильники - частина загальної кількості вхідних токенів; докладніше про це в [розділі про використання токенів](#usage).
 
 Провайдери `anthropic` та `bedrock` кешують лише за запитом. Атрибути `CacheInstructions` та `CacheToolDefinitions` розміщують точку розриву кешу в кінці інструкцій вашого агента та визначень інструментів, тож кожна розмова зчитує цей префікс з кешу замість того, щоб писати його знову:
 
@@ -1601,7 +1911,7 @@ class SalesCoach implements Agent
 ## Схвалення інструментів людиною
 
 > [!WARNING]
-> Схвалення інструментів потребує агента `Conversational`, історія розмови якого зберігається, щоб призупинений виклик можна було відновити. Трейт `RemembersConversations` забезпечує потрібне збереження.
+> Щоб схвалення інструментів працювало, історія призупиненого ходу має бути доступна, коли запуск відновлюється. Використайте агента `Conversational` (наприклад, із трейтом `RemembersConversations`) або передайте історію з фронтенду вашого застосунку [методом `withMessages`](#conversation-context). Агенти, що не роблять ні того, ні іншого, викидають `ApprovalNotResumableException`, коли інструмент призупиняє роботу.
 
 Інструменти, що виконують чутливі чи незворотні дії, можуть потребувати схвалення людиною перед виконанням. Щоб зробити інструмент таким, що потребує схвалення, реалізуйте контракт `Approvable` і використайте трейт `InteractsWithApprovals`. Такі інструменти за замовчуванням потребують схвалення:
 
@@ -1711,6 +2021,9 @@ $response = (new FileAssistant)
     ]));
 ```
 
+> [!IMPORTANT]
+> Призупинені ходи зіставляються за розмовою та очікуваними викликами інструментів, а не за учасником, який їх призупинив. Тому ваш застосунок має авторизувати доступ до розмови, перш ніж відновлювати її, як показано в [повному потоці схвалення](#complete-approval-flow), або перевірити доступ методом сховища розмов `conversationBelongsTo`.
+
 Булеві значення `true` і `false` можна використовувати як скорочення для схвалення й відхилення. Кожен очікуваний виклик інструмента має отримати рішення. Невідомі, відсутні чи вже розв'язані ID викликів інструментів спричинять виняток `ApprovalMismatchException`. Ви можете задати значення за замовчуванням для викликів без явного рішення методами `approveRemaining` чи `rejectRemaining`:
 
 ```php
@@ -1727,7 +2040,20 @@ $response = (new FileAssistant)
 
 Схвалення інструментів підтримують методи `prompt`, `stream`, `queue`, `broadcast`, `broadcastNow` і `broadcastOnQueue`.
 
-Під час стримінгу й бродкастингу призупинення представлене подією `tool_approval_request`. Використовуючи [протокол стримінгу Vercel AI SDK](#streaming-using-the-vercel-ai-sdk-protocol), запити на схвалення й результати випромінюються через нативні частини схвалення інструментів цього протоколу.
+Під час стримінгу й бродкастингу призупинення представлене подією `tool_approval_request`. Використовуючи [протокол стримінгу Vercel AI SDK](#stream-protocols), запити на схвалення й результати випромінюються через нативні частини схвалення інструментів цього протоколу, а протокол Agent User Interaction передає їх як переривання.
+
+Клієнти обох протоколів надсилають свої рішення разом з рештою розмови, тож [запит із чату](#frontend-integration) можна передати агенту безпосередньо:
+
+```php
+$chat = Vercel::chat($request);
+
+return (new FileAssistant)
+    ->continue($conversationId, as: $request->user())
+    ->stream($chat)
+    ->usingProtocol($chat->protocol());
+```
+
+Коли призупинений хід відновлюється, відновлені кроки об'єднуються з цим ходом, тож кожен хід зберігається як одне повідомлення асистента. `assistantMessageId` відповіді містить ID призупиненого повідомлення, а використання токенів цього повідомлення охоплює і призупинення, і відновлення.
 
 Для агентів у черзі отримана відповідь передається до колбека `then`, а Laravel також диспетчеризує подію `ToolApprovalRequested`.
 
@@ -1736,7 +2062,7 @@ Laravel зберігає результат схваленого інструм�
 <a name="complete-approval-flow"></a>
 ### Повний потік схвалення
 
-Наведені нижче маршрути демонструють повний потік схвалення. Маршрут `GET` повертає екран чату, а маршрут `POST` приймає або новий текстовий промпт, або рішення про схвалення з екрана чату. Цей приклад припускає, що модель `User` застосунку використовує трейт `HasConversations`:
+Наведений нижче маршрут демонструє повний потік схвалення: він приймає або новий текстовий промпт, або рішення про схвалення з екрана чату. Цей приклад припускає, що модель `User` застосунку використовує трейт `HasConversations`:
 
 ```php
 use App\Ai\Agents\FileAssistant;
@@ -1747,14 +2073,6 @@ use Illuminate\Validation\Rule;
 use Laravel\Ai\Approvals\Decision;
 use Laravel\Ai\Approvals\Decisions;
 use Laravel\Ai\Models\Conversation;
-
-Route::get('/chat/{conversation}', function (Request $request, Conversation $conversation) {
-    Gate::authorize('view', $conversation);
-
-    return view('chat', [
-        'conversation' => $conversation,
-    ]);
-})->middleware('auth');
 
 Route::post('/chat/{conversation}', function (Request $request, Conversation $conversation) {
     Gate::authorize('view', $conversation);
@@ -1788,7 +2106,7 @@ Route::post('/chat/{conversation}', function (Request $request, Conversation $co
 })->middleware('auth');
 ```
 
-Коли статус відповіді - `awaiting_approval`, екран чату має відрендерити очікувані схвалення й надіслати вибір користувача на той самий ендпоїнт, використовуючи ID виклику інструмента як ключ кожного рішення:
+Коли статус відповіді - `awaiting_approval`, екран чату має відрендерити очікувані схвалення й надіслати вибір користувача на той самий ендпоїнт, використовуючи ID виклику інструмента як ключ кожного рішення. В іншому разі екран може надіслати просте значення `message`:
 
 ```json
 {
@@ -1801,14 +2119,6 @@ Route::post('/chat/{conversation}', function (Request $request, Conversation $co
             "result": "The invoice must be retained."
         }
     }
-}
-```
-
-Для звичайного повідомлення чату екран може натомість надіслати значення `message`:
-
-```json
-{
-    "message": "Delete the old invoice."
 }
 ```
 
@@ -1852,6 +2162,18 @@ $image = Image::of('Update this photo of me to be in the style of an impressioni
     ])
     ->landscape()
     ->generate();
+```
+
+Деякі провайдери можуть згенерувати кілька зображень за один запит. OpenAI, Azure і xAI приймають [опцію провайдера](#provider-options) `n`, і відповідь міститиме всі повернуті зображення:
+
+```php
+$response = Image::of('A donut sitting on the kitchen counter')
+    ->withProviderOptions(['n' => 4])
+    ->generate();
+
+count($response);           // 4
+$response->images;          // A collection of generated images...
+$response->firstImage();    // The first generated image...
 ```
 
 Згенеровані зображення легко зберегти на диску за замовчуванням, налаштованому в конфігураційному файлі `config/filesystems.php` вашого застосунку:
@@ -2230,11 +2552,12 @@ $response->first()->score;    // 0.95
 $response->first()->index;    // 1 (original position)
 ```
 
-Метод `limit` можна використати, щоб обмежити кількість повернутих результатів:
+Метод `limit` можна використати, щоб обмежити кількість повернутих результатів, а метод `timeout` - щоб задати HTTP-тайм-аут у секундах (за замовчуванням 30):
 
 ```php
 $response = Reranking::of($documents)
     ->limit(5)
+    ->timeout(60)
     ->rerank('search query');
 ```
 
@@ -2265,8 +2588,118 @@ $reranked = $posts->rerank(
     by: 'content',
     query: 'Laravel tutorials',
     limit: 10,
-    provider: Lab::Cohere
+    provider: Lab::Cohere,
+    timeout: 60,
 );
+```
+
+<a name="classification"></a>
+## Класифікація
+
+> [!WARNING]
+> Класифікація поки що експериментальна, і її API може змінитися в майбутніх мінорних випусках AI SDK.
+
+Класифікація дозволяє поставити фіксований набір запитань про заданий рядок чи масив даних і отримати на кожне типізовану відповідь із ймовірністю, а не довільний текст. Це корисно для маршрутизації, модерації й оцінювання - там, де відповідь треба порівняти з порогом або перевірити в тестах.
+
+Класифікувати вміст можна класом `Laravel\Ai\Classification`. Кожне запитання має ключ, і за цим ключем відповідну відповідь можна дістати з результату:
+
+```php
+use Laravel\Ai\Classification;
+use Laravel\Ai\Classification\Boolean;
+use Laravel\Ai\Classification\Choice;
+use Laravel\Ai\Classification\Score;
+
+$result = Classification::of($supportRequest)
+    ->questions([
+        'urgent' => new Boolean('Does this request need an immediate response?', [
+            'true' => 'Explicitly time-sensitive',
+            'false' => 'No urgency expressed',
+        ]),
+        'department' => new Choice('Which team should handle this request?', [
+            'billing' => 'Payments, invoices, and refunds',
+            'technical' => 'Bugs, outages, and integrations',
+            'sales' => 'Pricing, plans, and upgrades',
+        ]),
+        'frustration' => new Score('How frustrated is the customer?', [
+            'Calm',
+            'Frustrated',
+            'Very angry',
+        ]),
+    ])
+    ->classify();
+```
+
+Запитання `Boolean` повертають ймовірність того, що відповідь - «так». Метод `isTrue` визначає, чи досягає ця ймовірність заданого порогу, який за замовчуванням дорівнює `0.5`:
+
+```php
+$result['urgent']->probability;             // 0.94
+$result['urgent']->isTrue(threshold: 0.8);  // true
+```
+
+Запитання `Choice` повертають один із запропонованих варіантів разом з ймовірністю кожного варіанта. Властивість `confidence` показує, наскільки провайдер упевнений з огляду на весь набір ймовірностей, і дорівнює `null`, якщо провайдер не може її виміряти:
+
+```php
+$result['department']->choice;                      // 'technical'
+$result['department']->probabilityOf('technical');  // 0.87
+$result['department']->probabilities;               // ['billing' => 0.08, 'technical' => 0.87, 'sales' => 0.05]
+$result['department']->confidence;                  // 0.82
+```
+
+Запитання `Score` повертають позицію на впорядкованій шкалі переданих рівнів. Властивість `score` зважена за ймовірностями й може опинитися між двома рівнями, а методи `level` і `label` описують найімовірніший рівень:
+
+```php
+$result['frustration']->score;          // 1.24, the probability-weighted level
+$result['frustration']->level();        // 1, the most probable level
+$result['frustration']->label();        // 'Frustrated'
+$result['frustration']->normalized();   // 0.62, the score as a fraction of the highest level
+$result['frustration']->probabilities;  // [0.12, 0.52, 0.36]
+```
+
+Критерії для запитання `Boolean`, описи варіантів для запитання `Choice` і рівні для запитання `Score` можна передати масивом, якщо одного речення замало. Запитання `Choice` потребують щонайменше двох варіантів, а `Score` - щонайменше двох рівнів.
+
+Результат можна перебирати, рахувати й читати як масив. Крім того, метод `answer` повертає одну відповідь, а метод `collect` - усі відповіді як [колекцію](/docs/{{version}}/collections):
+
+```php
+$result->answer('urgent');
+$result->collect();
+
+$result->usage;
+$result->meta->provider;
+```
+
+Для одного рішення «так чи ні» можна скористатися методом `decide`, доступним через клас Laravel `Stringable`: він повертає булеве значення замість повного результату. Ви можете описати, що означають «так» і «ні», і задати ймовірність, якої має досягти відповідь (за замовчуванням `0.5`):
+
+```php
+use Illuminate\Support\Str;
+
+if (Str::of($message)->decide('Is this spam?')) {
+    // ...
+}
+
+$spam = Str::of($message)->decide('Is this spam?', criteria: [
+    'true' => 'Unsolicited bulk mail.',
+    'false' => 'A genuine message from a customer.',
+], threshold: 0.9);
+```
+
+За замовчуванням класифікацію виконує [TypeSafe](https://typesafe.ai). Змінити це можна опцією `default_for_classification` у конфігураційному файлі `config/ai.php` вашого застосунку. Також можна вказати провайдер і модель прямо під час класифікації:
+
+```php
+use Laravel\Ai\Enums\Lab;
+
+$result = Classification::of($supportRequest)
+    ->questions($questions)
+    ->classify(Lab::OpenRouter, 'model-name');
+```
+
+Метод `timeout` задає HTTP-тайм-аут у секундах (за замовчуванням 30). Також можна передати [опції провайдера](#provider-options) та власні заголовки:
+
+```php
+$result = Classification::of($supportRequest)
+    ->questions($questions)
+    ->timeout(60)
+    ->withProviderOptions(['temperature' => 0])
+    ->classify();
 ```
 
 <a name="files"></a>
@@ -2479,6 +2912,8 @@ $document->fileId;
 
 > **Note:** Зазвичай, коли ви додаєте до векторних сховищ раніше збережені файли, повернутий ID документа збігатиметься з раніше призначеним ID файлу; однак деякі провайдери векторних сховищ можуть повернути новий, інший «ID документа». Тому рекомендується завжди зберігати обидва ID у своїй базі даних для подальшого використання.
 
+Додаючи файл до сховища Gemini, Laravel чекає, доки імпорт завершиться, щоб документ був доступний для пошуку, щойно виклик поверне результат. Якщо імпорт не вдасться або триватиме довше п'яти хвилин, буде викинуто `Laravel\Ai\Exceptions\AiException`, тож файли Gemini, можливо, краще додавати з [завдання в черзі](/docs/{{version}}/queues).
+
 Ви можете прикріпити до файлів метадані, додаючи їх до сховища. Ці метадані згодом можна використати для фільтрації результатів пошуку через [інструмент провайдера для пошуку файлів](#file-search):
 
 ```php
@@ -2499,6 +2934,56 @@ $store->remove('file_id');
 
 ```php
 $store->remove('file_abc123', deleteFile: true);
+```
+
+<a name="usage"></a>
+## Використання токенів
+
+Кожна відповідь містить властивість `usage` з кількістю токенів, яку повідомив провайдер. Кількості вхідних і вихідних токенів - загальні, тож токени, враховані як кешовані чи як токени міркувань, теж входять до загальної кількості, до якої вони належать:
+
+```php
+$response = (new SalesCoach)->prompt('Analyze this sales transcript...');
+
+$response->usage->inputTokens;
+$response->usage->outputTokens;
+$response->usage->totalTokens();
+```
+
+Генерація тексту повертає екземпляр `Laravel\Ai\Responses\Data\TextUsage`, який розбиває ці підсумки докладніше. Кожне з цих значень дорівнює `null`, а не `0`, якщо провайдер його не повідомляє:
+
+```php
+$response->usage->cacheReadInputTokens; // Subset of the input tokens read from a prompt cache...
+$response->usage->cacheWriteInputTokens; // Subset of the input tokens written to a prompt cache...
+$response->usage->reasoningTokens; // Subset of the output tokens spent on reasoning...
+
+$response->usage->uncachedInputTokens(); // Input tokens that were neither read from nor written to the cache...
+```
+
+Читання з кешу, запис у кеш і некешований вхід тарифікуються за різними ставками, тож рахуйте вартість цих трьох величин окремо, а не лише за загальною кількістю вхідних токенів.
+
+Решта можливостей повертають об'єкт використання з власними лічильниками:
+
+<div class="overflow-auto">
+
+| Можливість | Об'єкт використання | Додає |
+|---|---|---|
+| Текст, класифікація | `TextUsage` | Токени читання з кешу, запису в кеш і міркувань |
+| Зображення | `ImageUsage` | `imageInputTokens` і `imageOutputTokens` |
+| Транскрибування | `TranscriptionUsage` | `audioSeconds` - тривалість транскрибованого аудіо |
+| Переранжування | `RerankingUsage` | `searchUnits`, які деякі провайдери тарифікують замість токенів |
+| Аудіо, ембединги | `Usage` | |
+
+</div>
+
+Не кожен провайдер повідомляє кожен лічильник, і лічильники, яких провайдер не повідомляє, дорівнюватимуть `null`:
+
+```php
+use Laravel\Ai\Image;
+use Laravel\Ai\Transcription;
+
+Image::of('A donut sitting on the kitchen counter')->generate()->usage->imageOutputTokens;
+
+Transcription::fromPath('/home/laravel/meeting.mp3')->generate()->usage->audioSeconds;
 ```
 
 <a name="failover"></a>
@@ -2593,6 +3078,24 @@ FileAssistant::fake([
 $response = (new FileAssistant)->prompt('Delete the invoice.');
 
 $response->hasPendingApprovals(); // true
+```
+
+Крім того, можна підробити відповідь із міркуваннями. Така підробка випромінює події міркувань, тож міркування потрапляють і в потокові запуски:
+
+```php
+use Laravel\Ai\Responses\AgentResponse;
+
+SalesCoach::fake([
+    AgentResponse::fakeWithReasoning('They asked about pricing.', 'Plans start at $10.'),
+]);
+
+$response = (new SalesCoach)->stream('What does it cost?');
+
+foreach ($response as $event) {
+    // ...
+}
+
+$response->reasoning; // 'They asked about pricing.'
 ```
 
 > **Note:** Коли `Agent::fake()` викликано на агенті, який повертає структурований вивід, а підроблений вивід не було задано явно, Laravel автоматично згенерує підроблені дані, що відповідають визначеній схемі виводу вашого агента.
@@ -2922,6 +3425,54 @@ Reranking::assertNotReranked(
 Reranking::assertNothingReranked();
 ```
 
+<a name="testing-classification"></a>
+### Класифікація
+
+Класифікацію можна підробити, викликавши метод `fake` на класі `Classification`. Якщо власних відповідей не передано, Laravel автоматично згенерує відповіді відповідної форми для кожного запитання:
+
+```php
+use Laravel\Ai\Classification;
+use Laravel\Ai\Prompts\ClassificationPrompt;
+use Laravel\Ai\Responses\Data\BooleanAnswer;
+use Laravel\Ai\Responses\Data\ChoiceAnswer;
+
+// Automatically generate fake answers...
+Classification::fake();
+
+// Provide answers for specific questions...
+Classification::fake([
+    [
+        'urgent' => new BooleanAnswer(0.94),
+        'department' => new ChoiceAnswer('technical', [
+            'billing' => 0.08,
+            'technical' => 0.87,
+            'sales' => 0.05,
+        ], confidence: 0.82),
+    ],
+]);
+
+// Build answers from the prompt...
+Classification::fake(fn (ClassificationPrompt $prompt) => [
+    'urgent' => new BooleanAnswer($prompt->contains('ASAP') ? 1.0 : 0.0),
+]);
+```
+
+Запитання, пропущені в підробленій відповіді, однаково отримають згенеровану відповідь, тож вашим тестам достатньо передати лише ті відповіді, щодо яких вони роблять перевірки.
+
+Після класифікації ви можете перевірити, які операції було виконано:
+
+```php
+Classification::assertClassified(function (ClassificationPrompt $prompt) {
+    return $prompt->contains('refund') && $prompt->asks('department');
+});
+
+Classification::assertNotClassified(
+    fn (ClassificationPrompt $prompt) => $prompt->asks('sentiment')
+);
+
+Classification::assertNothingClassified();
+```
+
 <a name="testing-files"></a>
 ### Файли
 
@@ -3046,6 +3597,8 @@ Laravel AI SDK диспетчеризує різноманітні [події](
 - `AgentPrompted`
 - `AgentStreamed`
 - `AudioGenerated`
+- `Classified`
+- `Classifying`
 - `CreatingStore`
 - `EmbeddingsGenerated`
 - `FileAddedToStore`
