@@ -1,5 +1,5 @@
 ---
-git: 5e0a0edf75ca5f9ec60a27cece58fa9997958335
+git: eff8739e9090c2a0216fefac8e33dacdd689f8f6
 ---
 # Laravel Sail
 
@@ -372,6 +372,15 @@ MAIL_ENCRYPTION=null
 ```
 
 Коли Sail працює, ви можете відкрити вебінтерфейс Mailpit за адресою http://localhost:8025
+
+Якщо ви вирішили встановити сервіс [Mailtrap Local](https://github.com/mailtrap/mailtrap-local) під час інсталяції Sail або додали його пізніше за допомогою Artisan-команди `sail:add`, файл `compose.yaml` вашого застосунку міститиме запис для цього перехоплювача листів замість Mailpit. Стандартний хост Mailtrap Local - `mailtrap-local`, доступний на порту 3535:
+
+```ini
+MAIL_HOST=mailtrap-local
+MAIL_PORT=3535
+```
+
+Коли Sail працює, ви можете відкрити вебінтерфейс Mailtrap Local за адресою http://localhost:3550
 
 <a name="sail-container-cli"></a>
 ## CLI контейнера
