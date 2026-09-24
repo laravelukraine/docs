@@ -1,5 +1,5 @@
 ---
-git: 89e91b5cff48e1b9b1a7921300653eb1ceb7bfcb
+git: 9d4d158ed052bf5f82d05d6909f43bb3ee63b893
 ---
 # Eloquent: початок роботи
 
@@ -12,6 +12,7 @@ git: 89e91b5cff48e1b9b1a7921300653eb1ceb7bfcb
     - [Часові позначки](#timestamps)
     - [Підключення до бази даних](#database-connections)
     - [Значення атрибутів за замовчуванням](#default-attribute-values)
+    - [Оновлення атрибутів після запису](#refreshing-attributes-after-writes)
     - [Налаштування строгості Eloquent](#configuring-eloquent-strictness)
 - [Отримання моделей](#retrieving-models)
     - [Колекції](#collections)
@@ -420,6 +421,29 @@ class Flight extends Model
     ];
 }
 ```
+
+<a name="refreshing-attributes-after-writes"></a>
+### Оновлення атрибутів після запису
+
+Якщо ваша база даних містить згенеровані стовпці, ви можете налаштувати Eloquent так, щоб після вставки чи оновлення моделі він заново зчитував певні атрибути з бази даних. Для цього визначте атрибут `Refreshes` на вашій моделі:
+
+```php
+use Illuminate\Database\Eloquent\Attributes\Refreshes;
+
+#[Refreshes('name')]
+class User extends Model
+{
+    // ...
+}
+```
+
+Ви можете вказати кілька атрибутів як масив:
+
+```php
+#[Refreshes(['name', 'slug'])]
+```
+
+Після запису моделі налаштовані атрибути будуть оновлені з бази даних.
 
 <a name="configuring-eloquent-strictness"></a>
 ### Налаштування строгості Eloquent

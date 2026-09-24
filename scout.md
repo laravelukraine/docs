@@ -1,5 +1,5 @@
 ---
-git: e232d85d9300a354f6a62c24975173d5aed84ec9
+git: 9d4d158ed052bf5f82d05d6909f43bb3ee63b893
 ---
 # Laravel Scout
 
@@ -559,6 +559,35 @@ php artisan scout:sync-index-settings
 ```
 
 Метод моделі `toSearchableEmbedding` може повертати вихідний текст, який Scout перетворює на ембединг за допомогою [Laravel AI SDK](/docs/{{version}}/ai-sdk), або вже готовий масив ембединга. Оновивши конфігурацію, виконайте команду `scout:sync-index-settings`.
+
+Альтернативно, можна використовувати нативні ембединги Meilisearch, встановивши `driver` ембедингу на `meilisearch`. У цьому режимі Meilisearch генерує ембединги документів і запитів за допомогою налаштованого ембедера, тому параметр `dimensions` і метод `toSearchableEmbedding` не потрібні:
+
+```php
+'meilisearch' => [
+    'index-settings' => [
+        Article::class => [
+            'embedders' => [
+                'default' => [
+                    'source' => 'openAi',
+                    'apiKey' => env('OPENAI_API_KEY'),
+                    'model' => 'text-embedding-3-small',
+                    'documentTemplate' => 'An article titled {{ doc.title }}: {{ doc.body }}',
+                ],
+            ],
+        ],
+    ],
+    'model-settings' => [
+        Article::class => [
+            'embedding' => [
+                'embedder' => 'default',
+                'driver' => 'meilisearch',
+            ],
+        ],
+    ],
+],
+```
+
+При використанні нативних ембедингів Scout не генерує й не додає вектори до індексованих документів. Ви все одно можете надати заздалегідь обчислений вектор запиту за допомогою параметра пошуку `vector`.
 
 <a name="meilisearch-data-types"></a>
 #### Типи даних для пошуку
