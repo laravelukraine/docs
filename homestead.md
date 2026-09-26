@@ -1,5 +1,5 @@
 ---
-git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
+git: ec28ad6ee78ebeada6095e05d33da7e8c42dd6dc
 ---
 # Laravel Homestead
 
@@ -384,7 +384,7 @@ features:
 <a name="mariadb"></a>
 #### MariaDB
 
-Увімкнення MariaDB прибере MySQL і встановить MariaDB. MariaDB зазвичай є прямою заміною MySQL, тож у конфігурації бази даних вашого застосунку вам слід і далі використовувати драйвер бази даних `mysql`.
+Увімкнення MariaDB прибере MySQL і встановить MariaDB. Ваш застосунок має використовувати драйвер бази даних `mariadb`, а не `mysql`: обидва підключаться, але лише драйвер `mariadb` генерує SQL, специфічний для MariaDB, як-от запити на векторну відстань.
 
 <a name="mongodb"></a>
 #### MongoDB
