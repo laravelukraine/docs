@@ -1,5 +1,5 @@
 ---
-git: eea8b121cba77e6f5f62405a9334b1d075eb5c3a
+git: 97d2b7a984f39287500a1808ad98761e10faa275
 ---
 # Бродкастинг
 
@@ -201,7 +201,22 @@ BROADCAST_CONNECTION=ably
 <a name="mercure"></a>
 ### Mercure
 
-[Mercure](https://mercure.rocks) - це протокол реального часу, що використовує server-sent events. Щоб транслювати події через Mercure-хаб, налаштуйте підключення `mercure` у файлі `.env` вашого застосунку:
+Щоб швидко підключити можливості бродкастингу Laravel разом із Mercure як вашим транслятором подій, викличте артизан-команду `install:broadcasting` з опцією `--mercure`. Ця команда запитає ваші облікові дані Mercure, встановить PHP і JavaScript SDK для Mercure та оновить файл `.env` вашого застосунку відповідними змінними:
+
+```shell
+php artisan install:broadcasting --mercure
+```
+
+<a name="mercure-manual-installation"></a>
+#### Ручне встановлення
+
+Щоб встановити підтримку Mercure вручну, ви повинні встановити компонент Symfony Mercure і бібліотеку JWT:
+
+```shell
+composer require symfony/mercure:^0.8 web-token/jwt-library:^4.1
+```
+
+Далі налаштуйте підключення Mercure у файлі `.env` вашого застосунку:
 
 ```ini
 BROADCAST_CONNECTION=mercure
@@ -211,13 +226,15 @@ MERCURE_PUBLIC_URL=https://mercure.example.com/.well-known/mercure
 MERCURE_JWT_SECRET=<your-mercure-jwt-secret>
 ```
 
-Значення `MERCURE_URL` - це URL, який Laravel використовує для публікації оновлень, тоді як `MERCURE_PUBLIC_URL` - це URL, який браузерні клієнти використовують для підписки. Ваш Mercure-хаб має бути налаштований з тим самим JWT-секретом.
+Значення `MERCURE_URL` - це URL, який Laravel використовує для публікації оновлень, тоді як `MERCURE_PUBLIC_URL` - це URL, який клієнти браузера використовують для підписки. Ваш Mercure hub має бути налаштований з тим самим секретом JWT.
 
 Щоб використовувати наскрізно зашифровані приватні канали, налаштуйте 32-байтову змінну оточення `MERCURE_ENCRYPTION_KEY`:
 
 ```ini
 MERCURE_ENCRYPTION_KEY=<your-32-byte-encryption-key>
 ```
+
+Нарешті, ви готові встановити й налаштувати [Laravel Echo](#client-side-installation), який буде отримувати події бродкастингу на стороні клієнта.
 
 <a name="client-side-installation"></a>
 ## Встановлення на боці клієнта

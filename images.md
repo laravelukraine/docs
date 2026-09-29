@@ -1,5 +1,5 @@
 ---
-git: 4030a84b979f7420788dda14df439dd4d66d765d
+git: 97d2b7a984f39287500a1808ad98761e10faa275
 ---
 # Обробка зображень
 
@@ -330,7 +330,7 @@ $dominantColor = $image->dominantColor();
 
 Менеджер зображень Laravel розширює базовий клас `Illuminate\Support\Manager`. Це означає, що ви можете реєструвати власні драйвери зображень методом `extend`, доступним у менеджері зображень і фасаді `Image`.
 
-Власні драйвери зображень мають реалізовувати інтерфейс `Illuminate\Contracts\Image\Driver`. Метод `process` отримує оригінальний вміст зображення та впорядкований `Illuminate\Image\ImagePipeline`, який слід застосувати до зображення, і має повернути оброблені байти:
+Власні драйвери зображень мають реалізовувати інтерфейс `Illuminate\Contracts\Image\Driver`. Метод `process` отримує оригінальний вміст зображення та впорядкований `Illuminate\Image\ImagePipeline`, який слід застосувати до зображення, і має повернути оброблені байти. Метод `dimensions` має повернути ширину й висоту зображення, а метод `dominantColor` - середній колір зображення у вигляді hex-рядка:
 
 ```php
 <?php
@@ -350,6 +350,26 @@ class VipsDriver implements Driver
         // Apply the pipeline's transformations and output options...
 
         return $contents;
+    }
+
+    /**
+     * Get the dimensions of the given image contents.
+     */
+    public function dimensions(string $contents): array
+    {
+        // Read the image's width and height...
+
+        return [0, 0];
+    }
+
+    /**
+     * Get the dominant (average) color of the image as a hex string.
+     */
+    public function dominantColor(string $contents): string
+    {
+        // Calculate the image's average color...
+
+        return '#000000';
     }
 
     /**
