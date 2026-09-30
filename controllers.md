@@ -1,5 +1,5 @@
 ---
-git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
+git: 572314820aa4da505c8b5472a04908c3a9c14ec0
 ---
 # Контролери
 
@@ -572,7 +572,7 @@ public function boot(): void
 Якщо вам потрібно додати до ресурсного контролера маршрути поза типовим набором ресурсних маршрутів, визначайте їх **до** виклику методу `Route::resource`; інакше маршрути, визначені методом `resource`, можуть ненавмисно взяти гору над вашими додатковими маршрутами:
 
 ```php
-use App\Http\Controller\PhotoController;
+use App\Http\Controllers\PhotoController;
 
 Route::get('/photos/popular', [PhotoController::class, 'popular']);
 Route::resource('photos', PhotoController::class);

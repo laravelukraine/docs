@@ -1,5 +1,5 @@
 ---
-git: b94b890362111c44de223e09502c610a9d9f20d8
+git: 572314820aa4da505c8b5472a04908c3a9c14ec0
 ---
 # Колекції
 
@@ -2936,7 +2936,7 @@ $collection->sole();
 // ['product' => 'Desk', 'price' => 200]
 ```
 
-Якщо в колекції немає елементів, які має повернути метод `sole`, буде викинуто виняток `\Illuminate\Collections\ItemNotFoundException`. Якщо повернути слід більше ніж один елемент, буде викинуто `\Illuminate\Collections\MultipleItemsFoundException`.
+Якщо в колекції немає елементів, які має повернути метод `sole`, буде викинуто виняток `\Illuminate\Support\ItemNotFoundException`. Якщо повернути слід більше ніж один елемент, буде викинуто `\Illuminate\Support\MultipleItemsFoundException`.
 
 <a name="method-some"></a>
 #### `some()` {.collection-method}

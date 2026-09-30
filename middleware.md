@@ -1,5 +1,5 @@
 ---
-git: 5e0a0edf75ca5f9ec60a27cece58fa9997958335
+git: 572314820aa4da505c8b5472a04908c3a9c14ec0
 ---
 # Middleware
 
@@ -477,7 +477,7 @@ Route::put('/post/{id}', function (string $id) {
 ```php
 <?php
 
-namespace Illuminate\Session\Middleware;
+namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;

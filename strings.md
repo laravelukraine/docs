@@ -1,5 +1,5 @@
 ---
-git: b94b890362111c44de223e09502c610a9d9f20d8
+git: 572314820aa4da505c8b5472a04908c3a9c14ec0
 ---
 # Рядки
 
@@ -4075,7 +4075,7 @@ Str::of('Laravel')->wrap('"');
 
 // "Laravel"
 
-Str::is('is')->wrap(before: 'This ', after: ' Laravel!');
+Str::of('is')->wrap(before: 'This ', after: ' Laravel!');
 
 // This is Laravel!
 ```

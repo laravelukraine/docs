@@ -1,5 +1,5 @@
 ---
-git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
+git: 572314820aa4da505c8b5472a04908c3a9c14ec0
 ---
 # Eloquent: колекції
 
@@ -44,7 +44,7 @@ $names = User::all()->reject(function (User $user) {
 
 Усі колекції Eloquent розширюють об'єкт базової [колекції Laravel](/docs/{{version}}/collections#available-methods), тож успадковують усі потужні методи базового класу колекцій.
 
-Крім того, клас `Illuminate\Database\Eloquent\Collection` має надмножину методів для роботи з колекціями ваших моделей. Більшість методів повертають екземпляри `Illuminate\Database\Eloquent\Collection`; проте деякі - як-от `modelKeys` - повертають екземпляр `Illuminate\Support\Collection`.
+Крім того, клас `Illuminate\Database\Eloquent\Collection` має надмножину методів для роботи з колекціями ваших моделей. Більшість методів повертають екземпляри `Illuminate\Database\Eloquent\Collection`; проте деякі - як-от `pluck` - повертають екземпляр `Illuminate\Support\Collection`.
 
 <style>
     .collection-method-list > p {

@@ -1,5 +1,5 @@
 ---
-git: b94b890362111c44de223e09502c610a9d9f20d8
+git: 572314820aa4da505c8b5472a04908c3a9c14ec0
 ---
 # Шаблони Blade
 
@@ -862,9 +862,9 @@ public function shouldRender(): bool
 Іноді компоненти є частиною групи, і ви можете захотіти згрупувати пов'язані компоненти в одному каталозі. Наприклад, уявіть компонент «card» із такою структурою класів:
 
 ```text
-App\Views\Components\Card\Card
-App\Views\Components\Card\Header
-App\Views\Components\Card\Body
+App\View\Components\Card\Card
+App\View\Components\Card\Header
+App\View\Components\Card\Body
 ```
 
 Оскільки кореневий компонент `Card` вкладено в каталог `Card`, можна було б очікувати, що рендерити його доведеться через `<x-card.card>`. Однак коли ім'я файлу компонента збігається з іменем його каталогу, Laravel автоматично вважає цей компонент «кореневим» і дозволяє рендерити його без повторення імені каталогу:
