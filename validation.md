@@ -1,5 +1,5 @@
 ---
-git: 572314820aa4da505c8b5472a04908c3a9c14ec0
+git: ef6922afd7345a5b30f3f8fd9da230b7c7229fa2
 ---
 # Валідація
 
@@ -2924,7 +2924,7 @@ Password::min(8)->uncompromised();
 За замовчуванням, якщо пароль з'являється у витоку даних хоча б раз, він вважається скомпрометованим. Ви можете налаштувати цей поріг першим аргументом методу `uncompromised`:
 
 ```php
-// Ensure the password appears less than 3 times in the same data leak...
+// Ensure the password appears no more than 3 times in the same data leak...
 Password::min(8)->uncompromised(3);
 ```
 
