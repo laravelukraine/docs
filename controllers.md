@@ -1,5 +1,5 @@
 ---
-git: 572314820aa4da505c8b5472a04908c3a9c14ec0
+git: 9c2295fc4b3c0f87d5fe3192a76075c85d9071d7
 ---
 # Контролери
 
@@ -563,7 +563,7 @@ public function boot(): void
 ```text
 /publicacion/crear
 
-/publicacion/{publicaciones}/editar
+/publicacion/{publicacion}/editar
 ```
 
 <a name="restful-supplementing-resource-controllers"></a>

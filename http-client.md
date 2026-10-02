@@ -1,5 +1,5 @@
 ---
-git: b94b890362111c44de223e09502c610a9d9f20d8
+git: 9c2295fc4b3c0f87d5fe3192a76075c85d9071d7
 ---
 # HTTP-клієнт
 
@@ -378,10 +378,10 @@ $response->throwIfStatus(403);
 // Throw an exception unless the response has a specific status code...
 $response->throwUnlessStatus(200);
 
-// Throw an exception if a server error occurred (status >500)...
+// Throw an exception if a server error occurred (status >= 500)...
 $response->throwIfServerError();
 
-// Throw an exception if a client error occurred (status >400 and <500)...
+// Throw an exception if a client error occurred (status >= 400 and < 500)...
 $response->throwIfClientError();
 
 return $response['user']['id'];

@@ -1,5 +1,5 @@
 ---
-git: 572314820aa4da505c8b5472a04908c3a9c14ec0
+git: 9c2295fc4b3c0f87d5fe3192a76075c85d9071d7
 ---
 # Middleware
 
@@ -141,6 +141,7 @@ use App\Http\Middleware\EnsureTokenIsValid;
 ```php
 ->withMiddleware(function (Middleware $middleware): void {
     $middleware->use([
+        \Illuminate\Http\Middleware\ValidatePathEncoding::class,
         \Illuminate\Foundation\Http\Middleware\InvokeDeferredCallbacks::class,
         // \Illuminate\Http\Middleware\TrustHosts::class,
         \Illuminate\Http\Middleware\TrustProxies::class,

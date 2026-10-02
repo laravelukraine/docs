@@ -1,5 +1,5 @@
 ---
-git: 5e0a0edf75ca5f9ec60a27cece58fa9997958335
+git: 9c2295fc4b3c0f87d5fe3192a76075c85d9071d7
 ---
 # HTTP-відповіді
 
@@ -110,7 +110,7 @@ return response($content)->withoutHeader(['X-Debug', 'X-Powered-By']);
 <a name="cache-control-middleware"></a>
 #### Middleware керування кешем
 
-Laravel містить `middleware` `cache.headers`, який дозволяє швидко задати заголовок `Cache-Control` для групи маршрутів. Директиви слід передавати у вигляді «snake case» відповідної директиви cache-control, розділяючи їх крапкою з комою. Якщо в списку директив указано `etag`, як ідентифікатор ETag автоматично буде встановлено MD5-хеш вмісту відповіді:
+Laravel містить `middleware` `cache.headers`, який дозволяє швидко задати заголовок `Cache-Control` для групи маршрутів. Директиви слід передавати у вигляді «snake case» відповідної директиви cache-control, розділяючи їх крапкою з комою. Якщо в списку директив указано `etag`, як ідентифікатор ETag автоматично буде встановлено xxh128-хеш вмісту відповіді:
 
 ```php
 Route::middleware('cache.headers:public;max_age=30;s_maxage=300;stale_while_revalidate=600;etag')->group(function () {

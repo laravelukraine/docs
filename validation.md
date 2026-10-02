@@ -1,5 +1,5 @@
 ---
-git: ef6922afd7345a5b30f3f8fd9da230b7c7229fa2
+git: 9c2295fc4b3c0f87d5fe3192a76075c85d9071d7
 ---
 # Валідація
 
@@ -289,11 +289,11 @@ $request->validate([
 
 ```json
 {
-    "message": "The team name must be a string. (and 4 more errors)",
+    "message": "The team name field must be a string. (and 4 more errors)",
     "errors": {
         "team_name": [
-            "The team name must be a string.",
-            "The team name must be at least 1 characters."
+            "The team name field must be a string.",
+            "The team name field must be at least 1 characters."
         ],
         "authorization.role": [
             "The selected authorization.role is invalid."
@@ -302,7 +302,7 @@ $request->validate([
             "The users.0.email field is required."
         ],
         "users.2.email": [
-            "The users.2.email must be a valid email address."
+            "The users.2.email field must be a valid email address."
         ]
     }
 }
