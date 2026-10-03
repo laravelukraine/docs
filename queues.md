@@ -1,5 +1,5 @@
 ---
-git: 9c2295fc4b3c0f87d5fe3192a76075c85d9071d7
+git: 156fc7fde114548640e13c39aa79b991291c3f91
 ---
 # Черги
 
@@ -197,7 +197,7 @@ Amazon SQS обмежує максимальний розмір даних по�
 <div class="content-list" markdown="1">
 
 - Amazon SQS: `aws/aws-sdk-php ~3.0`
-- Beanstalkd: `pda/pheanstalk ~5.0`
+- Beanstalkd: `pda/pheanstalk ^7.0|^8.0`
 - Redis: `predis/predis ~3.0` або PHP-розширення phpredis
 - [MongoDB](https://www.mongodb.com/docs/drivers/php/laravel-mongodb/current/queues/): `mongodb/laravel-mongodb`
 
@@ -1861,12 +1861,15 @@ class ProcessOrder implements ShouldQueue
 
 Користуючись чергами FIFO, вам також доведеться описати групи повідомлень у слухачах, пошті та сповіщеннях. Як варіант, ви можете диспетчеризувати ці об'єкти в чергу, відмінну від FIFO.
 
-Щоб задати групу повідомлень для [слухача подій у черзі](/docs/{{version}}/events#queued-event-listeners), опишіть у слухачі метод `messageGroup`. За бажанням ви можете описати й метод `deduplicationId`:
+Щоб задати групу повідомлень для [слухача подій у черзі](/docs/{{version}}/events#queued-event-listeners), опишіть у слухачі метод `messageGroup`. За бажанням ви можете описати й метод `deduplicator`, який приймає подію і повертає замикання, що генерує ідентифікатор дедуплікації:
 
 ```php
 <?php
 
 namespace App\Listeners;
+
+use App\Events\OrderShipped;
+use Closure;
 
 class SendShipmentNotification
 {
@@ -1881,11 +1884,11 @@ class SendShipmentNotification
     }
 
     /**
-     * Get the job's deduplication ID.
+     * Get the job's deduplicator.
      */
-    public function deduplicationId(): string
+    public function deduplicator(OrderShipped $event): Closure
     {
-        return "shipment-notification-{$this->shipment->id}";
+        return fn () => "shipment-notification-{$event->order->id}";
     }
 }
 ```

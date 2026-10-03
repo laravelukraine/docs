@@ -1,5 +1,5 @@
 ---
-git: 9c2295fc4b3c0f87d5fe3192a76075c85d9071d7
+git: 156fc7fde114548640e13c39aa79b991291c3f91
 ---
 # Колекції
 
@@ -1384,11 +1384,11 @@ $result = $data->groupBy(['skill', function (array $item) {
             10 => ['user' => 1, 'skill' => 1, 'roles' => ['Role_1', 'Role_3']],
             20 => ['user' => 2, 'skill' => 1, 'roles' => ['Role_1', 'Role_2']],
         ],
-        'Role_2' => [
-            20 => ['user' => 2, 'skill' => 1, 'roles' => ['Role_1', 'Role_2']],
-        ],
         'Role_3' => [
             10 => ['user' => 1, 'skill' => 1, 'roles' => ['Role_1', 'Role_3']],
+        ],
+        'Role_2' => [
+            20 => ['user' => 2, 'skill' => 1, 'roles' => ['Role_1', 'Role_2']],
         ],
     ],
     2 => [
@@ -1581,7 +1581,7 @@ $intersect->all();
 <a name="method-intersectassocusing"></a>
 #### `intersectAssocUsing()` {.collection-method}
 
-Метод `intersectAssocUsing` порівнює оригінальну колекцію з іншою колекцією чи масивом, повертаючи пари ключ / значення, які є в обох, і визначає рівність ключів та значень власним колбеком порівняння:
+Метод `intersectAssocUsing` порівнює оригінальну колекцію з іншою колекцією чи масивом, повертаючи пари ключ / значення, які є в обох, і використовує власний колбек порівняння для порівняння ключів:
 
 ```php
 $collection = collect([
@@ -3424,7 +3424,7 @@ $collection = collect(['name' => 'Desk', 'price' => 200]);
 
 $collection->toJson();
 
-// '{"name":"Desk", "price":200}'
+// '{"name":"Desk","price":200}'
 ```
 
 <a name="method-to-pretty-json"></a>
@@ -4447,7 +4447,7 @@ if ($lock->get()) {
             ->lazy()
             ->withHeartbeat(
                 CarbonInterval::minutes(4),
-                fn () => $lock->extend(CarbonInterval::minutes(5))
+                fn () => $lock->refresh()
             )
             ->each(fn ($report) => $report->process());
     } finally {

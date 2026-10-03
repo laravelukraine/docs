@@ -1,5 +1,5 @@
 ---
-git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
+git: 156fc7fde114548640e13c39aa79b991291c3f91
 ---
 # Маршрутизація
 
@@ -198,7 +198,7 @@ php artisan route:list -v
 php artisan route:list -vv
 ```
 
-Ви також можете вказати Laravel показувати лише маршрути, що починаються з певного URI:
+Ви також можете вказати Laravel показувати лише маршрути, чий URI містить певний рядок:
 
 ```shell
 php artisan route:list --path=api

@@ -1,5 +1,5 @@
 ---
-git: 9c2295fc4b3c0f87d5fe3192a76075c85d9071d7
+git: 156fc7fde114548640e13c39aa79b991291c3f91
 ---
 # HTTP-клієнт
 
@@ -80,7 +80,7 @@ $response->requestTimeout() : bool;      // 408 Request Timeout
 $response->conflict() : bool;            // 409 Conflict
 $response->unprocessableEntity() : bool; // 422 Unprocessable Entity
 $response->tooManyRequests() : bool;     // 429 Too Many Requests
-$response->serverError() : bool;         // 500 Internal Server Error
+$response->serverError() : bool;         // >= 500 Server Error
 ```
 
 <a name="uri-templates"></a>

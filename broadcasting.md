@@ -1,5 +1,5 @@
 ---
-git: 97d2b7a984f39287500a1808ad98761e10faa275
+git: 156fc7fde114548640e13c39aa79b991291c3f91
 ---
 # Бродкастинг
 
@@ -40,6 +40,7 @@ git: 97d2b7a984f39287500a1808ad98761e10faa275
     - [Авторизація каналів присутності](#authorizing-presence-channels)
     - [Приєднання до каналів присутності](#joining-presence-channels)
     - [Бродкастинг у канали присутності](#broadcasting-to-presence-channels)
+- [Зашифровані приватні канали](#encrypted-private-channels)
 - [Бродкастинг моделей](#model-broadcasting)
     - [Домовленості бродкастингу моделей](#model-broadcasting-conventions)
     - [Прослуховування бродкастів моделей](#listening-for-model-broadcasts)
@@ -161,6 +162,24 @@ BROADCAST_CONNECTION=pusher
 
 Нарешті, ви готові встановити й налаштувати [Laravel Echo](#client-side-installation), яка отримуватиме події бродкастингу на боці клієнта.
 
+<a name="pusher-manual-installation-encrypted-private-channels"></a>
+#### Зашифровані приватні канали
+
+Якщо ви плануєте використовувати [наскрізно зашифровані приватні канали](#encrypted-private-channels), вам слід додати опцію `encryption_master_key_base64`, що містить закодований у base64 32-байтний ключ, до масиву `options` підключення `pusher`:
+
+```php
+'options' => [
+    // ...
+    'encryption_master_key_base64' => env('PUSHER_ENCRYPTION_MASTER_KEY'),
+],
+```
+
+Ви можете згенерувати відповідний ключ за допомогою команди `openssl`:
+
+```shell
+openssl rand -base64 32
+```
+
 <a name="ably"></a>
 ### Ably
 
@@ -228,7 +247,7 @@ MERCURE_JWT_SECRET=<your-mercure-jwt-secret>
 
 Значення `MERCURE_URL` - це URL, який Laravel використовує для публікації оновлень, тоді як `MERCURE_PUBLIC_URL` - це URL, який клієнти браузера використовують для підписки. Ваш Mercure hub має бути налаштований з тим самим секретом JWT.
 
-Щоб використовувати наскрізно зашифровані приватні канали, налаштуйте 32-байтову змінну оточення `MERCURE_ENCRYPTION_KEY`:
+Щоб використовувати [наскрізно зашифровані приватні канали](#encrypted-private-channels), налаштуйте 32-байтову змінну оточення `MERCURE_ENCRYPTION_KEY`:
 
 ```ini
 MERCURE_ENCRYPTION_KEY=<your-32-byte-encryption-key>
@@ -1658,6 +1677,47 @@ Echo.join(`chat.${roomId}`)
     .listen('NewMessage', (e) => {
         // ...
     });
+```
+
+<a name="encrypted-private-channels"></a>
+## Зашифровані приватні канали
+
+Приватні канали гарантують, що слухати канал можуть лише авторизовані користувачі. Проте самі дані події все одно проходять через ваш сервіс бродкастингу у відкритому вигляді. При використанні Pusher Channels або Mercure ви можете застосувати наскрізно зашифровані приватні канали, щоб тільки ваш застосунок та його авторизовані клієнти могли прочитати дані події.
+
+Щоб почати, налаштуйте ключ шифрування для [Pusher Channels](#pusher-manual-installation) або [Mercure](#mercure-manual-installation). Потім поверніть екземпляр `EncryptedPrivateChannel` з методу `broadcastOn` вашої події:
+
+```php
+use Illuminate\Broadcasting\EncryptedPrivateChannel;
+
+/**
+ * Get the channels the event should broadcast on.
+ *
+ * @return array<int, \Illuminate\Broadcasting\Channel>
+ */
+public function broadcastOn(): array
+{
+    return [
+        new EncryptedPrivateChannel('orders.'.$this->order->id),
+    ];
+}
+```
+
+Зашифровані приватні канали авторизуються точно так само, як приватні канали, тому колбек авторизації `orders.{orderId}` у файлі `routes/channels.php` вашого застосунку також авторизуватиме зашифрований канал `orders.1`.
+
+У вашому JavaScript-застосунку ви можете підписатися на канал, використовуючи метод `encryptedPrivate` Echo:
+
+```js
+Echo.encryptedPrivate(`orders.${orderId}`)
+    .listen('OrderShipmentStatusUpdated', (e) => {
+        console.log(e.order);
+    });
+```
+
+При використанні Pusher Channels типова збірка `pusher-js` не містить коду, потрібного для розшифрування повідомлень. Натомість ви маєте імпортувати збірку `with-encryption` при [налаштуванні Echo](#pusher-client-manual-installation):
+
+```js
+import Pusher from 'pusher-js/with-encryption';
+window.Pusher = Pusher;
 ```
 
 <a name="model-broadcasting"></a>

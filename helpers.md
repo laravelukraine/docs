@@ -1,5 +1,5 @@
 ---
-git: 572314820aa4da505c8b5472a04908c3a9c14ec0
+git: 156fc7fde114548640e13c39aa79b991291c3f91
 ---
 # Хелпери
 
@@ -1053,7 +1053,7 @@ $array = [
 
 Arr::query($array);
 
-// name=Taylor&order[column]=created_at&order[direction]=desc
+// name=Taylor&order%5Bcolumn%5D=created_at&order%5Bdirection%5D=desc
 ```
 
 <a name="method-array-random"></a>

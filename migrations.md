@@ -1,5 +1,5 @@
 ---
-git: ef6922afd7345a5b30f3f8fd9da230b7c7229fa2
+git: 156fc7fde114548640e13c39aa79b991291c3f91
 ---
 # База даних: міграції
 
@@ -1648,13 +1648,13 @@ Schema::withoutForeignKeyConstraints(function () {
 <a name="events"></a>
 ## Події
 
-Для зручності кожна операція міграції надсилає [подію](/docs/{{version}}/events). Усі наведені нижче події розширюють базовий клас `Illuminate\Database\Events\MigrationEvent`:
+Для зручності кожна операція міграції надсилає [подію](/docs/{{version}}/events). За винятком `SchemaDumped` і `SchemaLoaded`, усі наведені нижче події реалізують інтерфейс `Illuminate\Contracts\Database\Events\MigrationEvent`:
 
 <div class="overflow-auto">
 
 | Клас                                             | Опис                                             |
 | ------------------------------------------------ | ------------------------------------------------ |
-| `Illuminate\Database\Events\DatabaseRefreshed`   | Команда `migrate:refresh` завершилася.           |
+| `Illuminate\Database\Events\DatabaseRefreshed`   | Команда `migrate:fresh` або `migrate:refresh` завершилася. |
 | `Illuminate\Database\Events\MigrationsStarted`   | Пакет міграцій ось-ось буде виконано.            |
 | `Illuminate\Database\Events\MigrationsEnded`     | Пакет міграцій завершився.                       |
 | `Illuminate\Database\Events\MigrationStarted`    | Окрему міграцію ось-ось буде виконано.           |
