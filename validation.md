@@ -1,5 +1,5 @@
 ---
-git: b94b890362111c44de223e09502c610a9d9f20d8
+git: 9c2295fc4b3c0f87d5fe3192a76075c85d9071d7
 ---
 # Валідація
 
@@ -289,11 +289,11 @@ $request->validate([
 
 ```json
 {
-    "message": "The team name must be a string. (and 4 more errors)",
+    "message": "The team name field must be a string. (and 4 more errors)",
     "errors": {
         "team_name": [
-            "The team name must be a string.",
-            "The team name must be at least 1 characters."
+            "The team name field must be a string.",
+            "The team name field must be at least 1 characters."
         ],
         "authorization.role": [
             "The selected authorization.role is invalid."
@@ -302,7 +302,7 @@ $request->validate([
             "The users.0.email field is required."
         ],
         "users.2.email": [
-            "The users.2.email must be a valid email address."
+            "The users.2.email field must be a valid email address."
         ]
     }
 }
@@ -1935,7 +1935,7 @@ Validator::make($data, [
 <a name="rule-image"></a>
 #### image
 
-Файл, що валідується, має бути зображенням (jpg, jpeg, png, bmp, gif чи webp).
+Файл, що валідується, має бути зображенням (jpg, jpeg, png, bmp, gif, webp, avif, heic чи heif).
 
 > [!WARNING]
 > За замовчуванням правило `image` не дозволяє файли SVG через можливість XSS-вразливостей. Якщо вам потрібно дозволити SVG, передайте правилу `image` директиву `allow_svg` (`image:allow_svg`).
@@ -2832,7 +2832,7 @@ File::types(['mp3', 'wav'])
 <a name="validating-files-image-files"></a>
 #### Валідація файлів зображень
 
-Якщо ваш застосунок приймає зображення, завантажені користувачами, ви можете скористатися конструктором `image` правила `File`, щоб переконатися, що файл є зображенням (jpg, jpeg, png, bmp, gif чи webp).
+Якщо ваш застосунок приймає зображення, завантажені користувачами, ви можете скористатися конструктором `image` правила `File`, щоб переконатися, що файл є зображенням (jpg, jpeg, png, bmp, gif, webp, avif, heic чи heif).
 
 Крім того, правило `dimensions` дозволяє обмежити розміри зображення:
 
@@ -2924,7 +2924,7 @@ Password::min(8)->uncompromised();
 За замовчуванням, якщо пароль з'являється у витоку даних хоча б раз, він вважається скомпрометованим. Ви можете налаштувати цей поріг першим аргументом методу `uncompromised`:
 
 ```php
-// Ensure the password appears less than 3 times in the same data leak...
+// Ensure the password appears no more than 3 times in the same data leak...
 Password::min(8)->uncompromised(3);
 ```
 

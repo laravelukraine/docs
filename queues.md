@@ -1,5 +1,5 @@
 ---
-git: eea8b121cba77e6f5f62405a9334b1d075eb5c3a
+git: 156fc7fde114548640e13c39aa79b991291c3f91
 ---
 # Черги
 
@@ -197,7 +197,7 @@ Amazon SQS обмежує максимальний розмір даних по�
 <div class="content-list" markdown="1">
 
 - Amazon SQS: `aws/aws-sdk-php ~3.0`
-- Beanstalkd: `pda/pheanstalk ~5.0`
+- Beanstalkd: `pda/pheanstalk ^7.0|^8.0`
 - Redis: `predis/predis ~3.0` або PHP-розширення phpredis
 - [MongoDB](https://www.mongodb.com/docs/drivers/php/laravel-mongodb/current/queues/): `mongodb/laravel-mongodb`
 
@@ -1680,6 +1680,24 @@ class ProcessPodcast implements ShouldQueue
 
 У цьому прикладі завдання повертається до черги на десять секунд, якщо застосунку не вдалося отримати блокування Redis, і повторюватиметься до 25 разів. Проте завдання зазнає невдачі, якщо викине три необроблені винятки.
 
+За замовчуванням спроба, що завершилась через аварійне завершення або вбивство процесу воркера, наприклад, коли йому бракує пам'яті, не враховується в максимальній кількості винятків завдання. Якщо ви хочете, щоб такі спроби враховувалися як виняток, додайте атрибут `CountCrashesAsExceptions` до класу завдання:
+
+```php
+use Illuminate\Queue\Attributes\CountCrashesAsExceptions;
+use Illuminate\Queue\Attributes\MaxExceptions;
+use Illuminate\Queue\Attributes\Tries;
+
+#[Tries(25)]
+#[MaxExceptions(3)]
+#[CountCrashesAsExceptions]
+class ProcessPodcast implements ShouldQueue
+{
+    // ...
+}
+```
+
+Коли цей атрибут присутній, воркер зберігає маркер у кеші застосунку під час виконання завдання. Якщо маркер все ще існує під час наступної спроби завдання, попередня спроба враховується як виняток.
+
 <a name="stopping-retries-by-exception"></a>
 #### Припинення повторів через виняток
 
@@ -1843,12 +1861,15 @@ class ProcessOrder implements ShouldQueue
 
 Користуючись чергами FIFO, вам також доведеться описати групи повідомлень у слухачах, пошті та сповіщеннях. Як варіант, ви можете диспетчеризувати ці об'єкти в чергу, відмінну від FIFO.
 
-Щоб задати групу повідомлень для [слухача подій у черзі](/docs/{{version}}/events#queued-event-listeners), опишіть у слухачі метод `messageGroup`. За бажанням ви можете описати й метод `deduplicationId`:
+Щоб задати групу повідомлень для [слухача подій у черзі](/docs/{{version}}/events#queued-event-listeners), опишіть у слухачі метод `messageGroup`. За бажанням ви можете описати й метод `deduplicator`, який приймає подію і повертає замикання, що генерує ідентифікатор дедуплікації:
 
 ```php
 <?php
 
 namespace App\Listeners;
+
+use App\Events\OrderShipped;
+use Closure;
 
 class SendShipmentNotification
 {
@@ -1863,11 +1884,11 @@ class SendShipmentNotification
     }
 
     /**
-     * Get the job's deduplication ID.
+     * Get the job's deduplicator.
      */
-    public function deduplicationId(): string
+    public function deduplicator(OrderShipped $event): Closure
     {
-        return "shipment-notification-{$this->shipment->id}";
+        return fn () => "shipment-notification-{$event->order->id}";
     }
 }
 ```
@@ -2455,7 +2476,7 @@ composer require aws/aws-sdk-php
 
 ```php
 'batching' => [
-    'driver' => env('QUEUE_FAILED_DRIVER', 'dynamodb'),
+    'driver' => env('QUEUE_BATCHING_DRIVER', 'dynamodb'),
     'key' => env('AWS_ACCESS_KEY_ID'),
     'secret' => env('AWS_SECRET_ACCESS_KEY'),
     'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),

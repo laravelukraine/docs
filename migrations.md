@@ -1,5 +1,5 @@
 ---
-git: 9d4d158ed052bf5f82d05d6909f43bb3ee63b893
+git: 156fc7fde114548640e13c39aa79b991291c3f91
 ---
 # База даних: міграції
 
@@ -1486,7 +1486,7 @@ $table->unique('email', 'unique_email');
 За замовчуванням створення індексу на великій таблиці може заблокувати її й перекрити читання чи записи, поки індекс будується. На PostgreSQL або SQL Server ви можете дописати до опису індексу метод `online`, щоб створити індекс без блокування таблиці, - і ваш застосунок зможе далі читати й писати дані під час створення індексу:
 
 ```php
-$table->string('email')->unique()->online();
+$table->unique('email')->online();
 ```
 
 На PostgreSQL це додає до запиту створення індексу опцію `CONCURRENTLY`. На SQL Server - опцію `WITH (online = on)`.
@@ -1648,13 +1648,13 @@ Schema::withoutForeignKeyConstraints(function () {
 <a name="events"></a>
 ## Події
 
-Для зручності кожна операція міграції надсилає [подію](/docs/{{version}}/events). Усі наведені нижче події розширюють базовий клас `Illuminate\Database\Events\MigrationEvent`:
+Для зручності кожна операція міграції надсилає [подію](/docs/{{version}}/events). За винятком `SchemaDumped` і `SchemaLoaded`, усі наведені нижче події реалізують інтерфейс `Illuminate\Contracts\Database\Events\MigrationEvent`:
 
 <div class="overflow-auto">
 
 | Клас                                             | Опис                                             |
 | ------------------------------------------------ | ------------------------------------------------ |
-| `Illuminate\Database\Events\DatabaseRefreshed`   | Команда `migrate:refresh` завершилася.           |
+| `Illuminate\Database\Events\DatabaseRefreshed`   | Команда `migrate:fresh` або `migrate:refresh` завершилася. |
 | `Illuminate\Database\Events\MigrationsStarted`   | Пакет міграцій ось-ось буде виконано.            |
 | `Illuminate\Database\Events\MigrationsEnded`     | Пакет міграцій завершився.                       |
 | `Illuminate\Database\Events\MigrationStarted`    | Окрему міграцію ось-ось буде виконано.           |

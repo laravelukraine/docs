@@ -1,5 +1,5 @@
 ---
-git: e232d85d9300a354f6a62c24975173d5aed84ec9
+git: 572314820aa4da505c8b5472a04908c3a9c14ec0
 ---
 # Пошта
 
@@ -1416,7 +1416,7 @@ Mail::assertSent(OrderShipped::class, function (OrderShipped $mail) use ($user) 
            $mail->hasReplyTo('...') &&
            $mail->hasFrom('...') &&
            $mail->hasSubject('...') &&
-           $mail->hasMetadata('order_id', $mail->order->id);
+           $mail->hasMetadata('order_id', $mail->order->id) &&
            $mail->usesMailer('ses');
 });
 ```

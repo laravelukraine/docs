@@ -1,5 +1,5 @@
 ---
-git: b94b890362111c44de223e09502c610a9d9f20d8
+git: 156fc7fde114548640e13c39aa79b991291c3f91
 ---
 # Шаблони Blade
 
@@ -802,7 +802,7 @@ public function boot(): void
 <x-package-alert/>
 ```
 
-Як альтернативу ви можете скористатися методом `componentNamespace`, щоб автозавантажувати класи компонентів за домовленостями. Наприклад, пакет `Nightshade` може мати компоненти `Calendar` і `ColorPicker`, розташовані у просторі імен `Package\Views\Components`:
+Як альтернативу ви можете скористатися методом `componentNamespace`, щоб автозавантажувати класи компонентів за домовленостями. Наприклад, пакет `Nightshade` може мати компоненти `Calendar` і `ColorPicker`, розташовані у просторі імен `Nightshade\Views\Components`:
 
 ```php
 use Illuminate\Support\Facades\Blade;
@@ -862,9 +862,9 @@ public function shouldRender(): bool
 Іноді компоненти є частиною групи, і ви можете захотіти згрупувати пов'язані компоненти в одному каталозі. Наприклад, уявіть компонент «card» із такою структурою класів:
 
 ```text
-App\Views\Components\Card\Card
-App\Views\Components\Card\Header
-App\Views\Components\Card\Body
+App\View\Components\Card\Card
+App\View\Components\Card\Header
+App\View\Components\Card\Body
 ```
 
 Оскільки кореневий компонент `Card` вкладено в каталог `Card`, можна було б очікувати, що рендерити його доведеться через `<x-card.card>`. Однак коли ім'я файлу компонента збігається з іменем його каталогу, Laravel автоматично вважає цей компонент «кореневим» і дозволяє рендерити його без повторення імені каталогу:
@@ -1032,7 +1032,7 @@ return function (array $data) {
 > [!WARNING]
 > Елементи масиву `$data` ніколи не слід вставляти безпосередньо в рядок Blade, який повертає ваш метод `render`, адже це може дозволити віддалене виконання коду через зловмисний вміст атрибутів.
 
-`componentName` дорівнює імені, використаному в HTML-тегу після префікса `x-`. Тож для `<x-alert />` `componentName` буде `alert`. Елемент `attributes` міститиме всі атрибути, присутні в HTML-тегу. Елемент `slot` є екземпляром `Illuminate\Support\HtmlString` із вмістом слота компонента.
+`componentName` дорівнює імені, використаному в HTML-тегу після префікса `x-`. Тож для `<x-alert />` `componentName` буде `alert`. Елемент `attributes` міститиме всі атрибути, присутні в HTML-тегу. Елемент `slot` є екземпляром `Illuminate\View\ComponentSlot` із вмістом слота компонента.
 
 Замикання має повертати рядок. Якщо повернений рядок відповідає наявному представленню, буде відрендерено це представлення; інакше рядок буде обчислено як вбудоване представлення Blade.
 
@@ -1465,7 +1465,7 @@ public function boot(): void
 
 #### Автозавантаження компонентів пакета
 
-Як альтернативу ви можете скористатися методом `componentNamespace`, щоб автозавантажувати класи компонентів за домовленостями. Наприклад, пакет `Nightshade` може мати компоненти `Calendar` і `ColorPicker`, розташовані у просторі імен `Package\Views\Components`:
+Як альтернативу ви можете скористатися методом `componentNamespace`, щоб автозавантажувати класи компонентів за домовленостями. Наприклад, пакет `Nightshade` може мати компоненти `Calendar` і `ColorPicker`, розташовані у просторі імен `Nightshade\Views\Components`:
 
 ```php
 use Illuminate\Support\Facades\Blade;

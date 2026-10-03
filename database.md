@@ -1,5 +1,5 @@
 ---
-git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
+git: 572314820aa4da505c8b5472a04908c3a9c14ec0
 ---
 # База даних: початок роботи
 
@@ -233,7 +233,7 @@ $burgers = DB::scalar(
 
 ```php
 [$options, $notifications] = DB::selectResultSets(
-    "CALL get_user_options_and_notifications(?)", $request->user()->id
+    "CALL get_user_options_and_notifications(?)", [$request->user()->id]
 );
 ```
 

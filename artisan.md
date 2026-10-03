@@ -1,5 +1,5 @@
 ---
-git: e232d85d9300a354f6a62c24975173d5aed84ec9
+git: 9c2295fc4b3c0f87d5fe3192a76075c85d9071d7
 ---
 # Консоль Artisan
 
@@ -935,7 +935,7 @@ php artisan dev
 
 | Назва | Команда |
 | --- | --- |
-| `server` | `php artisan serve --host=localhost` |
+| `server` | `php artisan serve` |
 | `queue` | `php artisan queue:listen --tries=1 --timeout=0` |
 | `logs` | `php artisan pail --timeout=0` |
 | `vite` | `npm run dev` |
