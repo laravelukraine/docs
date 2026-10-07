@@ -1,5 +1,5 @@
 ---
-git: 9d4d158ed052bf5f82d05d6909f43bb3ee63b893
+git: 226b0649c77e1d6fe739a20e1da654e94ccc718f
 ---
 # Laravel Scout
 
@@ -136,7 +136,7 @@ composer require algolia/algoliasearch-client-php
 <a name="meilisearch"></a>
 ### Meilisearch
 
-[Meilisearch](https://www.meilisearch.com) - це швидкий пошуковий рушій з відкритим кодом. Якщо ви не знаєте, як встановити Meilisearch на своїй машині, скористайтеся [Laravel Sail](/docs/{{version}}/sail#meilisearch) - офіційно підтримуваним середовищем розробки Laravel на Docker.
+[Meilisearch](https://www.meilisearch.com) - це швидкий пошуковий рушій з відкритим кодом, який підтримує повнотекстовий, семантичний і гібридний пошук. Якщо ви не знаєте, як встановити Meilisearch на своїй машині, скористайтеся [Laravel Sail](/docs/{{version}}/sail#meilisearch) - офіційно підтримуваним середовищем розробки Laravel на Docker. Для продакшена ви можете [розгорнути Meilisearch самостійно](https://www.meilisearch.com/docs/learn/self_hosted/getting_started_with_self_hosted_meilisearch) або скористатися [Meilisearch Cloud](https://www.meilisearch.com/cloud).
 
 Користуючись драйвером Meilisearch, вам треба встановити PHP SDK для Meilisearch через менеджер пакетів Composer:
 
@@ -152,12 +152,7 @@ MEILISEARCH_HOST=http://127.0.0.1:7700
 MEILISEARCH_KEY=masterKey
 ```
 
-Докладніше про Meilisearch читайте в [документації Meilisearch](https://docs.meilisearch.com/learn/getting_started/quick_start.html).
-
-Крім того, переконайтеся, що ви встановили версію `meilisearch/meilisearch-php`, сумісну з версією вашого бінарника Meilisearch, - перегляньте [документацію Meilisearch щодо сумісності бінарників](https://github.com/meilisearch/meilisearch-php#-compatibility-with-meilisearch).
-
-> [!WARNING]
-> Оновлюючи Scout у застосунку, який використовує Meilisearch, завжди [переглядайте додаткові зміни, що ламають сумісність](https://github.com/meilisearch/Meilisearch/releases) у самому сервісі Meilisearch.
+Докладніше про Meilisearch читайте в [документації Meilisearch](https://www.meilisearch.com/docs/getting_started/overview).
 
 <a name="typesense"></a>
 ### Typesense
@@ -587,7 +582,9 @@ php artisan scout:sync-index-settings
 ],
 ```
 
-При використанні нативних ембедингів Scout не генерує й не додає вектори до індексованих документів. Ви все одно можете надати заздалегідь обчислений вектор запиту за допомогою параметра пошуку `vector`.
+При використанні нативних ембедингів Scout не генерує й не додає вектори до індексованих документів. Ви все одно можете надати заздалегідь обчислений вектор запиту за допомогою параметра пошуку `vector`. Як і з іншими параметрами індексу, виконайте команду `scout:sync-index-settings` після оновлення конфігурації ембедера.
+
+Детальнішу інформацію про доступні джерела ембедерів та їхні параметри дивіться в [документації Meilisearch з гібридного пошуку](https://www.meilisearch.com/docs/capabilities/hybrid_search/getting_started).
 
 <a name="meilisearch-data-types"></a>
 #### Типи даних для пошуку

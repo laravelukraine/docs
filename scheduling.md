@@ -1,5 +1,5 @@
 ---
-git: b94b890362111c44de223e09502c610a9d9f20d8
+git: 226b0649c77e1d6fe739a20e1da654e94ccc718f
 ---
 # Планування завдань
 
@@ -366,6 +366,19 @@ Schedule::command('report:generate')
     ->at('17:00')
     ->onOneServer();
 ```
+
+Щоб застосувати `onOneServer` до всіх запланованих завдань, ви можете викликати метод `alwaysOnOneServer` у методі `boot` вашого `AppServiceProvider`:
+
+```php
+use Illuminate\Support\Facades\Schedule;
+
+public function boot(): void
+{
+    Schedule::alwaysOnOneServer();
+}
+```
+
+Заплановані замикання без [назви](#naming-unique-jobs) виключаються і продовжуватимуть виконуватися на кожному сервері.
 
 Метод `useCache` дозволяє змінити сховище кешу, яке планувальник використовує для отримання атомарних блокувань, потрібних для завдань на одному сервері:
 

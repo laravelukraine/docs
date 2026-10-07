@@ -1,5 +1,5 @@
 ---
-git: 156fc7fde114548640e13c39aa79b991291c3f91
+git: 226b0649c77e1d6fe739a20e1da654e94ccc718f
 ---
 # Черги
 
@@ -2630,6 +2630,14 @@ php artisan queue:work --force
 <a name="resource-considerations"></a>
 #### Міркування щодо ресурсів
 
+Опція `--memory` вказує ліміт пам'яті в мегабайтах, при досягненні якого воркер завершить роботу. За замовчуванням цей ліміт становить 128 мегабайт. Ви також можете вказати відсоток від налаштованого в PHP `memory_limit`:
+
+```shell
+php artisan queue:work --memory=60%
+```
+
+Ліміти на основі відсотків вимагають скінченного PHP `memory_limit`. Якщо ліміт пам'яті PHP необмежений (`-1`), використовуйте ліміт у мегабайтах. Монітор процесів на кшталт [Supervisor](#supervisor-configuration) може автоматично перезапустити воркер після його завершення.
+
 Демонізовані воркери черги не «перезавантажують» фреймворк перед обробкою кожного завдання. Тому вам слід звільняти важкі ресурси після завершення кожного завдання. Наприклад, якщо ви робите [обробку зображень](/docs/{{version}}/images) [бібліотекою GD](https://www.php.net/manual/en/book.image.php), звільняйте пам'ять через `imagedestroy`, коли завершили роботу із зображенням.
 
 <a name="queue-priorities"></a>
@@ -3329,6 +3337,16 @@ Queue::assertClosurePushed(function (CallQueuedClosure $job) {
     return $job->name === 'validate-order';
 });
 ```
+
+Як варіант, ви можете передати масив очікуваних значень властивостей як другий аргумент до `assertPushed` або `assertNotPushed`, або як третій аргумент до `assertPushedOn`:
+
+```php
+Queue::assertPushed(ShipOrder::class, ['order' => $order]);
+
+Queue::assertPushedOn('shipping', ShipOrder::class, ['order' => $order]);
+```
+
+Усі вказані властивості повинні збігатися. Значення порівнюються зі строгою рівністю, а моделі Eloquent порівнюються за допомогою методу `is`. Методи `assertDispatched`, `assertNotDispatched`, `assertDispatchedSync` і `assertDispatchedAfterResponse` фасаду `Bus` також приймають масив очікуваних значень властивостей як другий аргумент.
 
 <a name="faking-a-subset-of-jobs"></a>
 ### Підміна частини завдань

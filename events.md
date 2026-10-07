@@ -1,5 +1,5 @@
 ---
-git: eea8b121cba77e6f5f62405a9334b1d075eb5c3a
+git: 226b0649c77e1d6fe739a20e1da654e94ccc718f
 ---
 # Події
 
@@ -1219,6 +1219,14 @@ Event::assertDispatched(function (OrderShipped $event) use ($order) {
     return $event->order->id === $order->id;
 });
 ```
+
+Як альтернативу, ви можете передати масив очікуваних значень властивостей другим аргументом методам `assertDispatched` чи `assertNotDispatched`:
+
+```php
+Event::assertDispatched(OrderShipped::class, ['order' => $order]);
+```
+
+Усі вказані властивості мають збігатися. Значення порівнюються за суворою рівністю, а Eloquent-моделі порівнюються за допомогою методу `is`.
 
 Якщо ви просто хочете перевірити, що слухач подій слухає задану подію, скористайтеся методом `assertListening`:
 
