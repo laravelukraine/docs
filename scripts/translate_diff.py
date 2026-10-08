@@ -28,7 +28,7 @@ from validate_translation import problems
 # Imported inside main(): the section-splitting logic below is the part worth
 # testing, and it should not need the SDK installed to run.
 
-MODEL = 'claude-sonnet-4-5'
+MODEL = 'claude-sonnet-5-5'
 
 # How many times a page is built before it is left to a person. The failure
 # this exists for is a section coming back a line or two short - a model
@@ -176,7 +176,11 @@ def ask(client, system: str, glossary: str, prompt: str) -> str:
         messages=[{'role': 'user', 'content': prompt}],
     )
 
-    return message.content[0].text
+    # The model thinks before it answers, and that thinking arrives as a block
+    # of its own ahead of the text - so the translation is the text blocks, not
+    # whatever happens to come first.
+    return ''.join(block.text for block in message.content
+                   if block.type == 'text')
 
 
 def translate(client, glossary: str, current: str, diff: str) -> str:
