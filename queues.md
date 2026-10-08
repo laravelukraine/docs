@@ -3346,7 +3346,7 @@ Queue::assertPushed(ShipOrder::class, ['order' => $order]);
 Queue::assertPushedOn('shipping', ShipOrder::class, ['order' => $order]);
 ```
 
-Усі вказані властивості повинні збігатися. Значення порівнюються зі строгою рівністю, а моделі Eloquent порівнюються за допомогою методу `is`. Методи `assertDispatched`, `assertNotDispatched`, `assertDispatchedSync` і `assertDispatchedAfterResponse` фасаду `Bus` також приймають масив очікуваних значень властивостей як другий аргумент.
+Усі вказані властивості повинні збігатися. Значення порівнюються за строгою рівністю, а моделі Eloquent порівнюються за допомогою методу `is`. Методи `assertDispatched`, `assertNotDispatched`, `assertDispatchedSync` і `assertDispatchedAfterResponse` фасаду `Bus` також приймають масив очікуваних значень властивостей як другий аргумент.
 
 <a name="faking-a-subset-of-jobs"></a>
 ### Підміна частини завдань

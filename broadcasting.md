@@ -220,14 +220,14 @@ BROADCAST_CONNECTION=ably
 <a name="mercure"></a>
 ### Mercure
 
-Щоб швидко підключити можливості бродкастингу Laravel разом із Mercure як вашим транслятором подій, викличте артизан-команду `install:broadcasting` з опцією `--mercure`. Ця команда запитає ваші облікові дані Mercure, встановить PHP і JavaScript SDK для Mercure та оновить файл `.env` вашого застосунку відповідними змінними:
+Щоб швидко увімкнути підтримку бродкастингу в Laravel із Mercure як бродкастером подій, виконайте команду Artisan `install:broadcasting` з опцією `--mercure`. Ця команда запитає ваші облікові дані Mercure, встановить PHP і JavaScript SDK для Mercure та оновить файл `.env` вашого застосунку відповідними змінними:
 
 ```shell
 php artisan install:broadcasting --mercure
 ```
 
 <a name="mercure-manual-installation"></a>
-#### Ручне встановлення
+#### Встановлення вручну
 
 Щоб встановити підтримку Mercure вручну, ви повинні встановити компонент Symfony Mercure і бібліотеку JWT:
 
@@ -245,7 +245,7 @@ MERCURE_PUBLIC_URL=https://mercure.example.com/.well-known/mercure
 MERCURE_JWT_SECRET=<your-mercure-jwt-secret>
 ```
 
-Значення `MERCURE_URL` - це URL, який Laravel використовує для публікації оновлень, тоді як `MERCURE_PUBLIC_URL` - це URL, який клієнти браузера використовують для підписки. Ваш Mercure hub має бути налаштований з тим самим секретом JWT.
+Значення `MERCURE_URL` - це URL, який Laravel використовує для публікації оновлень, тоді як `MERCURE_PUBLIC_URL` - це URL, який браузерні клієнти використовують для підписки. Ваш Mercure-хаб має бути налаштований з тим самим JWT-секретом.
 
 Щоб використовувати [наскрізно зашифровані приватні канали](#encrypted-private-channels), налаштуйте 32-байтову змінну оточення `MERCURE_ENCRYPTION_KEY`:
 
