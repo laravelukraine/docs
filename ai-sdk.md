@@ -1,5 +1,5 @@
 ---
-git: eff8739e9090c2a0216fefac8e33dacdd689f8f6
+git: 226b0649c77e1d6fe739a20e1da654e94ccc718f
 ---
 # Laravel AI SDK
 
@@ -8,6 +8,7 @@ git: eff8739e9090c2a0216fefac8e33dacdd689f8f6
     - [Конфігурація](#configuration)
     - [Власні базові URL](#custom-base-urls)
     - [Провайдери, сумісні з OpenAI](#openai-compatible-providers)
+    - [Провайдери на вимогу](#on-demand-providers)
     - [Підтримка провайдерів](#provider-support)
 - [Агенти](#agents)
     - [Промптинг](#prompting)
@@ -21,6 +22,7 @@ git: eff8739e9090c2a0216fefac8e33dacdd689f8f6
     - [Відкладене завантаження інструментів](#deferred-tool-loading)
     - [Інструменти файлового сховища](#file-storage-tools)
     - [MCP-інструменти](#mcp-tools)
+    - [Навички](#skills)
     - [Інструменти провайдера](#provider-tools)
     - [Субагенти](#sub-agents)
     - [Middleware](#middleware)
@@ -40,6 +42,8 @@ git: eff8739e9090c2a0216fefac8e33dacdd689f8f6
     - [Кешування ембедингів](#caching-embeddings)
 - [Переранжування](#reranking)
 - [Класифікація](#classification)
+    - [Рішення «так» чи «ні»](#yes-or-no-decisions)
+    - [Вибір із колекцій](#choosing-from-collections)
 - [Файли](#files)
 - [Векторні сховища](#vector-stores)
     - [Додавання файлів до сховищ](#adding-files-to-stores)
@@ -227,6 +231,51 @@ agent()->prompt('What is Laravel?', provider: 'local', model: 'local-model');
 
 > [!NOTE]
 > OpenAI-сумісні провайдери та Groq не підтримують діаризацію. Виклик методу `diarize` при використанні цих провайдерів призведе до виключення.
+
+<a name="on-demand-providers"></a>
+### Провайдери на вимогу
+
+Іноді потрібно використати облікові дані провайдера, яких немає в конфігураційному файлі застосунку, - наприклад, API-ключі, що зберігаються в базі даних окремо для кожного орендаря в застосунку з кількома орендарями (multi-tenant). Метод `Ai::build` створює провайдер із масиву конфігурації. Масив має ту саму структуру, що й запис провайдера в конфігураційному файлі `config/ai.php` вашого застосунку:
+
+```php
+use App\Ai\Agents\SalesCoach;
+use Laravel\Ai\Ai;
+
+$response = (new SalesCoach)->prompt('Analyze this sales transcript...', provider: [
+    Ai::build([
+        'driver' => 'anthropic',
+        'key' => $user->anthropic_key,
+    ]),
+]);
+```
+
+Провайдери на вимогу можна використовувати всюди, де приймається провайдер, зокрема в списках [резервних провайдерів](#failover) і під час генерації зображень, аудіо, транскрипцій та ембедингів. Щоб задати модель для провайдера на вимогу, додайте до його конфігурації масив `models`:
+
+```php
+$response = (new SalesCoach)->prompt('Analyze this sales transcript...', provider: [
+    Ai::build(['driver' => 'anthropic', 'key' => $user->anthropic_key]),
+    Ai::build([
+        'driver' => 'openai',
+        'key' => $user->openai_key,
+        'models' => ['text' => ['default' => 'gpt-6']],
+    ]),
+]);
+```
+
+Якщо агент завжди має використовувати провайдер на вимогу, поверніть його з методу `provider` агента. Провайдер створюється заново щоразу, коли агента використовують, тому такий підхід добре працює й для агентів [у черзі](#queueing):
+
+```php
+use Laravel\Ai\Ai;
+use Laravel\Ai\Providers\Provider;
+
+public function provider(): Provider
+{
+    return Ai::build($this->user->aiConfiguration());
+}
+```
+
+> [!NOTE]
+> Провайдери на вимогу слід передавати в масиві, як у прикладах вище. Якщо в масиві конфігурації ви задаєте провайдеру `name`, це ім'я не може збігатися з вбудованим провайдером чи провайдером, визначеним у конфігураційному файлі `config/ai.php`.
 
 <a name="provider-support"></a>
 ### Підтримка провайдерів
@@ -1332,6 +1381,63 @@ public function tools(): iterable
 ```
 
 Докладніше про створення й автентифікацію MCP-клієнтів, включно з bearer-токенами й OAuth, дивіться в [документації MCP-клієнта](/docs/{{version}}/mcp#client).
+
+<a name="skills"></a>
+### Навички
+
+[Навички агентів](https://agentskills.io) (Agent Skills) - це каталоги з інструкціями та допоміжними файлами, які вчать агента виконувати певне завдання. Навички відповідають відкритому стандарту, тож ту саму навичку можуть використовувати і агенти вашого застосунку, і AI-агенти для написання коду, з якими ви цей застосунок розробляєте.
+
+Кожна навичка - це окремий каталог у `resources/skills` вашого застосунку з файлом `SKILL.md`. Решта файлів у цьому каталозі, як-от довідкові документи, постачаються разом із навичкою:
+
+```text
+resources/skills/
+└── refund-policy/
+    ├── SKILL.md
+    └── references/EDGE-CASES.md
+```
+
+Файл `SKILL.md` починається з YAML frontmatter, що містить `name` навички та `description` - опис того, коли її слід використовувати. Далі йдуть інструкції навички:
+
+```markdown
+---
+name: refund-policy
+description: Use when a customer asks for a refund or disputes a charge.
+---
+
+# Refund Policy
+
+Customers may request a full refund within 30 days of purchase...
+```
+
+Якщо `name` не вказано, використовується назва каталогу навички. Навички без `description` ігноруються.
+
+Щоб надати агенту доступ до навичок, реалізуйте інтерфейс `HasSkills` і поверніть джерела навичок із методу `skills`:
+
+```php
+use Laravel\Ai\Contracts\HasSkills;
+use Laravel\Ai\Skills\Skill;
+
+class SupportAgent implements Agent, HasSkills
+{
+    use Promptable;
+
+    public function skills(): iterable
+    {
+        return [
+            resource_path('skills'),
+            base_path('.agents/skills'),
+            new Skill('house-style', 'Use when you write copy for a customer.', view('skills.house-style')),
+            fn () => $this->user->team->skills->map(
+                fn ($skill) => new Skill($skill->name, $skill->description, $skill->instructions)
+            ),
+        ];
+    }
+}
+```
+
+Джерелами можуть бути каталоги, екземпляри `Skill` або замикання, що повертають навички; замикання викликаються лише тоді, коли навички знадобляться агенту. Якщо дві навички мають однакове ім'я, перевагу має джерело, вказане першим.
+
+Агент отримує інструмент `LoadSkill`, який перелічує ім'я та опис кожної навички, а її повні інструкції й текстові файли завантажує лише тоді, коли цього потребує промпт. Бінарні файли та файли, більші за 256 КБ, не повертаються.
 
 <a name="provider-tools"></a>
 ### Інструменти провайдера
@@ -2482,7 +2588,7 @@ $documents = Document::query()
 Якщо ви хочете дати агенту можливість виконувати пошук за схожістю як інструмент, погляньте на документацію інструмента [Пошук за схожістю](#similarity-search).
 
 > [!NOTE]
-> Векторні запити наразі підтримуються на підключеннях PostgreSQL з розширенням `pgvector` і MariaDB 11.7 або новішої версії.
+> Векторні запити наразі підтримуються на підключеннях PostgreSQL з розширенням `pgvector` або на MariaDB 11.7 чи новішій версії з її вбудованою підтримкою векторів.
 
 <a name="caching-embeddings"></a>
 ### Кешування ембедингів
@@ -2667,6 +2773,9 @@ $result->usage;
 $result->meta->provider;
 ```
 
+<a name="yes-or-no-decisions"></a>
+### Рішення «так» чи «ні»
+
 Для одного рішення «так чи ні» можна скористатися методом `decide`, доступним через клас Laravel `Stringable`: він повертає булеве значення замість повного результату. Ви можете описати, що означають «так» і «ні», і задати ймовірність, якої має досягти відповідь (за замовчуванням `0.5`):
 
 ```php
@@ -2682,24 +2791,45 @@ $spam = Str::of($message)->decide('Is this spam?', criteria: [
 ], threshold: 0.9);
 ```
 
-За замовчуванням класифікацію виконує [TypeSafe](https://typesafe.ai). Змінити це можна опцією `default_for_classification` у конфігураційному файлі `config/ai.php` вашого застосунку. Також можна вказати провайдер і модель прямо під час класифікації:
+<a name="choosing-from-collections"></a>
+### Вибір із колекцій
+
+Щоб швидко вибрати один елемент зі списку варіантів, скористайтеся методом `decide`, доступним у класі Laravel `Collection`. Метод приймає запитання й текст, який треба класифікувати, і повертає вибраний елемент колекції.
+
+Колекції рядків і enum можна використовувати напряму, а для інших елементів треба вказати назву через аргумент `by`. Через аргумент `describe` можна також передати поле, масив полів або замикання, щоб дати моделі більше відомостей про кожен варіант:
 
 ```php
-use Laravel\Ai\Enums\Lab;
+$department = collect(['billing', 'technical', 'sales'])
+    ->decide('Which team should handle this request?', $ticket->body);
 
-$result = Classification::of($supportRequest)
-    ->questions($questions)
-    ->classify(Lab::OpenRouter, 'model-name');
+$priority = collect(Priority::cases())
+    ->decide('How urgent is this request?', $ticket->body);
+
+$department = Department::all()->decide(
+    'Which department should handle this request?',
+    $ticket->body,
+    by: 'name',
+    describe: 'description',
+);
 ```
 
-Метод `timeout` задає HTTP-тайм-аут у секундах (за замовчуванням 30). Також можна передати [опції провайдера](#provider-options) та власні заголовки:
+Опис, заданий через аргумент `describe`, слугує критерієм, за яким модель визначає, чи відповідає текст цьому варіанту. Це корисно, коли сама назва варіанта неоднозначна. Якщо в аргумент `describe` передано замикання, воно отримує кожен елемент і має повернути рядок чи масив, що його описує:
 
 ```php
-$result = Classification::of($supportRequest)
-    ->questions($questions)
-    ->timeout(60)
-    ->withProviderOptions(['temperature' => 0])
-    ->classify();
+$priority = collect(Priority::cases())->decide(
+    'How urgent is this request?',
+    $ticket->body,
+    describe: fn (Priority $priority) => $priority->description(),
+);
+```
+
+Якщо колекція рядків має рядкові ключі, варіантами слугують ключі, їхніми описами - значення, а повертається вибраний ключ. Якщо задано `threshold` і ймовірність вибраного варіанта нижча за нього, повертається `null`:
+
+```php
+$department = collect([
+    'billing' => 'Payments, invoices, and refunds',
+    'technical' => 'Bugs, outages, and integrations',
+])->decide('Which team should handle this request?', $ticket->body, threshold: 0.6) ?? 'triage';
 ```
 
 <a name="files"></a>

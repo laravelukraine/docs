@@ -103,6 +103,9 @@
 | stream protocol | протокол стримінгу | Vercel AI SDK, AG-UI |
 | usage (tokens) | використання токенів | властивість `usage` і об'єкти `TextUsage` тощо; не «використання» без уточнення |
 | classification | класифікація | `Laravel\Ai\Classification` |
+| on-demand provider | провайдер на вимогу | створений з масиву конфігурації через `Ai::build`, не з `config/ai.php` |
+| skill (Agent Skills) | навичка | «навички агентів» про стандарт agentskills.io, як в `ai.md`; не «скіл» |
+| multi-tenant / tenant | застосунок із кількома орендарями / орендар | при першій згадці можна з `multi-tenant` у дужках |
 
 ### Загальні поняття
 
@@ -129,6 +132,7 @@
 | deployment | розгортання |
 | environment | середовище |
 | package | пакет |
+| directory / folder | каталог (не «директорія», не «папка») |
 | feature | можливість / функція |
 | testing | тестування |
 | strict equality / strict comparison | строга рівність / строге порівняння (не «сувора») |
