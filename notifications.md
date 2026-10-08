@@ -1,5 +1,5 @@
 ---
-git: e232d85d9300a354f6a62c24975173d5aed84ec9
+git: 226b0649c77e1d6fe739a20e1da654e94ccc718f
 ---
 # Сповіщення
 
@@ -1853,6 +1853,14 @@ Notification::assertSentTo(
     }
 );
 ```
+
+Альтернативно, ви можете передати масив очікуваних значень властивостей третім аргументом до `assertSentTo` чи `assertNotSentTo`:
+
+```php
+Notification::assertSentTo($user, OrderShipped::class, ['order' => $order]);
+```
+
+Усі вказані властивості повинні збігатися. Значення порівнюються за строгою рівністю, а моделі Eloquent порівнюються за допомогою свого методу `is`. Ви також можете передати масив очікуваних значень властивостей другим аргументом до `assertSentOnDemand`.
 
 <a name="testing-on-demand-notifications"></a>
 #### Сповіщення на льоту

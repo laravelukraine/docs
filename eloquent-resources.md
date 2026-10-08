@@ -1,5 +1,5 @@
 ---
-git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
+git: 572314820aa4da505c8b5472a04908c3a9c14ec0
 ---
 # Eloquent: API-ресурси
 
@@ -330,7 +330,7 @@ class UserResource extends JsonResource
 use App\Models\User;
 
 Route::get('/user/{id}', function (string $id) {
-    return User::findOrFail($id)->toUserResource();
+    return User::findOrFail($id)->toResource();
 });
 ```
 
@@ -1145,7 +1145,7 @@ JsonApiResource::maxRelationshipDepth(3);
 <a name="jsonapi-resource-type-and-id"></a>
 ### Тип та ID ресурсу
 
-За замовчуванням `type` ресурсу виводиться з імені класу ресурсу. Наприклад, `PostResource` дає тип `posts`, а `BlogPostResource` - `blog-posts`. `id` ресурсу визначається з первинного ключа моделі.
+За замовчуванням `type` ресурсу виводиться з імені класу ресурсу. Наприклад, `PostResource` дає тип `posts`, а `BlogPostResource` - `blog_posts`. `id` ресурсу визначається з первинного ключа моделі.
 
 Якщо вам потрібно змінити ці значення, перевизначте на ресурсі методи `toType` і `toId`:
 

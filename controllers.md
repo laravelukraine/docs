@@ -1,5 +1,5 @@
 ---
-git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
+git: 9c2295fc4b3c0f87d5fe3192a76075c85d9071d7
 ---
 # Контролери
 
@@ -563,7 +563,7 @@ public function boot(): void
 ```text
 /publicacion/crear
 
-/publicacion/{publicaciones}/editar
+/publicacion/{publicacion}/editar
 ```
 
 <a name="restful-supplementing-resource-controllers"></a>
@@ -572,7 +572,7 @@ public function boot(): void
 Якщо вам потрібно додати до ресурсного контролера маршрути поза типовим набором ресурсних маршрутів, визначайте їх **до** виклику методу `Route::resource`; інакше маршрути, визначені методом `resource`, можуть ненавмисно взяти гору над вашими додатковими маршрутами:
 
 ```php
-use App\Http\Controller\PhotoController;
+use App\Http\Controllers\PhotoController;
 
 Route::get('/photos/popular', [PhotoController::class, 'popular']);
 Route::resource('photos', PhotoController::class);

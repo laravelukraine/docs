@@ -1,5 +1,5 @@
 ---
-git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
+git: ef6922afd7345a5b30f3f8fd9da230b7c7229fa2
 ---
 # База даних: пагінація
 
@@ -278,7 +278,6 @@ JSON від пагінатора міститиме метаінформацію
    "per_page": 15,
    "current_page": 1,
    "last_page": 4,
-   "current_page_url": "http://laravel.app?page=1",
    "first_page_url": "http://laravel.app?page=1",
    "last_page_url": "http://laravel.app?page=4",
    "next_page_url": "http://laravel.app?page=2",

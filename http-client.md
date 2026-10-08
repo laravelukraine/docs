@@ -1,5 +1,5 @@
 ---
-git: b94b890362111c44de223e09502c610a9d9f20d8
+git: 156fc7fde114548640e13c39aa79b991291c3f91
 ---
 # HTTP-клієнт
 
@@ -80,7 +80,7 @@ $response->requestTimeout() : bool;      // 408 Request Timeout
 $response->conflict() : bool;            // 409 Conflict
 $response->unprocessableEntity() : bool; // 422 Unprocessable Entity
 $response->tooManyRequests() : bool;     // 429 Too Many Requests
-$response->serverError() : bool;         // 500 Internal Server Error
+$response->serverError() : bool;         // >= 500 Server Error
 ```
 
 <a name="uri-templates"></a>
@@ -378,10 +378,10 @@ $response->throwIfStatus(403);
 // Throw an exception unless the response has a specific status code...
 $response->throwUnlessStatus(200);
 
-// Throw an exception if a server error occurred (status >500)...
+// Throw an exception if a server error occurred (status >= 500)...
 $response->throwIfServerError();
 
-// Throw an exception if a client error occurred (status >400 and <500)...
+// Throw an exception if a client error occurred (status >= 400 and < 500)...
 $response->throwIfClientError();
 
 return $response['user']['id'];

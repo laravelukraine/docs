@@ -1,5 +1,5 @@
 ---
-git: e232d85d9300a354f6a62c24975173d5aed84ec9
+git: 156fc7fde114548640e13c39aa79b991291c3f91
 ---
 # Laravel MCP
 
@@ -1830,7 +1830,7 @@ public function handle(Request $request): Response
 ```php
 use Laravel\Mcp\Client;
 
-$client = Client::web('https://mcp.example.com');
+$client = Client::web('https://api.githubcopilot.com/mcp/');
 ```
 
 Щоб підключитися до локального MCP-сервера, який працює як команда, скористайтеся методом `Client::local`, указавши команду й будь-які аргументи, потрібні для запуску сервера:
@@ -1857,7 +1857,7 @@ $client->disconnect();
 Ви можете змінити тайм-аут запиту методом `withTimeout`:
 
 ```php
-$client = Client::web('https://mcp.example.com')->withTimeout(30);
+$client = Client::web('https://api.githubcopilot.com/mcp/')->withTimeout(30);
 ```
 
 <a name="named-clients"></a>
@@ -1869,7 +1869,7 @@ $client = Client::web('https://mcp.example.com')->withTimeout(30);
 use Laravel\Mcp\Client;
 use Laravel\Mcp\Facades\Mcp;
 
-Mcp::registerClient('github', fn () => Client::web('https://mcp.example.com'));
+Mcp::registerClient('github', fn () => Client::web('https://api.githubcopilot.com/mcp/'));
 ```
 
 Щойно клієнта зареєстровано, ви можете отримати його будь-де у своєму застосунку за іменем:
@@ -1891,10 +1891,12 @@ $client = Mcp::client('github');
 use Illuminate\Support\Facades\Auth;
 use Laravel\Mcp\Client;
 
-$client = Client::web('https://mcp.example.com')->withToken($token);
+$client = Client::web('https://api.githubcopilot.com/mcp/')->withToken(
+    config('services.github_mcp.token'),
+);
 
-$client = Client::web('https://mcp.example.com')->withToken(
-    fn () => Auth::user()->mcpToken(),
+$client = Client::web('https://api.githubcopilot.com/mcp/')->withToken(
+    fn () => Auth::user()->github_mcp_token,
 );
 ```
 
@@ -1904,7 +1906,7 @@ $client = Client::web('https://mcp.example.com')->withToken(
 use Laravel\Mcp\Client;
 use Laravel\Mcp\Facades\Mcp;
 
-Mcp::registerClient('github', fn () => Client::web('https://mcp.example.com')->withOAuth(
+Mcp::registerClient('github', fn () => Client::web('https://api.githubcopilot.com/mcp/')->withOAuth(
     clientId: config('services.github_mcp.client_id'),
     clientSecret: config('services.github_mcp.client_secret'),
 ));
@@ -1948,7 +1950,7 @@ Mcp::oAuthRoutesFor(
     },
     clientMetadataUri: 'oauth/github/client.json',
     clientMetadata: [
-        'client_name' => 'Acme Weather Dashboard',
+        'client_name' => 'Acme Dashboard',
         'logo_uri' => 'https://acme.com/logo.png',
     ],
 );
@@ -1989,8 +1991,9 @@ $tools = Mcp::client('github')->tools(limit: 10);
 ```php
 use Laravel\Mcp\Facades\Mcp;
 
-$result = Mcp::client('github')->callTool('current-weather', [
-    'location' => 'New York',
+$result = Mcp::client('github')->callTool('list_issues', [
+    'owner' => 'laravel',
+    'repo' => 'framework',
 ]);
 
 $result->text(); // The text content of the response...
@@ -2004,8 +2007,9 @@ $result->structuredContent;  // Structured content, if any...
 ```php
 $tools = Mcp::client('github')->tools();
 
-$result = $tools['current-weather']->call([
-    'location' => 'New York',
+$result = $tools['list_issues']->call([
+    'owner' => 'laravel',
+    'repo' => 'framework',
 ]);
 ```
 
@@ -2040,8 +2044,11 @@ $prompts = Mcp::client('github')->prompts(limit: 10);
 ```php
 use Laravel\Mcp\Facades\Mcp;
 
-$result = Mcp::client('github')->getPrompt('describe-weather', [
-    'location' => 'New York',
+$result = Mcp::client('github')->getPrompt('issue_to_fix_workflow', [
+    'owner' => 'laravel',
+    'repo' => 'framework',
+    'title' => 'Fix typo in README',
+    'description' => 'The installation section has a typo.',
 ]);
 
 $result->text(); // The text content of the messages...
@@ -2081,7 +2088,7 @@ $resources = Mcp::client('github')->resources(limit: 10);
 ```php
 use Laravel\Mcp\Facades\Mcp;
 
-$result = Mcp::client('github')->readResource('weather://guidelines');
+$result = Mcp::client('github')->readResource('repo://laravel/framework/contents/README.md');
 
 $result->content(); // The content of the resource, decoding base64 blobs as needed...
 (string) $result; // Equivalent to calling content()...

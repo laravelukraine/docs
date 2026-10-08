@@ -1,5 +1,5 @@
 ---
-git: b94b890362111c44de223e09502c610a9d9f20d8
+git: 156fc7fde114548640e13c39aa79b991291c3f91
 ---
 # Хелпери
 
@@ -1053,7 +1053,7 @@ $array = [
 
 Arr::query($array);
 
-// name=Taylor&order[column]=created_at&order[direction]=desc
+// name=Taylor&order%5Bcolumn%5D=created_at&order%5Bdirection%5D=desc
 ```
 
 <a name="method-array-random"></a>
@@ -3619,7 +3619,7 @@ it('checks if ready three times', function () {
         Sleep::for(2)->seconds(),
         Sleep::for(3)->seconds(),
     ]);
-}
+});
 ```
 
 ```php tab=PHPUnit

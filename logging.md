@@ -1,5 +1,5 @@
 ---
-git: 5e0a0edf75ca5f9ec60a27cece58fa9997958335
+git: 156fc7fde114548640e13c39aa79b991291c3f91
 ---
 # Логування
 
@@ -51,7 +51,6 @@ git: 5e0a0edf75ca5f9ec60a27cece58fa9997958335
 | `monthly`    | Драйвер Monolog на основі `RotatingFileHandler` із щомісячною ротацією. |
 | `errorlog`   | Драйвер Monolog на основі `ErrorLogHandler`.                         |
 | `monolog`    | Фабричний драйвер Monolog, що може використовувати будь-який підтримуваний обробник. |
-| `papertrail` | Драйвер Monolog на основі `SyslogUdpHandler`.                        |
 | `single`     | Канал логера на основі одного файлу чи шляху (`StreamHandler`).      |
 | `slack`      | Драйвер Monolog на основі `SlackWebhookHandler`.                     |
 | `stack`      | Обгортка для створення «багатоканальних» каналів.                    |

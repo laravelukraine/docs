@@ -1,5 +1,5 @@
 ---
-git: 5e0a0edf75ca5f9ec60a27cece58fa9997958335
+git: 226b0649c77e1d6fe739a20e1da654e94ccc718f
 ---
 # HTTP-відповіді
 
@@ -15,6 +15,7 @@ git: 5e0a0edf75ca5f9ec60a27cece58fa9997958335
 - [Інші типи відповідей](#other-response-types)
     - [Відповіді-представлення](#view-responses)
     - [JSON-відповіді](#json-responses)
+    - [Markdown-відповіді](#markdown-responses)
     - [Завантаження файлів](#file-downloads)
     - [Файлові відповіді](#file-responses)
 - [Потокові відповіді](#streamed-responses)
@@ -110,7 +111,7 @@ return response($content)->withoutHeader(['X-Debug', 'X-Powered-By']);
 <a name="cache-control-middleware"></a>
 #### Middleware керування кешем
 
-Laravel містить `middleware` `cache.headers`, який дозволяє швидко задати заголовок `Cache-Control` для групи маршрутів. Директиви слід передавати у вигляді «snake case» відповідної директиви cache-control, розділяючи їх крапкою з комою. Якщо в списку директив указано `etag`, як ідентифікатор ETag автоматично буде встановлено MD5-хеш вмісту відповіді:
+Laravel містить `middleware` `cache.headers`, який дозволяє швидко задати заголовок `Cache-Control` для групи маршрутів. Директиви слід передавати у вигляді «snake case» відповідної директиви cache-control, розділяючи їх крапкою з комою. Якщо в списку директив указано `etag`, як ідентифікатор ETag автоматично буде встановлено xxh128-хеш вмісту відповіді:
 
 ```php
 Route::middleware('cache.headers:public;max_age=30;s_maxage=300;stale_while_revalidate=600;etag')->group(function () {
@@ -356,6 +357,21 @@ return response()->json([
 return response()
     ->json(['name' => 'Abigail', 'state' => 'CA'])
     ->withCallback($request->input('callback'));
+```
+
+<a name="markdown-responses"></a>
+### Markdown-відповіді
+
+Метод `markdown` можна використовувати для повернення Markdown-вмісту з заголовком `Content-Type`, встановленим на `text/markdown`:
+
+```php
+return response()->markdown("# Hello\n\nWorld");
+```
+
+Ви можете передати власний HTTP-код статусу та масив додаткових заголовків як другий і третій аргументи:
+
+```php
+return response()->markdown('# Not Found', 404, ['X-Custom-Header' => 'Value']);
 ```
 
 <a name="file-downloads"></a>

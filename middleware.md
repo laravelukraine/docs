@@ -1,5 +1,5 @@
 ---
-git: 5e0a0edf75ca5f9ec60a27cece58fa9997958335
+git: 9c2295fc4b3c0f87d5fe3192a76075c85d9071d7
 ---
 # Middleware
 
@@ -141,6 +141,7 @@ use App\Http\Middleware\EnsureTokenIsValid;
 ```php
 ->withMiddleware(function (Middleware $middleware): void {
     $middleware->use([
+        \Illuminate\Http\Middleware\ValidatePathEncoding::class,
         \Illuminate\Foundation\Http\Middleware\InvokeDeferredCallbacks::class,
         // \Illuminate\Http\Middleware\TrustHosts::class,
         \Illuminate\Http\Middleware\TrustProxies::class,
@@ -477,7 +478,7 @@ Route::put('/post/{id}', function (string $id) {
 ```php
 <?php
 
-namespace Illuminate\Session\Middleware;
+namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;

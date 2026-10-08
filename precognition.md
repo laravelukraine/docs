@@ -1,5 +1,5 @@
 ---
-git: b0b1c3e17c715880e0c380cd30061da6ca952c9d
+git: 156fc7fde114548640e13c39aa79b991291c3f91
 ---
 # Precognition
 
@@ -593,7 +593,7 @@ class StoreUserRequest extends FormRequest
      *
      * @return array
      */
-    protected function rules()
+    public function rules()
     {
         return [
             'password' => [
@@ -621,7 +621,7 @@ class StoreUserRequest extends FormRequest
  *
  * @return array
  */
-protected function rules()
+public function rules()
 {
     return [
         'avatar' => [

@@ -1,5 +1,5 @@
 ---
-git: 57ae1e7dbd4bda3bae24ce93e527f1807ae49a43
+git: 97d2b7a984f39287500a1808ad98761e10faa275
 ---
 # Кеш
 
@@ -719,6 +719,7 @@ class MongoStore implements Store
     public function increment($key, $value = 1) {}
     public function decrement($key, $value = 1) {}
     public function forever($key, $value) {}
+    public function touch($key, $seconds) {}
     public function forget($key) {}
     public function flush() {}
     public function getPrefix() {}
