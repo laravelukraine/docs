@@ -38,6 +38,16 @@ CASES = [
         'Ви можете вилучити cookie методом `withoutCookie` або `withoutCookies`:',
     ),
     (
+        # The 226b0649 sync: upstream fixed `}` to `});` in helpers.md and
+        # `})` to `});` in http-tests.md. Neither line has a word in it, so the
+        # vocabulary test found nothing and the fix was reverted.
+        'keeps a punctuation-only fix copied from the diff',
+        '    ]);\n}',
+        '    ]);\n});',
+        '-}\n+});',
+        '    ]);\n});',
+    ),
+    (
         'leaves output alone when the model changed the line count',
         'Один рядок.',
         'Перший рядок.\nДругий рядок.',

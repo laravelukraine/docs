@@ -288,10 +288,16 @@ def keep_untouched_lines(current: str, translated: str, diff: str) -> str:
         return translated
 
     # Words carried by the diff, i.e. the vocabulary of what actually changed.
+    # Also the added lines themselves: a code fix like `}` -> `});` has no word
+    # to match, and was reverted until the new line was checked verbatim.
     changed_words = set()
+    added_lines = set()
     for line in diff.splitlines():
         if line.startswith(('+', '-')) and not line.startswith(('+++', '---')):
             changed_words.update(re.findall(r'[A-Za-z_][A-Za-z0-9_]{2,}', line))
+
+            if line.startswith('+') and line[1:].strip():
+                added_lines.add(line[1:].strip())
 
     merged = []
     for old, new in zip(before, after):
@@ -299,7 +305,8 @@ def keep_untouched_lines(current: str, translated: str, diff: str) -> str:
             merged.append(new)
             continue
 
-        touched = any(word in old or word in new for word in changed_words)
+        touched = (new.strip() in added_lines
+                   or any(word in old or word in new for word in changed_words))
         merged.append(new if touched else old)
 
     body = '\n'.join(merged)
