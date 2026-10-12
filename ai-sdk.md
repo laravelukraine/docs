@@ -1,5 +1,5 @@
 ---
-git: 463df6b54ed4bf437e59104b56561e5c4f64fff6
+git: d8eb65fb70aefcbff581ddf07fea4e7432cd610a
 ---
 # Laravel AI SDK
 
@@ -41,11 +41,13 @@ git: 463df6b54ed4bf437e59104b56561e5c4f64fff6
     - [Запити до ембедингів](#querying-embeddings)
     - [Кешування ембедингів](#caching-embeddings)
 - [Переранжування](#reranking)
+    - [Переранжування колекцій](#reranking-collections)
 - [Класифікація](#classification)
     - [Класифікація зображень](#classifying-images)
     - [Рішення «так» чи «ні»](#yes-or-no-decisions)
     - [Вибір із колекцій](#choosing-from-collections)
 - [Файли](#files)
+    - [Використання збережених файлів у розмовах](#using-stored-files-in-conversations)
 - [Векторні сховища](#vector-stores)
     - [Додавання файлів до сховищ](#adding-files-to-stores)
 - [Використання токенів](#usage)
@@ -287,7 +289,7 @@ AI SDK підтримує різні провайдери для своїх мо
 
 | Feature | Providers |
 |---|---|
-| Text | OpenAI, OpenAI Compatible, Anthropic, Gemini, Azure, Bedrock, Groq, xAI, DeepSeek, Mistral, Ollama, OpenRouter |
+| Text | OpenAI, OpenAI Compatible, Anthropic, Gemini, Azure, Bedrock, Groq, xAI, DeepSeek, Mistral, Ollama, OpenRouter, Cohere |
 | Images | OpenAI, Gemini, xAI, Azure, Bedrock, OpenRouter |
 | TTS | OpenAI, ElevenLabs, Gemini, Mistral, OpenRouter |
 | STT | OpenAI, OpenAI Compatible, ElevenLabs, Groq, Mistral, Gemini, OpenRouter |
@@ -1513,7 +1515,7 @@ public function tools(): iterable
 
 Інструмент провайдера `FileSearch` дозволяє агентам шукати серед [файлів](#files), збережених у [векторних сховищах](#vector-stores). Це уможливлює retrieval-augmented generation (RAG), дозволяючи агенту шукати релевантну інформацію у ваших завантажених документах.
 
-**Підтримувані провайдери:** OpenAI, Gemini, xAI
+**Підтримувані провайдери:** OpenAI, Azure, Gemini, xAI
 
 ```php
 use Laravel\Ai\Providers\Tools\FileSearch;

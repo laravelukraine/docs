@@ -1,5 +1,5 @@
 ---
-git: b94b890362111c44de223e09502c610a9d9f20d8
+git: d8eb65fb70aefcbff581ddf07fea4e7432cd610a
 ---
 # Laravel Boost
 
@@ -51,7 +51,7 @@ composer require laravel/boost --dev
 php artisan boost:install
 ```
 
-Команда `boost:install` згенерує відповідні файли настанов і навичок для тих агентів, яких ви обрали під час встановлення.
+Команда `boost:install` згенерує відповідні файли настанов і навичок для тих агентів, яких ви обрали під час встановлення. Якщо файл настанов, наприклад `CLAUDE.md` чи `AGENTS.md`, уже існує, Boost замінює лише вміст усередині свого блоку `<laravel-boost-guidelines>`, тож усе, що ви написали поза цим блоком, залишається на місці.
 
 Коли Laravel Boost встановлено, ви готові писати код у Cursor, Claude Code чи будь-якому іншому AI-агенті на ваш вибір.
 
@@ -77,12 +77,6 @@ claude mcp add -s local -t stdio laravel-boost php artisan boost:mcp
 Codex support is typically enabled automatically. If you find it isn't, open a shell in the project's directory and run the following command:
 
 codex mcp add laravel-boost -- php "artisan" "boost:mcp"
-```
-
-```text tab=Gemini CLI
-Gemini CLI support is typically enabled automatically. If you find it isn't, open a shell in the project's directory and run the following command:
-
-gemini mcp add -s project -t stdio laravel-boost php artisan boost:mcp
 ```
 
 ```text tab=GitHub Copilot (VS Code)
@@ -120,10 +114,10 @@ php artisan boost:update
 }
 ```
 
-За замовчуванням команда `boost:update` оновлюватиме лише ті ресурси Boost, які вже опубліковано у вашому застосунку. Якщо ви хочете, щоб Boost просканував ваш застосунок на нововстановлені пакети й запропонував опублікувати відповідні настанови й навички, скористайтеся опцією `--discover`:
+За замовчуванням команда `boost:update` також скануватиме ваш застосунок на нововстановлені пакети й пропонуватиме опублікувати відповідні настанови й навички. Цей запит пропускається, коли команду запущено неінтерактивно, наприклад зі скрипта Composer. Якщо ви хочете, щоб Boost оновлював лише ті ресурси Boost, які вже опубліковано у вашому застосунку, скористайтеся опцією `--no-discover`:
 
 ```shell
-php artisan boost:update --discover
+php artisan boost:update --no-discover
 ```
 
 <a name="mcp-server"></a>
