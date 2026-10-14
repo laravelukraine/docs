@@ -1,5 +1,5 @@
 ---
-git: 572314820aa4da505c8b5472a04908c3a9c14ec0
+git: 73e61270287e4aaa1cecd77cd66aa6ef4f499828
 ---
 # База даних: початок роботи
 
@@ -9,6 +9,7 @@ git: 572314820aa4da505c8b5472a04908c3a9c14ec0
     - [Пулінг підключень PostgreSQL](#pooled-postgresql-connections)
 - [Виконання SQL-запитів](#running-queries)
     - [Кілька підключень до бази даних](#using-multiple-database-connections)
+    - [Виконання аналітичних запитів у Vitess](#running-analytical-queries-on-vitess)
     - [Прослуховування подій запитів](#listening-for-query-events)
     - [Моніторинг сумарного часу запитів](#monitoring-cumulative-query-time)
 - [Транзакції](#database-transactions)
@@ -329,6 +330,29 @@ $users = DB::connection('sqlite')->select(/* ... */);
 
 ```php
 $pdo = DB::connection()->getPdo();
+```
+
+<a name="running-analytical-queries-on-vitess"></a>
+### Виконання аналітичних запитів у Vitess
+
+Якщо ви використовуєте базу даних Vitess, наприклад PlanetScale, метод `olap` дозволяє виконувати аналітичні запити з навантаженням OLAP:
+
+```php
+use Illuminate\Support\Facades\DB;
+
+$totals = DB::connection('mysql')->olap(fn ($connection) => $connection->table('orders')
+    ->selectRaw('customer_id, sum(total) as total')
+    ->groupBy('customer_id')
+    ->get()
+);
+```
+
+Laravel встановлює тип навантаження і для підключення на читання, і для підключення на запис, а коли колбек завершується, повертає його до OLTP - навіть якщо було викинуто виняток. Метод `olap` повертає результат колбека. У підключеннях MySQL, які не використовують Vitess, колбек виконується без зміни навантаження.
+
+Чи використовує підключення MySQL Vitess, можна визначити за допомогою методу `isVitess`:
+
+```php
+$isVitess = DB::connection('mysql')->isVitess();
 ```
 
 <a name="listening-for-query-events"></a>
