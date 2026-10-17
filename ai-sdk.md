@@ -1,5 +1,5 @@
 ---
-git: 226b0649c77e1d6fe739a20e1da654e94ccc718f
+git: d8eb65fb70aefcbff581ddf07fea4e7432cd610a
 ---
 # Laravel AI SDK
 
@@ -41,10 +41,13 @@ git: 226b0649c77e1d6fe739a20e1da654e94ccc718f
     - [Запити до ембедингів](#querying-embeddings)
     - [Кешування ембедингів](#caching-embeddings)
 - [Переранжування](#reranking)
+    - [Переранжування колекцій](#reranking-collections)
 - [Класифікація](#classification)
+    - [Класифікація зображень](#classifying-images)
     - [Рішення «так» чи «ні»](#yes-or-no-decisions)
     - [Вибір із колекцій](#choosing-from-collections)
 - [Файли](#files)
+    - [Використання збережених файлів у розмовах](#using-stored-files-in-conversations)
 - [Векторні сховища](#vector-stores)
     - [Додавання файлів до сховищ](#adding-files-to-stores)
 - [Використання токенів](#usage)
@@ -286,13 +289,13 @@ AI SDK підтримує різні провайдери для своїх мо
 
 | Feature | Providers |
 |---|---|
-| Text | OpenAI, OpenAI Compatible, Anthropic, Gemini, Azure, Bedrock, Groq, xAI, DeepSeek, Mistral, Ollama, OpenRouter |
+| Text | OpenAI, OpenAI Compatible, Anthropic, Gemini, Azure, Bedrock, Groq, xAI, DeepSeek, Mistral, Ollama, OpenRouter, Cohere |
 | Images | OpenAI, Gemini, xAI, Azure, Bedrock, OpenRouter |
 | TTS | OpenAI, ElevenLabs, Gemini, Mistral, OpenRouter |
 | STT | OpenAI, OpenAI Compatible, ElevenLabs, Groq, Mistral, Gemini, OpenRouter |
 | Embeddings | OpenAI, OpenAI Compatible, Gemini, Azure, Bedrock, Cohere, Mistral, Jina, VoyageAI, Ollama, OpenRouter |
 | Reranking | Cohere, Jina, VoyageAI, Bedrock, OpenRouter |
-| Classification | TypeSafe, OpenRouter |
+| Classification | OpenAI, TypeSafe, OpenRouter |
 | Files | OpenAI, Anthropic, Gemini, Azure, OpenRouter |
 
 </div>
@@ -1256,7 +1259,7 @@ SimilaritySearch::usingModel(Document::class, 'embedding')
 <a name="deferred-tool-loading"></a>
 ### Відкладене завантаження інструментів
 
-За замовчуванням усі інструменти, які надає агент, відправляються провайдеру з кожним запитом. Коли агент надає велику кількість інструментів, це споживає токени й може знизити точність вибору інструментів моделлю. Використовуючи інструмент провайдера `ToolSearch` з OpenAI або Anthropic, ви можете відкласти визначення інструментів, щоб провайдер завантажував їх лише тоді, коли вони потрібні:
+За замовчуванням усі інструменти, які надає агент, відправляються провайдеру з кожним запитом. Коли агент надає велику кількість інструментів, це споживає токени й може знизити точність вибору інструментів моделлю. Використовуючи інструмент провайдера `ToolSearch` з OpenAI, Azure або Anthropic, ви можете відкласти визначення інструментів, щоб провайдер завантажував їх лише тоді, коли вони потрібні:
 
 ```php
 use App\Ai\Tools\RefundOrder;
@@ -1297,7 +1300,7 @@ new ToolSearch(tools: [new SearchInvoices], strategy: 'bm25'),
 <a name="file-storage-tools"></a>
 ### Інструменти файлового сховища
 
-Фабрика інструментів `FileStorage` дозволяє дати агентам доступ до [диска файлової системи](/docs/{{version}}/filesystem) Laravel. Метод `all` повертає інструменти, які дозволяють агенту перелічувати, читати, оглядати, генерувати URL, записувати, видаляти й копіювати файли на заданому диску:
+Фабрика інструментів `FileStorage` дозволяє дати агентам доступ до [диска файлової системи](/docs/{{version}}/filesystem) Laravel. Метод `all` повертає інструменти, які дозволяють агенту перелічувати, читати, оглядати, генерувати URL, записувати, видаляти, копіювати й переміщувати файли на заданому диску:
 
 ```php
 use Laravel\Ai\Tools\FileStorage;
@@ -1451,7 +1454,7 @@ class SupportAgent implements Agent, HasSkills
 
 Інструмент провайдера `WebSearch` дозволяє агентам шукати в мережі інформацію в реальному часі. Це корисно для відповідей на питання про поточні події, свіжі дані чи теми, які могли змінитися після дати відсічення тренувальних даних моделі.
 
-**Підтримувані провайдери:** Anthropic, OpenAI, Azure, Gemini, xAI, OpenRouter
+**Підтримувані провайдери:** Anthropic, OpenAI, Azure, Gemini, xAI, Groq, OpenRouter
 
 ```php
 use Laravel\Ai\Providers\Tools\WebSearch;
@@ -1479,6 +1482,9 @@ public function tools(): iterable
     country: 'US'
 );
 ```
+
+> [!NOTE]
+> Groq підтримує вебпошук лише на своїх моделях GPT-OSS і ігнорує методи `max`, `allow` та `location`.
 
 <a name="web-fetch"></a>
 #### Завантаження вебсторінок
@@ -1509,7 +1515,7 @@ public function tools(): iterable
 
 Інструмент провайдера `FileSearch` дозволяє агентам шукати серед [файлів](#files), збережених у [векторних сховищах](#vector-stores). Це уможливлює retrieval-augmented generation (RAG), дозволяючи агенту шукати релевантну інформацію у ваших завантажених документах.
 
-**Підтримувані провайдери:** OpenAI, Gemini, xAI
+**Підтримувані провайдери:** OpenAI, Azure, Gemini, xAI
 
 ```php
 use Laravel\Ai\Providers\Tools\FileSearch;
@@ -1554,7 +1560,7 @@ new FileSearch(stores: ['store_id'], where: fn (FileSearchQuery $query) =>
 
 Інструмент провайдера `CodeExecution` дозволяє агентам запускати код у пісочниці, яку розміщує AI-провайдер. Це зручно для обчислень і аналізу даних.
 
-**Підтримувані провайдери:** Anthropic, OpenAI, Azure, Gemini, xAI
+**Підтримувані провайдери:** Anthropic, OpenAI, Azure, Gemini, xAI, Groq
 
 ```php
 use Laravel\Ai\Providers\Tools\CodeExecution;
@@ -1572,6 +1578,9 @@ public function tools(): iterable
     'container' => ['type' => 'auto', 'file_ids' => ['file_123']],
 ]);
 ```
+
+> [!NOTE]
+> Groq підтримує виконання коду лише на своїх моделях GPT-OSS.
 
 <a name="sub-agents"></a>
 ### Субагенти
@@ -2771,6 +2780,23 @@ $result->collect();
 
 $result->usage;
 $result->meta->provider;
+```
+
+<a name="classifying-images"></a>
+### Класифікація зображень
+
+Під час використання OpenAI зображення можна класифікувати разом із наданим вмістом, передавши їх другим аргументом до методу `of`. Зображення можна створити за допомогою тих самих [файлових класів, що використовуються для вкладень](#attachments):
+
+```php
+use Laravel\Ai\Classification;
+use Laravel\Ai\Classification\Boolean;
+use Laravel\Ai\Files\Image;
+
+$result = Classification::of('Inspect the product in this photo.', [
+    Image::fromPath($photo),
+])
+    ->question('damaged', new Boolean('Does the product have visible damage?'))
+    ->classify(provider: 'openai');
 ```
 
 <a name="yes-or-no-decisions"></a>

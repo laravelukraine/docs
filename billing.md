@@ -1,5 +1,5 @@
 ---
-git: b94b890362111c44de223e09502c610a9d9f20d8
+git: 6bb0a3be3c623f7964c8277625a07b6df7f1de2e
 ---
 # Laravel Cashier (Stripe)
 
@@ -85,7 +85,7 @@ git: b94b890362111c44de223e09502c610a9d9f20d8
 Оновлюючись до нової версії Cashier, важливо уважно переглянути [посібник з оновлення](https://github.com/laravel/cashier-stripe/blob/16.x/UPGRADE.md).
 
 > [!WARNING]
-> Щоб уникнути ламких змін, Cashier використовує фіксовану версію API Stripe. Cashier 16 використовує версію API Stripe `2025-06-30.basil`. Версію API Stripe оновлюватимуть у мінорних випусках, щоб скористатися новими можливостями й покращеннями Stripe.
+> Cashier використовує версію API Stripe, зафіксовану у встановленій версії SDK `stripe/stripe-php`. Наприклад, `stripe/stripe-php` 21.x використовує версію API Stripe `2026-08-26.dahlia`. Оскільки нова мажорна версія SDK Stripe зазвичай орієнтована на нову версію API Stripe, перед оновленням `stripe/stripe-php` до нової мажорної версії вам слід переглянути [журнал змін API Stripe](https://docs.stripe.com/changelog).
 
 <a name="installation"></a>
 ## Встановлення
@@ -1936,7 +1936,7 @@ php artisan cashier:webhook
 php artisan cashier:webhook --url "https://example.com/stripe/webhook"
 ```
 
-Створений вебхук використовуватиме версію API Stripe, з якою сумісна ваша версія Cashier. Якщо ви хочете використати іншу версію Stripe, передайте опцію `--api-version`:
+Створений вебхук використовуватиме ту саму версію API Stripe, що й Cashier, яка визначається встановленою версією `stripe/stripe-php`. Якщо ви хочете використати іншу версію Stripe, передайте опцію `--api-version`:
 
 ```shell
 php artisan cashier:webhook --api-version="2019-12-03"

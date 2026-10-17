@@ -1,5 +1,5 @@
 ---
-git: 5e0a0edf75ca5f9ec60a27cece58fa9997958335
+git: ff6cddfc8f771c98bd39c455bb4e15cdd5322cae
 ---
 # Laravel Cashier (Paddle)
 
@@ -1078,7 +1078,7 @@ Route::post('/user/subscribe', function (Request $request) {
 ```php
 $user = User::find(1);
 
-$checkout = $user->subscribe('default', ['price_monthly', 'price_chat' => 5]);
+$checkout = $user->subscribe(['price_monthly', 'price_chat' => 5]);
 ```
 
 Якщо ви хочете додати ще одну ціну до наявної підписки, вам потрібно скористатися методом `swap` підписки. Викликаючи метод `swap`, вам слід також включити поточні ціни й кількості підписки:
