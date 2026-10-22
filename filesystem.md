@@ -1,5 +1,5 @@
 ---
-git: eea8b121cba77e6f5f62405a9334b1d075eb5c3a
+git: 832e6c2662442548341119f170a3d4d59990c594
 ---
 # Файлове сховище
 
@@ -172,7 +172,7 @@ composer require league/flysystem-sftp-v3 "^3.0"
     // 'hostFingerprint' => env('SFTP_HOST_FINGERPRINT'),
     // 'maxTries' => 4,
     // 'passphrase' => env('SFTP_PASSPHRASE'),
-    // 'port' => env('SFTP_PORT', 22),
+    // 'port' => (int) env('SFTP_PORT', 22),
     // 'root' => env('SFTP_ROOT', ''),
     // 'timeout' => 30,
     // 'useAgent' => true,
