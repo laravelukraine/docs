@@ -1,5 +1,5 @@
 ---
-git: 57ae1e7dbd4bda3bae24ce93e527f1807ae49a43
+git: 36fa00db57f97d0a5a89c40be7f50ff8b1133327
 ---
 # Laravel Octane
 
@@ -56,6 +56,9 @@ php artisan octane:install
 ### FrankenPHP
 
 [FrankenPHP](https://frankenphp.dev) - це сервер PHP-застосунків, написаний на Go, який підтримує сучасні вебможливості на кшталт early hints, стиснення Brotli та Zstandard. Коли ви встановлюєте Octane і обираєте FrankenPHP як свій сервер, Octane автоматично завантажить і встановить бінарник FrankenPHP за вас.
+
+> [!WARNING]
+> Статичний бінарник FrankenPHP містить власну копію PHP, тому оновлення PHP у вашій системі не змінить версію PHP, яку використовує Octane. Перевірити версію вбудованого PHP можна командою `./frankenphp version`. Щоб застосувати оновлення безпеки PHP, видаліть бінарник `frankenphp` з кореневого каталогу вашого проєкту й виконайте Artisan-команду `php artisan octane:install --server=frankenphp`, щоб завантажити останній випуск, а потім перезапустіть Octane. Якщо FrankenPHP встановлено глобально в системі, оновіть його тим самим способом, яким ви його встановлювали.
 
 <a name="frankenphp-via-laravel-sail"></a>
 #### FrankenPHP через Laravel Sail
