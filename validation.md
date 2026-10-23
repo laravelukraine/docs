@@ -1,5 +1,5 @@
 ---
-git: 9c2295fc4b3c0f87d5fe3192a76075c85d9071d7
+git: 73e61270287e4aaa1cecd77cd66aa6ef4f499828
 ---
 # Валідація
 
@@ -28,6 +28,7 @@ git: 9c2295fc4b3c0f87d5fe3192a76075c85d9071d7
     - [Атрибути у мовних файлах](#specifying-attribute-in-language-files)
     - [Значення у мовних файлах](#specifying-values-in-language-files)
 - [Доступні правила валідації](#available-validation-rules)
+    - [Конструктори правил](#rule-builders)
 - [Умовне додавання правил](#conditionally-adding-rules)
 - [Валідація масивів](#validating-arrays)
     - [Валідація вкладених масивів](#validating-nested-array-input)
@@ -1224,6 +1225,38 @@ The credit card number field is required when payment type is credit card.
 
 </div>
 
+<a name="rule-builders"></a>
+### Rule Builders
+
+Окрім рядків, багато правил валідації можна визначати за допомогою методів класу `Illuminate\Validation\Rule`. Ці методи підтримують автодоповнення в IDE та їх можна комбінувати з рядковими правилами:
+
+```php
+use Illuminate\Validation\Rule;
+
+'name' => [Rule::required(), Rule::string()->max(255)],
+'terms' => [Rule::accepted()],
+'enabled' => [Rule::boolean()],
+'website' => [Rule::nullable(), Rule::activeUrl()],
+```
+
+Назви методів пишуться в camel case, наприклад `Rule::hexColor()`, `Rule::macAddress()` та `Rule::requiredArrayKeys(['name', 'email'])`. Правила, які залежать від інших полів, приймають як аргументи назви полів або значення для порівняння:
+
+```php
+'terms' => [Rule::acceptedIf('account_type', ['personal', 'business'])],
+'nickname' => [Rule::excludeWith('name')],
+'email' => [Rule::requiredWithout(['phone', 'mobile'])],
+'settings' => [Rule::presentIf('account_type', 'business')],
+```
+
+Методи `acceptedIf`, `declinedIf`, `missingIf`, `missingUnless`, `presentIf` та `presentUnless` приймають значення для порівняння або масив таких значень. Методи `requiredWith`, `requiredWithAll`, `requiredWithout`, `requiredWithoutAll`, `missingWith`, `missingWithAll`, `presentWith`, `presentWithAll` та `prohibits` приймають масив назв полів або кілька назв полів окремими аргументами.
+
+Регулярні вирази також можна визначати за допомогою методів `regex` та `notRegex`:
+
+```php
+'username' => [Rule::required(), Rule::regex('/^[a-z]+$/i')],
+'code' => [Rule::notRegex('/^test-/i')],
+```
+
 <a name="rule-accepted"></a>
 #### accepted
 
@@ -1463,12 +1496,24 @@ use Illuminate\Validation\Rule;
 'foo' => ['boolean:strict']
 ```
 
+Також можете скористатися методом `Rule::boolean`, передавши `true`, щоб увімкнути строгу валідацію:
+
+```php
+'foo' => [Rule::boolean(true)],
+```
+
 <a name="rule-confirmed"></a>
 #### confirmed
 
 Поле, що валідується, має мати відповідне поле `{field}_confirmation`. Наприклад, якщо валідується поле `password`, у вхідних даних має бути присутнє поле `password_confirmation`.
 
 Ви також можете передати власне ім'я поля підтвердження. Наприклад, `confirmed:repeat_username` очікуватиме, що поле `repeat_username` збігатиметься з полем, що валідується.
+
+Ви також можете скористатися методом `Rule::confirmed`, вказавши власне поле підтвердження через метод `customField`:
+
+```php
+'username' => [Rule::confirmed()->customField('repeat_username')],
+```
 
 <a name="rule-contains"></a>
 #### contains:_foo_,_bar_,...
@@ -1515,6 +1560,12 @@ Validator::make($data, [
 'password' => ['current_password:api']
 ```
 
+Крім того, ви можете скористатися методом `Rule::currentPassword` і вказати гард автентифікації через метод `guard`:
+
+```php
+'password' => [Rule::currentPassword()->guard('api')],
+```
+
 <a name="rule-date"></a>
 #### date
 
@@ -1524,6 +1575,16 @@ Validator::make($data, [
 #### date_equals:_date_
 
 Поле, що валідується, має дорівнювати вказаній даті. Дати передаються до PHP-функції `strtotime`, щоб перетворити їх на дійсний екземпляр `DateTime`.
+
+Для зручності правила на основі дат можна створювати за допомогою fluent-білдера правил `date`:
+
+```php
+use Illuminate\Validation\Rule;
+
+'start_date' => [Rule::date()->equals('2026-01-01')],
+```
+
+Метод `equals` приймає рядок з датою, екземпляр `DateTimeInterface` або назву іншого поля, з яким потрібно порівняти.
 
 <a name="rule-date-format"></a>
 #### date_format:_format_,...
@@ -1644,6 +1705,12 @@ Rule::dimensions()->ratioBetween(min: 1 / 2, max: 3 / 2);
 
 ```php
 'foo.*.id' => ['distinct:ignore_case']
+```
+
+Також можна скористатися методом `Rule::distinct`, за потреби ланцюжком викликавши методи `strict` та `ignoreCase`:
+
+```php
+'foo.*.id' => [Rule::distinct()->strict()->ignoreCase()],
 ```
 
 <a name="rule-doesnt-start-with"></a>
@@ -2008,6 +2075,14 @@ Validator::make($input, [
 #### ip
 
 Поле, що валідується, має бути IP-адресою.
+
+Ви також можете скористатися методом `Rule::ip`, за потреби обмеживши версію IP до `4` або `6`:
+
+```php
+'ip_address' => [Rule::ip()],
+'ipv4_address' => [Rule::ip()->version(4)],
+'ipv6_address' => [Rule::ip()->version(6)],
+```
 
 <a name="ipv4"></a>
 #### ipv4
@@ -2450,6 +2525,12 @@ use Illuminate\Validation\Rule;
 'timezone' => ['required', 'timezone:per_country,US'];
 ```
 
+Крім того, ви можете скористатися методом `Rule::timezone`, передавши будь-які аргументи `listIdentifiers` у вигляді масиву:
+
+```php
+'timezone' => [Rule::timezone(['per_country', 'US'])],
+```
+
 <a name="rule-unique"></a>
 #### unique:_table_,_column_
 
@@ -2556,6 +2637,12 @@ Rule::unique('users')->withoutTrashed('was_deleted_at');
 'game' => ['url:minecraft,steam'],
 ```
 
+Також можна скористатися методом `Rule::url`, указавши дозволені протоколи через метод `protocols`:
+
+```php
+'url' => [Rule::url()->protocols(['http', 'https'])],
+```
+
 <a name="rule-ulid"></a>
 #### ulid
 
@@ -2570,6 +2657,12 @@ Rule::unique('users')->withoutTrashed('was_deleted_at');
 
 ```php
 'uuid' => ['uuid:4']
+```
+
+Крім того, ви можете скористатися методом `Rule::uuid` і вказати версію UUID через метод `version`:
+
+```php
+'uuid' => [Rule::uuid()->version(4)],
 ```
 
 <a name="conditionally-adding-rules"></a>

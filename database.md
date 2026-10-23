@@ -1,5 +1,5 @@
 ---
-git: 572314820aa4da505c8b5472a04908c3a9c14ec0
+git: eef1c3e0d0dfc9bc36882fb2819344f8aa879339
 ---
 # База даних: початок роботи
 
@@ -9,6 +9,7 @@ git: 572314820aa4da505c8b5472a04908c3a9c14ec0
     - [Пулінг підключень PostgreSQL](#pooled-postgresql-connections)
 - [Виконання SQL-запитів](#running-queries)
     - [Кілька підключень до бази даних](#using-multiple-database-connections)
+    - [Виконання аналітичних запитів у Vitess](#running-analytical-queries-on-vitess)
     - [Прослуховування подій запитів](#listening-for-query-events)
     - [Моніторинг сумарного часу запитів](#monitoring-cumulative-query-time)
 - [Транзакції](#database-transactions)
@@ -132,6 +133,47 @@ driver://username:password@host:port/database?options
 #### Опція `sticky`
 
 `sticky` - це *необов'язкова* опція, яка дозволяє одразу читати записи, щойно записані в базу в межах поточного циклу запиту. Якщо `sticky` увімкнено і протягом поточного циклу запиту вже була операція «write», усі подальші операції «read» підуть через підключення «write». Так дані, записані під час запиту, можна одразу ж прочитати назад у межах цього самого запиту. Чи потрібна така поведінка вашому застосунку - вирішувати вам.
+
+<a name="preventing-stale-database-reads"></a>
+#### Запобігання читанню застарілих даних із бази
+
+Опція `sticky` впливає лише на поточний запит, а `middleware` `Illuminate\Foundation\Http\Middleware\PreventStaleDatabaseReads` дозволяє наступним запитам у тій самій сесії читати нещодавно записані дані із підключення для запису. Це допоможе уникнути ситуації, коли користувачі бачать застарілі дані, поки репліки для читання наздоганяють базу даних для запису.
+
+Щоб увімкнути цю поведінку, додайте `middleware` до групи `web` у файлі `bootstrap/app.php` вашого застосунку:
+
+```php
+use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Foundation\Http\Middleware\PreventStaleDatabaseReads;
+
+->withMiddleware(function (Middleware $middleware): void {
+    $middleware->web(append: [
+        PreventStaleDatabaseReads::class,
+    ]);
+})
+```
+
+`Middleware` відстежує записи в підключення до бази даних за замовчуванням у сесії користувача. За замовчуванням запити, що надходять протягом двох секунд після запису, використовуватимуть для читання на цьому підключенні підключення для запису. Тривалість можна змінити методом `for` цього `middleware`:
+
+```php
+$middleware->web(append: [
+    PreventStaleDatabaseReads::for(5),
+]);
+```
+
+Оскільки це `middleware` залежить від сесії, воно має виконуватися після `middleware` `Illuminate\Session\Middleware\StartSession`. Воно не впливає на читання, які виконують інші сесії, або на читання через інші підключення до бази даних.
+
+<a name="using-the-write-connection-for-reads"></a>
+#### Використання підключення для запису під час читання
+
+Якщо вам потрібно гарантувати, що всі читання через підключення під час виконання колбека використовують базу даних для запису, скористайтеся методом `usingWritePdo` цього підключення:
+
+```php
+use Illuminate\Support\Facades\DB;
+
+$users = DB::connection()->usingWritePdo(fn ($connection) => $connection->table('users')->get());
+```
+
+Це також стосується запитів Eloquent і запитів до зв'язків, виконаних усередині колбека через те саме підключення. Метод повертає результат колбека і відновлює попередню налаштовану поведінку читання підключення, коли колбек завершує роботу, навіть якщо було викинуто виняток.
 
 <a name="pooled-postgresql-connections"></a>
 ### Пулінг підключень PostgreSQL
@@ -329,6 +371,29 @@ $users = DB::connection('sqlite')->select(/* ... */);
 
 ```php
 $pdo = DB::connection()->getPdo();
+```
+
+<a name="running-analytical-queries-on-vitess"></a>
+### Виконання аналітичних запитів у Vitess
+
+Якщо ви використовуєте базу даних Vitess, наприклад PlanetScale, метод `olap` дозволяє виконувати аналітичні запити з навантаженням OLAP:
+
+```php
+use Illuminate\Support\Facades\DB;
+
+$totals = DB::connection('mysql')->olap(fn ($connection) => $connection->table('orders')
+    ->selectRaw('customer_id, sum(total) as total')
+    ->groupBy('customer_id')
+    ->get()
+);
+```
+
+Laravel встановлює тип навантаження і для підключення на читання, і для підключення на запис, а коли колбек завершується, повертає його до OLTP - навіть якщо було викинуто виняток. Метод `olap` повертає результат колбека. У підключеннях MySQL, які не використовують Vitess, колбек виконується без зміни навантаження.
+
+Чи використовує підключення MySQL Vitess, можна визначити за допомогою методу `isVitess`:
+
+```php
+$isVitess = DB::connection('mysql')->isVitess();
 ```
 
 <a name="listening-for-query-events"></a>

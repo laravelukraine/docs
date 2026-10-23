@@ -1,5 +1,5 @@
 ---
-git: 226b0649c77e1d6fe739a20e1da654e94ccc718f
+git: eef1c3e0d0dfc9bc36882fb2819344f8aa879339
 ---
 # Laravel AI SDK
 
@@ -41,10 +41,13 @@ git: 226b0649c77e1d6fe739a20e1da654e94ccc718f
     - [Запити до ембедингів](#querying-embeddings)
     - [Кешування ембедингів](#caching-embeddings)
 - [Переранжування](#reranking)
+    - [Переранжування колекцій](#reranking-collections)
 - [Класифікація](#classification)
+    - [Класифікація зображень](#classifying-images)
     - [Рішення «так» чи «ні»](#yes-or-no-decisions)
     - [Вибір із колекцій](#choosing-from-collections)
 - [Файли](#files)
+    - [Використання збережених файлів у розмовах](#using-stored-files-in-conversations)
 - [Векторні сховища](#vector-stores)
     - [Додавання файлів до сховищ](#adding-files-to-stores)
 - [Використання токенів](#usage)
@@ -139,7 +142,7 @@ XAI_API_KEY=
 
 Це корисно, коли ви спрямовуєте запити через проксі-сервіс (як-от LiteLLM чи Azure OpenAI Gateway) або використовуєте альтернативні ендпоїнти.
 
-Власні базові URL підтримуються для таких провайдерів: OpenAI, Anthropic, Gemini, Groq, Cohere, DeepSeek, xAI та OpenRouter.
+Власні базові URL підтримуються для таких провайдерів: OpenAI, Anthropic, Gemini, Groq, Cohere, DeepSeek, xAI, OpenRouter та TypeSafe.
 
 <a name="openai-compatible-providers"></a>
 ### Провайдери, сумісні з OpenAI
@@ -190,7 +193,7 @@ agent()->prompt('What is Laravel?', provider: 'local', model: 'local-model');
 ],
 ```
 
-Провайдери, сумісні з OpenAI, підтримують генерацію тексту, стримінг, інструменти, структурований вивід, вкладення зображень, ембединги та транскрипцію. Якщо ваш ендпоїнт потребує додаткових полів у тілі запиту, передайте їх через [опції провайдера](#provider-options).
+Провайдери, сумісні з OpenAI, підтримують генерацію тексту, стримінг, інструменти, структурований вивід, вкладення зображень, ембединги, транскрипцію та класифікацію. Якщо ваш ендпоїнт потребує додаткових полів у тілі запиту, передайте їх через [опції провайдера](#provider-options).
 
 <a name="openai-compatible-embeddings"></a>
 #### Ембединги для провайдерів, сумісних з OpenAI
@@ -231,6 +234,24 @@ agent()->prompt('What is Laravel?', provider: 'local', model: 'local-model');
 
 > [!NOTE]
 > OpenAI-сумісні провайдери та Groq не підтримують діаризацію. Виклик методу `diarize` при використанні цих провайдерів призведе до виключення.
+
+<a name="openai-compatible-classification"></a>
+#### Класифікація через OpenAI-сумісний провайдер
+
+Якщо ваш endpoint реалізує decisions endpoint від OpenAI, ви можете використовувати [класифікацію](#classification) з OpenAI-сумісним провайдером. SDK надсилає питання на маршрут `/decisions` вашого endpoint і підтримує [зображення як вкладення](#classifying-images). Оскільки SDK не знає, які моделі підтримує ваш endpoint, налаштуйте модель класифікації за замовчуванням або передайте модель у метод `classify`:
+
+```php
+'local' => [
+    'driver' => 'openai-compatible',
+    'url' => env('LOCAL_AI_URL'),
+    'key' => env('LOCAL_AI_API_KEY'),
+    'models' => [
+        'classification' => [
+            'default' => env('LOCAL_AI_MODEL'),
+        ],
+    ],
+],
+```
 
 <a name="on-demand-providers"></a>
 ### Провайдери на вимогу
@@ -286,13 +307,13 @@ AI SDK підтримує різні провайдери для своїх мо
 
 | Feature | Providers |
 |---|---|
-| Text | OpenAI, OpenAI Compatible, Anthropic, Gemini, Azure, Bedrock, Groq, xAI, DeepSeek, Mistral, Ollama, OpenRouter |
+| Text | OpenAI, OpenAI Compatible, Anthropic, Gemini, Azure, Bedrock, Groq, xAI, DeepSeek, Mistral, Ollama, OpenRouter, Cohere |
 | Images | OpenAI, Gemini, xAI, Azure, Bedrock, OpenRouter |
 | TTS | OpenAI, ElevenLabs, Gemini, Mistral, OpenRouter |
 | STT | OpenAI, OpenAI Compatible, ElevenLabs, Groq, Mistral, Gemini, OpenRouter |
 | Embeddings | OpenAI, OpenAI Compatible, Gemini, Azure, Bedrock, Cohere, Mistral, Jina, VoyageAI, Ollama, OpenRouter |
 | Reranking | Cohere, Jina, VoyageAI, Bedrock, OpenRouter |
-| Classification | TypeSafe, OpenRouter |
+| Classification | OpenAI, OpenAI Compatible, TypeSafe, OpenRouter |
 | Files | OpenAI, Anthropic, Gemini, Azure, OpenRouter |
 
 </div>
@@ -1256,7 +1277,7 @@ SimilaritySearch::usingModel(Document::class, 'embedding')
 <a name="deferred-tool-loading"></a>
 ### Відкладене завантаження інструментів
 
-За замовчуванням усі інструменти, які надає агент, відправляються провайдеру з кожним запитом. Коли агент надає велику кількість інструментів, це споживає токени й може знизити точність вибору інструментів моделлю. Використовуючи інструмент провайдера `ToolSearch` з OpenAI або Anthropic, ви можете відкласти визначення інструментів, щоб провайдер завантажував їх лише тоді, коли вони потрібні:
+За замовчуванням усі інструменти, які надає агент, відправляються провайдеру з кожним запитом. Коли агент надає велику кількість інструментів, це споживає токени й може знизити точність вибору інструментів моделлю. Використовуючи інструмент провайдера `ToolSearch` з OpenAI, Azure або Anthropic, ви можете відкласти визначення інструментів, щоб провайдер завантажував їх лише тоді, коли вони потрібні:
 
 ```php
 use App\Ai\Tools\RefundOrder;
@@ -1297,7 +1318,7 @@ new ToolSearch(tools: [new SearchInvoices], strategy: 'bm25'),
 <a name="file-storage-tools"></a>
 ### Інструменти файлового сховища
 
-Фабрика інструментів `FileStorage` дозволяє дати агентам доступ до [диска файлової системи](/docs/{{version}}/filesystem) Laravel. Метод `all` повертає інструменти, які дозволяють агенту перелічувати, читати, оглядати, генерувати URL, записувати, видаляти й копіювати файли на заданому диску:
+Фабрика інструментів `FileStorage` дозволяє дати агентам доступ до [диска файлової системи](/docs/{{version}}/filesystem) Laravel. Метод `all` повертає інструменти, які дозволяють агенту перелічувати, читати, оглядати, генерувати URL, записувати, видаляти, копіювати й переміщувати файли на заданому диску:
 
 ```php
 use Laravel\Ai\Tools\FileStorage;
@@ -1451,7 +1472,7 @@ class SupportAgent implements Agent, HasSkills
 
 Інструмент провайдера `WebSearch` дозволяє агентам шукати в мережі інформацію в реальному часі. Це корисно для відповідей на питання про поточні події, свіжі дані чи теми, які могли змінитися після дати відсічення тренувальних даних моделі.
 
-**Підтримувані провайдери:** Anthropic, OpenAI, Azure, Gemini, xAI, OpenRouter
+**Підтримувані провайдери:** Anthropic, OpenAI, Azure, Gemini, xAI, Groq, OpenRouter
 
 ```php
 use Laravel\Ai\Providers\Tools\WebSearch;
@@ -1479,6 +1500,9 @@ public function tools(): iterable
     country: 'US'
 );
 ```
+
+> [!NOTE]
+> Groq підтримує вебпошук лише на своїх моделях GPT-OSS і ігнорує методи `max`, `allow` та `location`.
 
 <a name="web-fetch"></a>
 #### Завантаження вебсторінок
@@ -1509,7 +1533,7 @@ public function tools(): iterable
 
 Інструмент провайдера `FileSearch` дозволяє агентам шукати серед [файлів](#files), збережених у [векторних сховищах](#vector-stores). Це уможливлює retrieval-augmented generation (RAG), дозволяючи агенту шукати релевантну інформацію у ваших завантажених документах.
 
-**Підтримувані провайдери:** OpenAI, Gemini, xAI
+**Підтримувані провайдери:** OpenAI, Azure, Gemini, xAI
 
 ```php
 use Laravel\Ai\Providers\Tools\FileSearch;
@@ -1554,7 +1578,7 @@ new FileSearch(stores: ['store_id'], where: fn (FileSearchQuery $query) =>
 
 Інструмент провайдера `CodeExecution` дозволяє агентам запускати код у пісочниці, яку розміщує AI-провайдер. Це зручно для обчислень і аналізу даних.
 
-**Підтримувані провайдери:** Anthropic, OpenAI, Azure, Gemini, xAI
+**Підтримувані провайдери:** Anthropic, OpenAI, Azure, Gemini, xAI, Groq
 
 ```php
 use Laravel\Ai\Providers\Tools\CodeExecution;
@@ -1572,6 +1596,9 @@ public function tools(): iterable
     'container' => ['type' => 'auto', 'file_ids' => ['file_123']],
 ]);
 ```
+
+> [!NOTE]
+> Groq підтримує виконання коду лише на своїх моделях GPT-OSS.
 
 <a name="sub-agents"></a>
 ### Субагенти
@@ -1647,7 +1674,10 @@ class RefundsAgent implements Agent, CanActAsTool, HasTools
 
 Якщо субагент не реалізує `CanActAsTool`, Laravel використає базове ім'я класу агента як ім'я інструмента й загальний опис, який просить батьківського агента передати чіткий, самодостатній опис завдання. Кожен виклик субагента виконується ізольовано й не отримує історії розмови батьківського агента.
 
-Коли батьківський агент [стримить](#streaming), його субагенти теж стримлять. Батьківський агент надсилає події `ToolResult` з текстом, який субагент уже встиг згенерувати. Ці події позначені як попередні, і за ними йде остаточний результат виклику інструмента, тож, перебираючи події вручну, їх можна пропускати:
+> [!WARNING]
+> Субагенти наразі не підтримують інструменти, які потребують [схвалення людиною](#human-tool-approval). Якщо інструмент субагента потребує схвалення, субагент призупиняється. Проте батьківський агент отримує звичайний результат інструмента й продовжує свою роботу, не повідомляючи ваш застосунок про очікуване схвалення. Реєструйте інструменти, які потребують схвалення, на агенті верхнього рівня.
+
+Коли батьківський агент [стримить](#streaming), його субагенти теж стримлять, якщо тільки вони не повертають [структурований вивід](#structured-output). Для субагентів, що стримлять, батьківський агент надсилає попередні події `ToolResult` з текстом, який субагент уже встиг згенерувати. Остаточний результат виклику інструмента йде слідом за цими подіями, тож, перебираючи події вручну, попередні можна пропускати:
 
 ```php
 use Laravel\Ai\Streaming\Events\ToolResult;
@@ -1790,7 +1820,43 @@ public function handle(PendingStep $step, Closure $next)
 }
 ```
 
-`Middleware` має повертати результат `$next` або власний `StepResponse`, щоб відповісти на крок без виклику моделі - наприклад, віддаючи закешовану відповідь. Повернення будь-якого іншого значення викидає `LogicException`.
+`Middleware` має повертати результат `$next`, `StepResponse` або `StepResult::stop()`. Поверніть `StepResponse`, щоб відповісти на крок без виклику моделі - наприклад, віддаючи закешовану відповідь. Поверніть `StepResult::stop()`, щоб завершити запуск. Будь-яке інше значення, що повертається, спричиняє `LogicException`.
+
+<a name="stopping-runs"></a>
+#### Зупинка запусків
+
+Щоб завершити запуск агента до наступного виклику моделі, скористайтеся `middleware` `Stop`. Наприклад, ви можете зупинити запуск, коли користувач натискає кнопку «стоп» або запуск досягає ліміту вхідних токенів. Відповідь зберігає завершені кроки та їхнє сумарне використання токенів:
+
+```php
+use Illuminate\Support\Facades\Cache;
+use Laravel\Ai\Contracts\HasMiddleware;
+use Laravel\Ai\Middleware\Stop;
+use Laravel\Ai\PendingStep;
+
+public function middleware(): array
+{
+    return [
+        // Stop when the user has pressed the "stop" button...
+        Stop::when(fn (PendingStep $step) => Cache::has("chat:{$this->user->id}:stopped")),
+
+        // Stop when the run has used at least 50,000 input tokens...
+        Stop::unless(fn (PendingStep $step) => $step->usage->inputTokens < 50_000),
+    ];
+}
+```
+
+Перед кожним кроком `when` зупиняє запуск, якщо умова істинна, а `unless` - якщо умова хибна. Зупинений запуск зі стримінгом має причину завершення `cancelled`.
+
+Власне `middleware` також може завершити запуск, повернувши `StepResult::stop()` замість результату `$next`:
+
+```php
+use Laravel\Ai\Gateway\StepResult;
+
+public function handle(PendingStep $step, Closure $next)
+{
+    return $this->cancelled($step) ? StepResult::stop() : $next($step);
+}
+```
 
 <a name="anonymous-agents"></a>
 ### Анонімні агенти
@@ -2773,6 +2839,34 @@ $result->usage;
 $result->meta->provider;
 ```
 
+<a name="classifying-images"></a>
+### Класифікація зображень
+
+Під час використання провайдерів OpenAI, OpenAI-compatible, TypeSafe або OpenRouter зображення можна класифікувати разом із наданим вмістом, передавши їх другим аргументом до методу `of`. Зображення можна створити за допомогою тих самих [файлових класів, що використовуються для вкладень](#attachments):
+
+```php
+use Laravel\Ai\Classification;
+use Laravel\Ai\Classification\Boolean;
+use Laravel\Ai\Files\Image;
+
+$result = Classification::of('Inspect the product in this photo.', [
+    Image::fromPath($photo),
+])
+    ->question('damaged', new Boolean('Does the product have visible damage?'))
+    ->classify(provider: 'openai');
+```
+
+Щоб послатися в запитанні на конкретне зображення, додавайте зображення зі строковими ключами. SDK надсилає ключ кожного зображення провайдеру як його назву:
+
+```php
+$result = Classification::of('Inspect the products in these photos.', [
+    'front' => Image::fromPath($front),
+    'back' => Image::fromPath($back),
+])
+    ->question('damaged', new Boolean('Is the product in `front` or `back` damaged?'))
+    ->classify();
+```
+
 <a name="yes-or-no-decisions"></a>
 ### Рішення «так» чи «ні»
 
@@ -3722,14 +3816,19 @@ $store->assertAdded(fn (StorableFile $file) => $file->content() === 'Hello, Worl
 Laravel AI SDK диспетчеризує різноманітні [події](/docs/{{version}}/events), зокрема:
 
 - `AddingFileToStore`
+- `AddingFileToStoreFailed`
 - `AgentFailed`
 - `AgentFailedOver`
 - `AgentPrompted`
 - `AgentStreamed`
+- `AudioFailed`
 - `AudioGenerated`
+- `ClassificationFailed`
 - `Classified`
 - `Classifying`
 - `CreatingStore`
+- `CreatingStoreFailed`
+- `EmbeddingsFailed`
 - `EmbeddingsGenerated`
 - `FileAddedToStore`
 - `FileDeleted`
@@ -3739,24 +3838,29 @@ Laravel AI SDK диспетчеризує різноманітні [події](
 - `GeneratingEmbeddings`
 - `GeneratingImage`
 - `GeneratingTranscription`
+- `ImageFailed`
 - `ImageGenerated`
 - `InvokingTool`
 - `PromptingAgent`
 - `ProviderFailedOver`
 - `RemovingFileFromStore`
+- `RemovingFileFromStoreFailed`
 - `Reranked`
 - `Reranking`
+- `RerankingFailed`
 - `StartingStep`
 - `StepCompleted`
 - `StepFailed`
 - `StoreCreated`
 - `StoreDeleted`
 - `StoringFile`
+- `StoringFileFailed`
 - `StreamingAgent`
 - `ToolApprovalRequested`
 - `ToolApprovalResolved`
 - `ToolFailed`
 - `ToolInvoked`
+- `TranscriptionFailed`
 - `TranscriptionGenerated`
 
 Ви можете слухати будь-яку з цих подій, щоб логувати чи зберігати інформацію про використання AI SDK.
