@@ -1,5 +1,5 @@
 ---
-git: b94b890362111c44de223e09502c610a9d9f20d8
+git: ff6cddfc8f771c98bd39c455bb4e15cdd5322cae
 ---
 # Laravel Fortify
 
@@ -663,7 +663,7 @@ Fortify подбає про визначення маршруту, що пока
 <a name="customizing-password-resets"></a>
 ### Налаштування скидання паролів
 
-Процес скидання пароля можна налаштувати, змінивши дію `App\Actions\ResetUserPassword`, згенеровану під час встановлення Laravel Fortify.
+Процес скидання пароля можна налаштувати, змінивши дію `App\Actions\Fortify\ResetUserPassword`, згенеровану під час встановлення Laravel Fortify.
 
 <a name="email-verification"></a>
 ## Підтвердження електронної пошти

@@ -1,5 +1,5 @@
 ---
-git: eea8b121cba77e6f5f62405a9334b1d075eb5c3a
+git: b0d9ce8a6ab417d7ebef2423fb4682b7d9d8dfe1
 ---
 # Файлове сховище
 
@@ -172,7 +172,7 @@ composer require league/flysystem-sftp-v3 "^3.0"
     // 'hostFingerprint' => env('SFTP_HOST_FINGERPRINT'),
     // 'maxTries' => 4,
     // 'passphrase' => env('SFTP_PASSPHRASE'),
-    // 'port' => env('SFTP_PORT', 22),
+    // 'port' => (int) env('SFTP_PORT', 22),
     // 'root' => env('SFTP_ROOT', ''),
     // 'timeout' => 30,
     // 'useAgent' => true,
@@ -627,6 +627,9 @@ $path = Storage::putFileAs(
     'avatars', $request->file('avatar'), $request->user()->id
 );
 ```
+
+> [!WARNING]
+> Ніколи не формуйте аргумент імені файлу для `storeAs` чи `putFileAs` на основі даних, наданих користувачем. Зловмисник може передати ім'я на кшталт `shell.php`, і збережений файл буде виконано як PHP, якщо він доступний через веб. Використовуйте для імені збереженого файлу `hashName()` або згенерований системою ідентифікатор, а оригінальне ім'я зберігайте окремо, якщо його потрібно показувати.
 
 > [!WARNING]
 > Недруковані та некоректні символи Unicode буде автоматично вилучено зі шляхів до файлів. Тому вам, можливо, варто санітизувати шляхи, перш ніж передавати їх методам збереження файлів у Laravel. Шляхи нормалізуються методом `League\Flysystem\WhitespacePathNormalizer::normalizePath`.
