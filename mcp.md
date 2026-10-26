@@ -1,5 +1,5 @@
 ---
-git: 156fc7fde114548640e13c39aa79b991291c3f91
+git: b0d9ce8a6ab417d7ebef2423fb4682b7d9d8dfe1
 ---
 # Laravel MCP
 
@@ -1713,6 +1713,8 @@ class CurrentWeatherTool extends Tool
 
 Так само як і маршрути, ви можете автентифікувати вебсервери MCP за допомогою `middleware`. Додавання автентифікації до вашого MCP-сервера вимагатиме від користувача автентифікуватися, перш ніж користуватися будь-якою можливістю сервера.
 
+Цей розділ про те, як зовнішні AI-клієнти отримують доступ до **MCP-серверів вашого застосунку**. Щоб підключити свій застосунок до MCP-сервера іншого сервісу з обліковими даними користувача, дивіться натомість [автентифікацію клієнта](#client-authentication).
+
 Є два способи автентифікувати доступ до вашого MCP-сервера: проста автентифікація на основі токенів через [Laravel Sanctum](/docs/{{version}}/sanctum) чи будь-який токен, що передається в HTTP-заголовку `Authorization`. Або ж ви можете автентифікувати через OAuth за допомогою [Laravel Passport](/docs/{{version}}/passport).
 
 <a name="oauth"></a>
@@ -1732,6 +1734,7 @@ Mcp::web('/mcp/weather', WeatherExample::class)
     ->middleware('auth:api');
 ```
 
+<a name="new-passport-installation"></a>
 #### Нове встановлення Passport
 
 Якщо ваш застосунок ще не використовує Laravel Passport, дотримуйтеся [посібника зі встановлення й розгортання](/docs/{{version}}/passport#installation) Passport, щоб додати його до свого застосунку. Перш ніж рухатися далі, у вас має бути модель `OAuthenticatable`, новий гард автентифікації й ключі passport.
@@ -1776,6 +1779,26 @@ Laravel MCP через метод `Mcp::oauthRoutes`, згаданий вище,
 OAuth2.1 - це задокументований механізм автентифікації у специфікації Model Context Protocol, і він найширше підтримується серед MCP-клієнтів. З цієї причини ми рекомендуємо використовувати Passport, коли це можливо.
 
 Якщо ваш застосунок уже використовує [Sanctum](/docs/{{version}}/sanctum), додавання Passport може виявитися обтяжливим. У такому разі ми рекомендуємо використовувати Sanctum без Passport, доки у вас не з'явиться чітка, необхідна вимога працювати з MCP-клієнтом, який підтримує лише OAuth.
+
+<a name="rate-limiting-oauth-routes"></a>
+#### Обмеження частоти запитів до OAuth-маршрутів
+
+Як того вимагають специфікація MCP і RFC 7591, маршрут динамічної реєстрації клієнтів, який реєструє `Mcp::oauthRoutes`, є публічним: будь-який MCP-клієнт може зареєструватися без автентифікації. Оскільки кожна реєстрація створює нового OAuth-клієнта у вашій базі даних, захистіть ці маршрути обмеженням частоти запитів, яке відповідає трафіку вашого застосунку. Для цього зареєструйте маршрути в групі маршрутів, яка застосовує `middleware` `throttle` з Laravel:
+
+```php
+use Illuminate\Support\Facades\Route;
+use Laravel\Mcp\Facades\Mcp;
+
+Route::middleware('throttle:10,1')->group(function () {
+    Mcp::oauthRoutes();
+});
+```
+
+Якщо вашим MCP-клієнтам не потрібно реєструватися динамічно, маршрут реєстрації клієнтів можна повністю вимкнути, передавши `false` в аргумент `registration`:
+
+```php
+Mcp::oauthRoutes(registration: false);
+```
 
 <a name="sanctum"></a>
 ### Sanctum
@@ -1822,6 +1845,8 @@ public function handle(Request $request): Response
 
 Окрім створення серверів, Laravel MCP містить клієнт для підключення до інших MCP-серверів - як власних, так і сторонніх. Клієнт дозволяє вашому застосунку виявляти й викликати інструменти, які надає MCP-сервер, що особливо корисно, щоб дати вашим [AI-агентам](/docs/{{version}}/ai-sdk#mcp-tools) доступ до можливостей зовнішніх MCP-серверів.
 
+Наприклад, чат-застосунок може підключатися до MCP-сервера GitHub з GitHub-токеном кожного користувача, щоб його агент відповідав на запитання про репозиторії цього користувача. У такому сценарії MCP-клієнтом є ваш застосунок: створювати MCP-сервер чи реєструвати маршрути `Mcp::web` не потрібно.
+
 <a name="client-connecting"></a>
 ### Підключення до серверів
 
@@ -1863,7 +1888,7 @@ $client = Client::web('https://api.githubcopilot.com/mcp/')->withTimeout(30);
 <a name="named-clients"></a>
 ### Іменовані клієнти
 
-Замість створювати клієнта щоразу, коли він вам потрібен, ви можете зареєструвати багаторазові іменовані клієнти. Зазвичай це роблять у методі `boot` сервіс-провайдера за допомогою фасада `Mcp`:
+Замість створювати клієнта щоразу, коли він вам потрібен, ви можете за бажання зареєструвати багаторазові іменовані клієнти. Метод `registerClient` дає ім'я вихідному з'єднанню: він не відкриває MCP-сервер і не авторизує користувача. Зазвичай реєстрацію виконують у методі `boot` сервіс-провайдера за допомогою фасада `Mcp`:
 
 ```php
 use Laravel\Mcp\Client;
@@ -1885,6 +1910,9 @@ $client = Mcp::client('github');
 <a name="client-authentication"></a>
 ### Автентифікація клієнта
 
+<a name="client-bearer-tokens"></a>
+#### Bearer-токени
+
 Щоб підключитися до вебсервера MCP, захищеного bearer-токеном, скористайтеся методом `withToken`. Ви можете передати рядок токена або замикання, яке ліниво його поверне:
 
 ```php
@@ -1900,16 +1928,26 @@ $client = Client::web('https://api.githubcopilot.com/mcp/')->withToken(
 );
 ```
 
-Для серверів, захищених [OAuth 2.1](#oauth), налаштуйте клієнта методом `withOAuth`. Це клієнтський відповідник захисту ваших власних серверів через OAuth:
+Якщо ви вже отримали відповідний токен через [Socialite](/docs/{{version}}/socialite) чи інший потік прив'язування облікових записів, передайте цей токен у `withToken`: реєструвати OAuth-маршрути MCP не потрібно.
+
+<a name="client-oauth"></a>
+#### Прив'язування облікових записів користувачів через OAuth
+
+Уявіть чат-застосунок, у якому користувачі підключають сервіс керування проєктами, а потім ставлять агенту запитання на кшталт «Які з моїх завдань прострочені?». Зовнішній сервіс керування проєктами надає MCP-сервер, захищений OAuth. Ваш застосунок має перенаправити кожного користувача на екран згоди сервісу, обміняти його дозвіл на токен і зберегти цей токен для майбутніх викликів інструментів.
+
+Laravel MCP обробляє цей потік прив'язування облікових записів за допомогою `withOAuth` і `Mcp::oAuthRoutesFor`. Спершу зареєструйте іменований клієнт у сервіс-провайдері. Облікові дані OAuth-клієнта ідентифікують ваш застосунок для сервісу, а `withToken` під час виклику інструментів підставляє збережений токен доступу підключеного користувача:
 
 ```php
+use Illuminate\Support\Facades\Auth;
 use Laravel\Mcp\Client;
 use Laravel\Mcp\Facades\Mcp;
 
-Mcp::registerClient('github', fn () => Client::web('https://api.githubcopilot.com/mcp/')->withOAuth(
-    clientId: config('services.github_mcp.client_id'),
-    clientSecret: config('services.github_mcp.client_secret'),
-));
+Mcp::registerClient('projects', fn () => Client::web('https://projects.example.com/mcp')
+    ->withOAuth(
+        clientId: config('services.projects.client_id'),
+        clientSecret: config('services.projects.client_secret'),
+    )
+    ->withToken(fn () => Auth::user()->projects_token));
 ```
 
 > [!NOTE]
@@ -1917,23 +1955,50 @@ Mcp::registerClient('github', fn () => Client::web('https://api.githubcopilot.co
 
 Сервер авторизації має оголосити підтримку методу виклику коду PKCE `S256` у своїх метаданих. Laravel відхилить спробу авторизації, якщо підтримка PKCE не оголошена.
 
-Далі зареєструйте OAuth-маршрути для іменованого клієнта у файлі `routes/ai.php` методом `oAuthRoutesFor`. Замикання, яке ви надаєте, отримує ім'я клієнта й отриманий `TokenSet` після обміну коду авторизації на токен доступу:
+Далі зареєструйте маршрути прив'язування облікових записів у файлі `routes/ai.php`. Колбек отримує ім'я клієнта й отриманий `TokenSet`, тож ви можете зберегти токен для користувача, який увійшов у систему:
 
 ```php
 use Illuminate\Support\Facades\Auth;
 use Laravel\Mcp\Client\OAuth\TokenSet;
 use Laravel\Mcp\Facades\Mcp;
 
-Mcp::oAuthRoutesFor('github', function (string $client, TokenSet $token) {
+Mcp::oAuthRoutesFor('projects', function (string $client, TokenSet $token) {
     Auth::user()->update([
-        'github_mcp_token' => $token->accessToken,
+        'projects_token' => $token->accessToken,
     ]);
 
-    return redirect('/dashboard');
-});
+    return redirect('/chat');
+}, middleware: ['web', 'auth']);
 ```
 
-Це реєструє три іменовані маршрути: маршрут підключення (`mcp.oauth.{client}.connect`), який перенаправляє користувача на сервер авторизації, маршрут зворотного виклику (`mcp.oauth.{client}.callback`), який обмінює код авторизації й викликає ваш обробник, і публічний маршрут Client ID Metadata Document (`mcp.oauth.{client}.client-metadata`). Маршрути підключення й зворотного виклику за замовчуванням використовують групу `middleware` `web`, яку ви можете перевизначити аргументом `middleware`. Маршрут метаданих цей `middleware` не використовує, бо сервер авторизації має мати змогу його отримати.
+Метод `oAuthRoutesFor` реєструє три іменовані маршрути: маршрут підключення (`mcp.oauth.{client}.connect`), який перенаправляє користувача на сервер авторизації, маршрут зворотного виклику (`mcp.oauth.{client}.callback`), який обмінює код авторизації й викликає ваш обробник, і публічний маршрут Client ID Metadata Document (`mcp.oauth.{client}.client-metadata`).
+
+Маршрути підключення й зворотного виклику за замовчуванням використовують групу `middleware` `web`; у прикладі прив'язування облікових записів вище до неї додано `auth`, щоб вимагати від користувача входу в систему. Маршрут метаданих цей `middleware` не використовує, бо сервер авторизації має мати змогу його отримати.
+
+Ваша кнопка «Підключити сервіс проєктів» має надсилати користувача на маршрут підключення:
+
+```php
+return redirect()->route('mcp.oauth.projects.connect');
+```
+
+Laravel перенаправляє користувача на сервіс, щоб той надав доступ, обмінює код авторизації, коли користувач повертається, і викликає ваш колбек. Під час наступних запитів до чату іменований клієнт використовує збережений токен. Наприклад, [агент AI SDK](/docs/{{version}}/ai-sdk#mcp-tools) може надавати інструменти сервісу:
+
+```php
+public function tools(): iterable
+{
+    return [
+        ...Mcp::client('projects')->tools(),
+    ];
+}
+```
+
+Зберігайте токени з [шифрованим приведенням](/docs/{{version}}/eloquent-mutators#encrypted-casting) і приховуйте їх під час серіалізації моделі. Якщо сервіс видає токени з обмеженим терміном дії, зберігайте також refresh-токен і дані про термін дії з `TokenSet` та оновлюйте токен перед викликами інструментів. Для агентів у черзі отримуйте облікові дані від явно переданого користувача, а не через `Auth::user()`.
+
+> [!NOTE]
+> `Mcp::oAuthRoutesFor` підключає ваших користувачів до зовнішнього сервісу. Натомість `Mcp::oauthRoutes` дозволяє зовнішнім AI-клієнтам автентифікуватися на ваших власних MCP-серверах через Passport. Для описаного вище потоку прив'язування облікових записів Passport і `Mcp::oauthRoutes` не потрібні.
+
+<a name="client-metadata"></a>
+#### Метадані клієнта
 
 Документ метаданих описує ваш застосунок як публічного OAuth-клієнта й використовує `APP_URL` вашого застосунку для генерації ідентифікатора клієнта та URL зворотного виклику. Тому переконайтеся, що змінна оточення `APP_URL` правильно встановлена у продакшені. Ви можете налаштувати маршрут метаданих і надати додаткові метадані за допомогою аргументів `clientMetadataUri` і `clientMetadata`:
 
@@ -1942,24 +2007,18 @@ use Laravel\Mcp\Client\OAuth\TokenSet;
 use Laravel\Mcp\Facades\Mcp;
 
 Mcp::oAuthRoutesFor(
-    'github',
+    'projects',
     function (string $client, TokenSet $token) {
         // Store the token...
 
         return redirect('/dashboard');
     },
-    clientMetadataUri: 'oauth/github/client.json',
+    clientMetadataUri: 'oauth/projects/client.json',
     clientMetadata: [
         'client_name' => 'Acme Dashboard',
         'logo_uri' => 'https://acme.com/logo.png',
     ],
 );
-```
-
-Щоб розпочати потік авторизації, перенаправте користувача на маршрут підключення:
-
-```php
-return redirect()->route('mcp.oauth.github.connect');
 ```
 
 <a name="client-tools"></a>
