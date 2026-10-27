@@ -1,5 +1,5 @@
 ---
-git: eef1c3e0d0dfc9bc36882fb2819344f8aa879339
+git: b571918b4f569245c573a607fb02bb4ce617bf9d
 ---
 # Laravel AI SDK
 
@@ -135,7 +135,7 @@ XAI_API_KEY=
     'anthropic' => [
         'driver' => 'anthropic',
         'key' => env('ANTHROPIC_API_KEY'),
-        'url' => env('ANTHROPIC_BASE_URL'),
+        'url' => env('ANTHROPIC_URL'),
     ],
 ],
 ```
@@ -325,7 +325,7 @@ use Laravel\Ai\Enums\Lab;
 
 Lab::Anthropic;
 Lab::OpenAI;
-Lab::OpenAiCompatible;
+Lab::OpenAICompatible;
 Lab::Gemini;
 // ...
 ```
