@@ -125,6 +125,7 @@
 | payload | дані |
 | cache | кеш |
 | event | подія |
+| dispatch (job, event) | диспетчеризувати / диспетчеризація |
 | listener | слухач |
 | validation | валідація |
 | authentication | автентифікація |
