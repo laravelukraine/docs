@@ -1,5 +1,5 @@
 ---
-git: bb48eb2a640f8f91dc6f2452dd3c84a2d4d5a52c
+git: 10add0d2dade04cacfab436dcc3a8df7ca004e74
 ---
 # База даних: конструктор запитів
 
@@ -1267,6 +1267,17 @@ $corporations = DB::table('corporations')
 $user = DB::table('users')
     ->latest()
     ->first();
+```
+
+<a name="sequence-ordering"></a>
+#### Сортування за послідовністю
+
+Метод `inOrderOf` дозволяє сортувати результати запиту за послідовністю значень, наприклад рядків або enum:
+
+```php
+$orders = DB::table('orders')
+    ->inOrderOf('status', [OrderStatus::Shipped, OrderStatus::Delivered, OrderStatus::Cancelled])
+    ->get();
 ```
 
 <a name="random-ordering"></a>
