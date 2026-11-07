@@ -1,5 +1,5 @@
 ---
-git: b571918b4f569245c573a607fb02bb4ce617bf9d
+git: f7a20c401a30827991659174d48d958f92517a9e
 ---
 # Laravel AI SDK
 
@@ -1030,6 +1030,21 @@ foreach ($stream as $event) {
     'Analyze this sales transcript...',
     new Channel('channel-name'),
 );
+```
+
+Кожна подія бродкаститься під своїм типом, як-от `stream_start`, `text_delta`, `tool_call`, `tool_result` і `stream_end`. Помилки, які повертає провайдер, завжди бродкастяться як `error`, а власний код помилки провайдера доступний у ключі `type` даних. Коли бродкаст у черзі завершується невдачею, бродкастується подія `stream_failed`, щоб ваш фронтенд перестав чекати на відповідь. Оскільки це [власні назви бродкасту](/docs/{{version}}/broadcasting#broadcast-name), перед ними слід ставити `.` при [прослуховуванні через Laravel Echo](/docs/{{version}}/broadcasting#listening-for-events):
+
+```js
+Echo.channel('channel-name')
+    .listen('.text_delta', (event) => {
+        // event.delta...
+    })
+    .listen('.error', (event) => {
+        // event.type, event.message...
+    })
+    .listen('.stream_failed', (event) => {
+        // ...
+    });
 ```
 
 <a name="skipping-oversized-events"></a>
