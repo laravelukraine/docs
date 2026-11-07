@@ -1,5 +1,5 @@
 ---
-git: 156fc7fde114548640e13c39aa79b991291c3f91
+git: 10add0d2dade04cacfab436dcc3a8df7ca004e74
 ---
 # Eloquent: початок роботи
 
@@ -37,6 +37,7 @@ git: 156fc7fde114548640e13c39aa79b991291c3f91
     - [Глобальні скопи](#global-scopes)
     - [Локальні скопи](#local-scopes)
     - [Відкладені атрибути](#pending-attributes)
+    - [Колбеки після запиту](#after-query-callbacks)
 - [Порівняння моделей](#comparing-models)
 - [Події](#events)
     - [Використання замикань](#events-using-closures)
@@ -1733,6 +1734,22 @@ $draft->hidden; // true
 $query->withAttributes([
     'hidden' => true,
 ], asConditions: false);
+```
+
+<a name="after-query-callbacks"></a>
+### Колбеки після виконання запиту
+
+Метод `afterQuery` дозволяє зареєструвати замикання, яке буде викликано з результатами запиту після його виконання. Це особливо корисно в [локальних скопах](#local-scopes), оскільки дозволяє скопу змінювати моделі, які він отримує:
+
+```php
+#[Scope]
+protected function matching(Builder $query, string $term): void
+{
+    // Add a blog post excerpt property on each Post in the resulting collection...
+    $query->whereFullText('body', $term)->afterQuery(function (Collection $posts) use ($term) {
+        $posts->each(fn (Post $post) => $post->excerpt = Str::excerpt($post->body, $term));
+    });
+}
 ```
 
 <a name="comparing-models"></a>
