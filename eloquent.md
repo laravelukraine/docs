@@ -37,7 +37,7 @@ git: 10add0d2dade04cacfab436dcc3a8df7ca004e74
     - [Глобальні скопи](#global-scopes)
     - [Локальні скопи](#local-scopes)
     - [Відкладені атрибути](#pending-attributes)
-    - [Колбеки після запиту](#after-query-callbacks)
+    - [Колбеки після виконання запиту](#after-query-callbacks)
 - [Порівняння моделей](#comparing-models)
 - [Події](#events)
     - [Використання замикань](#events-using-closures)

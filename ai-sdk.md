@@ -1032,7 +1032,7 @@ foreach ($stream as $event) {
 );
 ```
 
-Кожна подія бродкаститься під своїм типом, як-от `stream_start`, `text_delta`, `tool_call`, `tool_result` і `stream_end`. Помилки, які повертає провайдер, завжди бродкастяться як `error`, а власний код помилки провайдера доступний у ключі `type` даних. Коли бродкаст у черзі завершується невдачею, бродкастується подія `stream_failed`, щоб ваш фронтенд перестав чекати на відповідь. Оскільки це [власні назви бродкасту](/docs/{{version}}/broadcasting#broadcast-name), перед ними слід ставити `.` при [прослуховуванні через Laravel Echo](/docs/{{version}}/broadcasting#listening-for-events):
+Кожна подія надсилається під своїм типом, як-от `stream_start`, `text_delta`, `tool_call`, `tool_result` і `stream_end`. Помилки, які повертає провайдер, завжди надсилаються як подія `error`, а власний код помилки провайдера доступний у ключі `type` даних події. Коли надсилання подій через чергу завершується невдачею, надсилається подія `stream_failed`, щоб ваш фронтенд перестав чекати на відповідь. Оскільки це [власні імена бродкасту](/docs/{{version}}/broadcasting#broadcast-name), перед ними слід ставити `.` при [прослуховуванні через Laravel Echo](/docs/{{version}}/broadcasting#listening-for-events):
 
 ```js
 Echo.channel('channel-name')
