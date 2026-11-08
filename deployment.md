@@ -1,5 +1,5 @@
 ---
-git: 5e0a0edf75ca5f9ec60a27cece58fa9997958335
+git: 960eedf0911155ad16326ade49c0ea5d18eda0b8
 ---
 # Розгортання
 
@@ -89,6 +89,10 @@ server {
         fastcgi_buffers 8 32k;
         fastcgi_busy_buffers_size 64k;
         fastcgi_hide_header X-Powered-By;
+    }
+
+    location ~ \.php$ {
+        return 404;
     }
 
     location ~ /\.(?!well-known).* {

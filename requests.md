@@ -1,5 +1,5 @@
 ---
-git: ef6922afd7345a5b30f3f8fd9da230b7c7229fa2
+git: f7a20c401a30827991659174d48d958f92517a9e
 ---
 # HTTP-запити
 
@@ -456,6 +456,17 @@ $delay = $request->interval('delay', Unit::Minute);
 ```
 
 Якщо значення присутнє, але має недійсний формат, буде викинуто `InvalidArgumentException`; тому рекомендуємо валідувати дані перед викликом методу `interval`.
+
+<a name="retrieving-uuid-input-values"></a>
+#### Отримання вхідних значень UUID
+
+Вхідні значення, що містять UUID, можна отримати як екземпляри `Ramsey\Uuid\UuidInterface` за допомогою методу `uuid`. Якщо запит не містить вхідного значення із цим іменем, буде повернено `null`:
+
+```php
+$orderId = $request->uuid('order_id');
+```
+
+Якщо вхідне значення присутнє, але не є коректним UUID, буде викинуто `InvalidArgumentException`, тому рекомендовано валідувати вхідні дані перед викликом методу `uuid`.
 
 <a name="retrieving-enum-input-values"></a>
 #### Отримання значень enum

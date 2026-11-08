@@ -1,5 +1,5 @@
 ---
-git: b94b890362111c44de223e09502c610a9d9f20d8
+git: 11016f178d74b194d8aad3717a2e9cf5e08e45be
 ---
 # Laravel Pulse
 
@@ -68,6 +68,17 @@ php artisan migrate
 
 ```shell
 php artisan vendor:publish --tag=pulse-config
+```
+
+Якщо ваша конфігурація кешу визначає масив `serializable_classes`, вам потрібно додати ці класи до цього масиву, щоб підтримувати картки Pulse за замовчуванням:
+
+```php
+'serializable_classes' => [
+    // ...
+    Carbon\CarbonImmutable::class,
+    Illuminate\Support\Collection::class,
+    stdClass::class,
+],
 ```
 
 <a name="dashboard"></a>
