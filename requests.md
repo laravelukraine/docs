@@ -1,5 +1,5 @@
 ---
-git: f7a20c401a30827991659174d48d958f92517a9e
+git: 59da4453c4a39816246a7450c93aef1f645abf66
 ---
 # HTTP-запити
 
@@ -458,15 +458,17 @@ $delay = $request->interval('delay', Unit::Minute);
 Якщо значення присутнє, але має недійсний формат, буде викинуто `InvalidArgumentException`; тому рекомендуємо валідувати дані перед викликом методу `interval`.
 
 <a name="retrieving-uuid-input-values"></a>
-#### Отримання вхідних значень UUID
+#### Отримання вхідних значень UUID та ULID
 
-Вхідні значення, що містять UUID, можна отримати як екземпляри `Ramsey\Uuid\UuidInterface` за допомогою методу `uuid`. Якщо запит не містить вхідного значення із цим іменем, буде повернено `null`:
+Вхідні значення, що містять UUID або ULID, можна отримати за допомогою методів `uuid` та `ulid`, які повертають екземпляри `Ramsey\Uuid\UuidInterface` і `Symfony\Component\Uid\Ulid` відповідно. Якщо запит не містить вхідного значення із цим іменем, буде повернено `null`:
 
 ```php
 $orderId = $request->uuid('order_id');
+
+$eventId = $request->ulid('event_id');
 ```
 
-Якщо вхідне значення присутнє, але не є коректним UUID, буде викинуто `InvalidArgumentException`, тому рекомендовано валідувати вхідні дані перед викликом методу `uuid`.
+Якщо вхідне значення присутнє, але не є коректним UUID або ULID, буде викинуто `InvalidArgumentException`, тому рекомендовано валідувати вхідні дані перед викликом цих методів.
 
 <a name="retrieving-enum-input-values"></a>
 #### Отримання значень enum
