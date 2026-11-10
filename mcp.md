@@ -1,5 +1,5 @@
 ---
-git: b0d9ce8a6ab417d7ebef2423fb4682b7d9d8dfe1
+git: f3c3ee84420004d2a780947f66ff6d107d109fbc
 ---
 # Laravel MCP
 
@@ -1839,6 +1839,8 @@ public function handle(Request $request): Response
     // ...
 }
 ```
+
+Щоб дізнатися, як захистити MCP-клієнти й сервери, перегляньте [найкращі практики безпеки](https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices) MCP.
 
 <a name="client"></a>
 ## MCP-клієнт
