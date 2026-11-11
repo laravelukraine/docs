@@ -1,5 +1,5 @@
 ---
-git: b0d9ce8a6ab417d7ebef2423fb4682b7d9d8dfe1
+git: 4cfebfe8058e92367272dd5e3b16935daa8846d8
 ---
 # Laravel MCP
 
@@ -1840,6 +1840,8 @@ public function handle(Request $request): Response
 }
 ```
 
+Щоб дізнатися, як захистити MCP-клієнти й сервери, перегляньте [найкращі практики безпеки](https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices) MCP.
+
 <a name="client"></a>
 ## MCP-клієнт
 
@@ -2240,6 +2242,51 @@ $response->assertOk();
 ```php
 $response->assertSee('The current weather in New York City is 72°F and sunny.');
 ```
+
+Для інструментів, які повертають [структурований вміст](#structured-responses), ви можете перевіряти кількість елементів, значення за певними шляхами та структуру відповіді:
+
+```php
+$response
+    ->assertStructuredContentCount(2, 'data')
+    ->assertStructuredContentPath('data.0.location', 'New York City')
+    ->assertStructuredContentPaths([
+        'data.0.temperature' => 72,
+        'data.1.temperature' => 68,
+    ])
+    ->assertStructuredContentStructure([
+        'data' => [
+            '*' => ['location', 'temperature'],
+        ],
+    ]);
+```
+
+Шляхи підтримують «крапкову» нотацію. Метод `assertStructuredContentPath` також приймає замикання, щоб визначити, чи проходить значення задану перевірку на істинність:
+
+```php
+$response->assertStructuredContentPath('data.0.temperature', fn (int $temperature): bool => $temperature > 70);
+```
+
+Доступні такі методи тверджень для структурованого вмісту:
+
+| Метод | Опис |
+| --- | --- |
+| `assertExactStructuredContent($data)` | Стверджує, що структурований вміст точно збігається із заданим масивом. |
+| `assertSimilarStructuredContent($data)` | Стверджує, що структурований вміст збігається із заданим масивом, не зважаючи на порядок. |
+| `assertStructuredContentCount($count, $key = null)` | Стверджує кількість елементів, за потреби за заданим ключем. |
+| `assertStructuredContentPath($path, $expect)` | Стверджує значення за заданим шляхом. |
+| `assertStructuredContentPaths($paths)` | Стверджує кілька пар шлях / значення. |
+| `assertStructuredContentPathCanonicalizing($path, $expect)` | Стверджує значення за заданим шляхом, не зважаючи на порядок. |
+| `assertStructuredContentPathsCanonicalizing($paths)` | Стверджує кілька пар шлях / значення, не зважаючи на порядок. |
+| `assertStructuredContentFragment($data)` | Стверджує, що фрагмент зустрічається десь у структурованому вмісті. |
+| `assertStructuredContentFragments($data)` | Стверджує, що кожен із заданих фрагментів зустрічається у структурованому вмісті. |
+| `assertStructuredContentMissing($data)` | Стверджує, що фрагмент не зустрічається у структурованому вмісті. |
+| `assertStructuredContentMissingExact($data)` | Стверджує, що точний фрагмент не зустрічається у структурованому вмісті. |
+| `assertStructuredContentMissingPath($path)` | Стверджує, що шлях не існує. |
+| `assertStructuredContentMissingPaths($paths)` | Стверджує, що кілька шляхів не існують. |
+| `assertStructuredContentStructure($structure)` | Стверджує, що задані ключі існують, допускаючи додаткові ключі. |
+| `assertExactStructuredContentStructure($structure)` | Стверджує, що існують лише задані ключі. |
+| `assertStructuredContentIsArray($key = null)` | Стверджує, що структурований вміст, за потреби за заданим ключем, є JSON-масивом. |
+| `assertStructuredContentIsObject($key = null)` | Стверджує, що структурований вміст, за потреби за заданим ключем, є JSON-об'єктом. |
 
 Ви можете стверджувати, що відповідь містить помилку, методом `assertHasErrors`:
 
