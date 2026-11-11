@@ -1,5 +1,5 @@
 ---
-git: 226b0649c77e1d6fe739a20e1da654e94ccc718f
+git: 4cfebfe8058e92367272dd5e3b16935daa8846d8
 ---
 # Laravel Scout
 
@@ -331,6 +331,96 @@ public function toSearchableArray(): array
 
 > [!WARNING]
 > Перш ніж указувати, що стовпець має використовувати повнотекстові обмеження запиту, переконайтеся, що йому призначено [повнотекстовий індекс](/docs/{{version}}/migrations#available-index-types).
+
+<a name="postgresql-full-text-search"></a>
+#### Повнотекстовий пошук PostgreSQL
+
+Під час роботи з PostgreSQL Scout може шукати у збережених стовпцях `tsvector`, забезпечуючи індексований повнотекстовий пошук із вагами. Щоб почати, скористайтеся методом `searchable` у міграції - він додасть згенерований стовпець `search_vector` та його GIN-індекс:
+
+```php
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+Schema::table('posts', function (Blueprint $table) {
+    $table->searchable(['title' => 'A', 'body' => 'D']);
+});
+```
+
+Ваги стовпців змінюються від `A` (найвища) до `D` (найнижча). Ви також можете передати список назв стовпців без ваг, наприклад `['title', 'body']`, - тоді кожен стовпець отримає вагу `D` за замовчуванням. PostgreSQL автоматично оновлює згенерований стовпець, коли змінюються вихідні стовпці.
+
+Далі застосуйте атрибут `SearchUsingFullText` до методу `toSearchableArray` вашої моделі, встановивши опцію `vector` у `true`:
+
+```php
+use Laravel\Scout\Attributes\SearchUsingFullText;
+
+/**
+ * Get the indexable data array for the model.
+ *
+ * @return array<string, mixed>
+ */
+#[SearchUsingFullText(['search_vector'], ['vector' => true])]
+public function toSearchableArray(): array
+{
+    return ['search_vector' => null];
+}
+```
+
+Потрібна лише назва стовпця: Scout шукає безпосередньо у збереженому значенні. Повертайте тільки стовпець із вектором, щоб не додавати умови `LIKE` для інших атрибутів - через них PostgreSQL може не використати GIN-індекс.
+
+Метод `searchable` також приймає конфігурацію текстового пошуку, стовпці для триграмних індексів і власну назву стовпця з вектором:
+
+```php
+$table->searchable(
+    columns: ['title' => 'A', 'body' => 'D'],
+    language: 'english',
+    trigram: ['title'],
+    tsvector: 'search_vector',
+);
+```
+
+Щоб видалити згенерований стовпець та його індекси під час відкату міграції, скористайтеся методом `dropSearchable`, передавши ті самі триграмні стовпці й назву стовпця з вектором:
+
+```php
+Schema::table('posts', function (Blueprint $table) {
+    $table->dropSearchable(trigram: ['title'], tsvector: 'search_vector');
+});
+```
+
+#### Опції пошуку PostgreSQL
+
+Повнотекстовий пошук PostgreSQL можна налаштувати другим аргументом атрибута `SearchUsingFullText`:
+
+| Опція | Опис | За замовчуванням |
+| --- | --- | --- |
+| `vector` | Чи є повнотекстові стовпці збереженими стовпцями `tsvector`. | `false` |
+| `language` | Конфігурація текстового пошуку, наприклад `english` або `public.english_unaccent`. | `english` |
+| `mode` | Синтаксис запиту: `plain`, `phrase`, `websearch` або `raw`. | `plain` |
+| `rank` | Функція ранжування: `ts_rank` або `ts_rank_cd`. | `ts_rank` |
+| `trigram` | Назва стовпця або масив стовпців для пошуку з допуском помилок. | Немає |
+| `trigram_mode` | Чи використовується триграмний пошук як `fallback`, чи поєднується з повнотекстовими збігами через `blend`. | `fallback` |
+
+Режим `plain` шукає всі терміни запиту, а `phrase` шукає збіги термінів у заданому порядку. Режим `websearch` підтримує синтаксис вебпошуку, зокрема фрази в лапках та виключені терміни, а `raw` приймає синтаксис PostgreSQL `tsquery`. Під час пошуку в збереженому стовпці з вектором `language` має збігатися з конфігурацією текстового пошуку, за якою цей стовпець згенеровано.
+
+Щоб увімкнути допуск помилок, вкажіть триграмні стовпці і в міграції, і в опціях атрибута:
+
+```php
+#[SearchUsingFullText(['search_vector'], ['vector' => true, 'trigram' => ['title']])]
+public function toSearchableArray(): array
+{
+    return ['search_vector' => null];
+}
+```
+
+За замовчуванням Scout повторює пошук із триграмним зіставленням лише тоді, коли початковий пошук не повернув результатів. Встановіть `trigram_mode` у `blend`, щоб включати триграмні збіги разом із повнотекстовими та враховувати триграмну схожість під час ранжування за релевантністю.
+
+> [!WARNING]
+> Триграмний пошук потребує, щоб розширення `pg_trgm` було доступне в шляху пошуку (search path) підключення. Коли передано триграмні стовпці, метод міграції `searchable` створює це розширення, тож користувач бази даних, від імені якого запускаються міграції, повинен мати право його створювати.
+
+Ви можете перевизначити опції `mode`, `language`, `rank`, `trigram` і `trigram_mode` для окремого пошуку за допомогою методу `options`:
+
+```php
+$posts = Post::search('"laravel scout"')->options(['mode' => 'websearch'])->get();
+```
 
 <a name="collection-engine"></a>
 ### Рушій collection
