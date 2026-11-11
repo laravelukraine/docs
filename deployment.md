@@ -1,10 +1,11 @@
 ---
-git: 960eedf0911155ad16326ade49c0ea5d18eda0b8
+git: 4cfebfe8058e92367272dd5e3b16935daa8846d8
 ---
 # Розгортання
 
 - [Вступ](#introduction)
 - [Вимоги до сервера](#server-requirements)
+    - [Вимоги Laravel до PHP](#laravel-php-requirements)
 - [Конфігурація сервера](#server-configuration)
     - [Nginx](#nginx)
     - [FrankenPHP](#frankenphp)
@@ -27,11 +28,23 @@ git: 960eedf0911155ad16326ade49c0ea5d18eda0b8
 <a name="server-requirements"></a>
 ## Вимоги до сервера
 
-Фреймворк Laravel має кілька системних вимог. Переконайтеся, що ваш веб-сервер має таку мінімальну версію PHP і розширення:
+<a name="laravel-php-requirements"></a>
+### Вимоги Laravel до PHP
+
+Laravel 13 потребує PHP 8.3 або новішої версії. На вашому сервері має працювати підтримувана версія PHP і бути встановлені розширення PHP, яких потребує фреймворк Laravel.
+
+Для Laravel 13 мінімальна вимога до PHP така:
 
 <div class="content-list" markdown="1">
 
 - PHP >= 8.3
+
+</div>
+
+Також Laravel потребує таких розширень PHP:
+
+<div class="content-list" markdown="1">
+
 - Розширення PHP Ctype
 - Розширення PHP cURL
 - Розширення PHP DOM
@@ -47,6 +60,14 @@ git: 960eedf0911155ad16326ade49c0ea5d18eda0b8
 - Розширення PHP XML
 
 </div>
+
+Перевірити встановлену на сервері версію PHP можна командою:
+
+```shell
+php -v
+```
+
+Щоб запустити Laravel 13, версія PHP має бути 8.3 або новішою.
 
 <a name="server-configuration"></a>
 ## Конфігурація сервера
