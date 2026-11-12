@@ -1,5 +1,5 @@
 ---
-git: 6bb0a3be3c623f7964c8277625a07b6df7f1de2e
+git: 2e7f6c6d3c515800e80da27ac0d0a214858e8d71
 ---
 # Шаблони Blade
 
@@ -126,6 +126,18 @@ class AppServiceProvider extends ServiceProvider
 
 ```blade
 Hello, {!! $name !!}.
+```
+
+Також ви можете обгорнути рядок в екземпляр `Illuminate\Support\HtmlString`. Blade не екранує такі екземпляри, навіть якщо їх виведено за допомогою інструкції `{{ }}`:
+
+```php
+use Illuminate\Support\HtmlString;
+
+$name = new HtmlString('<strong>Taylor</strong>');
+```
+
+```blade
+Hello, {{ $name }}.
 ```
 
 > [!WARNING]

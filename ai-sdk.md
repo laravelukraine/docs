@@ -1,5 +1,5 @@
 ---
-git: f3c3ee84420004d2a780947f66ff6d107d109fbc
+git: 2e7f6c6d3c515800e80da27ac0d0a214858e8d71
 ---
 # Laravel AI SDK
 
@@ -2366,7 +2366,7 @@ $response->firstImage();    // The first generated image...
 Згенеровані зображення легко зберегти на диску за замовчуванням, налаштованому в конфігураційному файлі `config/filesystems.php` вашого застосунку:
 
 ```php
-$image = Image::of('A donut sitting on the kitchen counter');
+$image = Image::of('A donut sitting on the kitchen counter')->generate();
 
 $path = $image->store();
 $path = $image->storeAs('image.jpg');
@@ -2584,7 +2584,6 @@ Image::fromUpload($request->file('photo'));
 
 Audio::fromPath('/home/laravel/clip.mp3');
 Audio::fromStorage('clip.mp3');
-Audio::fromUpload($request->file('clip.mp3'));
 
 Video::fromPath('/home/laravel/video.mp4');
 Video::fromStorage('video.mp4');
@@ -3429,7 +3428,9 @@ Image::assertGenerated(function (ImagePrompt $prompt) {
     return $prompt->contains('sunset') && $prompt->isLandscape();
 });
 
-Image::assertNotGenerated('Missing prompt');
+Image::assertNotGenerated(
+    fn (ImagePrompt $prompt) => $prompt->contains('Missing prompt')
+);
 
 Image::assertNothingGenerated();
 ```
@@ -3441,7 +3442,9 @@ Image::assertQueued(
     fn (QueuedImagePrompt $prompt) => $prompt->contains('sunset')
 );
 
-Image::assertNotQueued('Missing prompt');
+Image::assertNotQueued(
+    fn (QueuedImagePrompt $prompt) => $prompt->contains('Missing prompt')
+);
 
 Image::assertNothingQueued();
 ```
@@ -3484,7 +3487,9 @@ Audio::assertGenerated(function (AudioPrompt $prompt) {
     return $prompt->contains('Hello') && $prompt->isFemale();
 });
 
-Audio::assertNotGenerated('Missing prompt');
+Audio::assertNotGenerated(
+    fn (AudioPrompt $prompt) => $prompt->contains('Missing prompt')
+);
 
 Audio::assertNothingGenerated();
 ```
@@ -3496,7 +3501,9 @@ Audio::assertQueued(
     fn (QueuedAudioPrompt $prompt) => $prompt->contains('Hello')
 );
 
-Audio::assertNotQueued('Missing prompt');
+Audio::assertNotQueued(
+    fn (QueuedAudioPrompt $prompt) => $prompt->contains('Missing prompt')
+);
 
 Audio::assertNothingQueued();
 ```
