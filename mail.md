@@ -1,5 +1,5 @@
 ---
-git: 091001642ea6991a0790d5e6f1677355aec0bda7
+git: da6fca26b4cb1d548f09cb6c4e531bfabbfd0a7e
 ---
 # Пошта
 
@@ -877,6 +877,9 @@ Thanks,<br>
 
 > [!NOTE]
 > Не робіть зайвих відступів, коли пишете Markdown-листи. За стандартами Markdown парсери рендерять вміст із відступами як блоки коду.
+
+> [!WARNING]
+> Оператори виводу Blade `{{ }}` екранують HTML, але не Markdown, тож синтаксис Markdown у даних, наданих користувачем, наприклад посилання й зображення, буде відрендерено в листі. Щоб екранувати синтаксис посилань і зображень, викличте `Illuminate\Mail\Markdown::withSecuredEncoding()` у методі `boot` вашого `AppServiceProvider`.
 
 <a name="button-component"></a>
 #### Компонент button
