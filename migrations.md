@@ -1,5 +1,5 @@
 ---
-git: 156fc7fde114548640e13c39aa79b991291c3f91
+git: da6fca26b4cb1d548f09cb6c4e531bfabbfd0a7e
 ---
 # База даних: міграції
 
@@ -1659,6 +1659,7 @@ Schema::withoutForeignKeyConstraints(function () {
 | `Illuminate\Database\Events\MigrationsEnded`     | Пакет міграцій завершився.                       |
 | `Illuminate\Database\Events\MigrationStarted`    | Окрему міграцію ось-ось буде виконано.           |
 | `Illuminate\Database\Events\MigrationEnded`      | Окрема міграція завершилася.                     |
+| `Illuminate\Database\Events\MigrationFailed`     | Окрема міграція завершилася помилкою.            |
 | `Illuminate\Database\Events\NoPendingMigrations` | Команда міграції не знайшла міграцій в очікуванні. |
 | `Illuminate\Database\Events\SchemaDumped`        | Дамп схеми бази даних завершився.                |
 | `Illuminate\Database\Events\SchemaLoaded`        | Наявний дамп схеми бази даних завантажено.       |

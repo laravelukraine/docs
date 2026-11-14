@@ -1,5 +1,5 @@
 ---
-git: 9c2295fc4b3c0f87d5fe3192a76075c85d9071d7
+git: da6fca26b4cb1d548f09cb6c4e531bfabbfd0a7e
 ---
 # Middleware
 
@@ -132,6 +132,26 @@ use App\Http\Middleware\EnsureTokenIsValid;
 ```
 
 Об'єкт `$middleware`, переданий замиканню `withMiddleware`, є екземпляром `Illuminate\Foundation\Configuration\Middleware` і відповідає за керування `middleware`, призначеними маршрутам вашого застосунку. Метод `append` додає `middleware` у кінець списку глобальних. Якщо ви хочете додати `middleware` на початок списку, скористайтеся методом `prepend`.
+
+Якщо `middleware` має виконуватися в певному місці глобального стека `middleware` за замовчуванням у Laravel, скористайтеся методами `insertBefore` та `insertAfter`. Обидва методи приймають `middleware`, що вже є в стеку, відносно якого ви хочете розташувати новий, а за ним - `middleware`, який потрібно вставити:
+
+```php
+use App\Http\Middleware\SanitizeInput;
+use App\Http\Middleware\StripCrossOriginReferer;
+use Illuminate\Foundation\Http\Middleware\TrimStrings;
+use Illuminate\Http\Middleware\TrustProxies;
+
+->withMiddleware(function (Middleware $middleware): void {
+    $middleware->insertAfter(TrustProxies::class, StripCrossOriginReferer::class);
+
+    $middleware->insertBefore(TrimStrings::class, SanitizeInput::class);
+})
+```
+
+Другим аргументом до будь-якого з цих методів можна також передати масив `middleware`.
+
+> [!WARNING]
+> Якщо `middleware`, відносно якого ви виконуєте позиціювання, не входить до глобального стека `middleware`, нічого не буде вставлено.
 
 <a name="manually-managing-laravels-default-global-middleware"></a>
 #### Ручне керування типовими глобальними middleware Laravel
@@ -302,6 +322,15 @@ $middleware->web(replace: [
 $middleware->web(remove: [
     StartSession::class,
 ]);
+```
+
+Якщо вам потрібно, щоб `middleware` виконувалося в певній позиції всередині групи, скористайтеся методами `insertBeforeInGroup` та `insertAfterInGroup`:
+
+```php
+use App\Http\Middleware\EnsureUserIsSubscribed;
+use Illuminate\Session\Middleware\StartSession;
+
+$middleware->insertAfterInGroup('web', StartSession::class, EnsureUserIsSubscribed::class);
 ```
 
 <a name="manually-managing-laravels-default-middleware-groups"></a>
