@@ -2690,7 +2690,7 @@ $result = Str::of('ü')->isAscii();
 <a name="method-fluent-str-is-blank"></a>
 #### `isBlank` {.collection-method}
 
-Метод `isBlank` визначає, чи є заданий рядок порожнім. Рядок вважається порожнім, якщо він не містить жодного символу або складається лише з пробільних символів:
+Метод `isBlank` визначає, чи є заданий рядок «порожнім» (Blank). Рядок вважається «порожнім», якщо він не містить жодного символу або складається лише з пробільних символів:
 
 ```php
 use Illuminate\Support\Str;
@@ -2711,7 +2711,7 @@ $result = Str::of('0')->isBlank();
 <a name="method-fluent-str-is-not-blank"></a>
 #### `isNotBlank` {.collection-method}
 
-Метод `isNotBlank` визначає, чи не є заданий рядок порожнім:
+Метод `isNotBlank` визначає, чи не є заданий рядок «порожнім»:
 
 ```php
 use Illuminate\Support\Str;
