@@ -1,5 +1,5 @@
 ---
-git: 59da4453c4a39816246a7450c93aef1f645abf66
+git: eabbe57992fe98875329b546b2a13c7bfb707cc4
 ---
 # HTTP-запити
 
@@ -206,7 +206,7 @@ if ($request->hasHeader('X-Header-Name')) {
 }
 ```
 
-Для зручності метод `bearerToken` дозволяє отримати bearer-токен із заголовка `Authorization`. Якщо такого заголовка немає, буде повернуто порожній рядок:
+Для зручності метод `bearerToken` дозволяє отримати bearer-токен із заголовка `Authorization`. Якщо токена немає, буде повернуто `null`:
 
 ```php
 $token = $request->bearerToken();
