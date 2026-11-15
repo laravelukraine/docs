@@ -1,5 +1,5 @@
 ---
-git: 226b0649c77e1d6fe739a20e1da654e94ccc718f
+git: b6c6fc10d6904feec3081664ce82c6c936bdf730
 ---
 # Події
 
@@ -798,6 +798,18 @@ public function retryUntil(): DateTimeInterface
 ```
 
 Якщо описано і `retryUntil`, і `tries`, Laravel віддає перевагу методу `retryUntil`.
+
+Також ви можете задати відносне вікно повторних спроб за допомогою атрибута `RetryFor` у класі слухача:
+
+```php
+use Illuminate\Queue\Attributes\RetryFor;
+
+#[RetryFor(minutes: 5)]
+class SendShipmentNotification implements ShouldQueue
+{
+    // ...
+}
+```
 
 <a name="specifying-queued-listener-backoff"></a>
 #### Задання відступу для слухача в черзі

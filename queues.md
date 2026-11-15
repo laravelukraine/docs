@@ -1,5 +1,5 @@
 ---
-git: 625d1dfb61018e6bc50cc7ab67fca89ae018dfa2
+git: b6c6fc10d6904feec3081664ce82c6c936bdf730
 ---
 # Черги
 
@@ -1640,8 +1640,37 @@ public function retryUntil(): DateTime
 
 Якщо описано і `retryUntil`, і `tries`, Laravel віддає перевагу методу `retryUntil`.
 
+Також можна задати відносний проміжок для повторних спроб за допомогою атрибута `RetryFor` у класі завдання:
+
+```php
+<?php
+
+namespace App\Jobs;
+
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Queue\Attributes\RetryFor;
+
+#[RetryFor(hours: 1)]
+class ProcessPodcast implements ShouldQueue
+{
+    use Queueable;
+}
+```
+
+Перший аргумент задає тривалість у секундах, або ж можна передати іменовані аргументи `minutes` і `hours`:
+
+```php
+#[RetryFor(90)]
+#[RetryFor(minutes: 10)]
+#[RetryFor(hours: 4)]
+#[RetryFor(hours: 1, minutes: 30)]
+```
+
+Якщо в класі завдання описано метод чи властивість `retryUntil`, вони мають пріоритет над атрибутом `RetryFor`.
+
 > [!NOTE]
-> Ви можете описати атрибут `Tries` чи метод `retryUntil` і у своїх [слухачах подій у черзі](/docs/{{version}}/events#queued-event-listeners) та [сповіщеннях у черзі](/docs/{{version}}/notifications#queueing-notifications).
+> Ви можете описати атрибут `Tries` чи `RetryFor` або метод `retryUntil` і у своїх [слухачах подій у черзі](/docs/{{version}}/events#queued-event-listeners) та [сповіщеннях у черзі](/docs/{{version}}/notifications#queueing-notifications).
 
 <a name="max-exceptions"></a>
 #### Максимум винятків

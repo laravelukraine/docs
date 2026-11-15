@@ -1,5 +1,5 @@
 ---
-git: 463df6b54ed4bf437e59104b56561e5c4f64fff6
+git: b6c6fc10d6904feec3081664ce82c6c936bdf730
 ---
 # Посібник з внеску
 
@@ -67,7 +67,6 @@ git: 463df6b54ed4bf437e59104b56561e5c4f64fff6
 - [Laracasts Forums](https://laracasts.com/discuss)
 - [Laravel.io Forums](https://laravel.io/forum)
 - [StackOverflow](https://stackoverflow.com/questions/tagged/laravel)
-- [Discord](https://discord.gg/laravel)
 - [Larachat](https://larachat.co)
 - [IRC](https://web.libera.chat/?nick=artisan&channels=#laravel)
 
