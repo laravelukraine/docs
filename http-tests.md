@@ -1,5 +1,5 @@
 ---
-git: 572314820aa4da505c8b5472a04908c3a9c14ec0
+git: b6c6fc10d6904feec3081664ce82c6c936bdf730
 ---
 # Тестування HTTP
 
@@ -934,7 +934,7 @@ class ExampleTest extends TestCase
 }
 ```
 
-Клас `TestView` надає такі методи тверджень: `assertSee`, `assertSeeInOrder`, `assertSeeText`, `assertSeeTextInOrder`, `assertDontSee` та `assertDontSeeText`.
+Клас `TestView` надає такі методи тверджень: `assertSee`, `assertSeeHtml`, `assertSeeHtmlInOrder`, `assertSeeInOrder`, `assertSeeText`, `assertSeeTextInOrder`, `assertDontSee`, `assertDontSeeHtml` та `assertDontSeeText`.
 
 За потреби ви можете отримати сирий відрендерений вміст представлення, привівши екземпляр `TestView` до рядка:
 
@@ -1055,6 +1055,7 @@ class BasicTest extends TestCase
 [assertCookieMissing](#assert-cookie-missing)
 [assertCreated](#assert-created)
 [assertDontSee](#assert-dont-see)
+[assertDontSeeHtml](#assert-dont-see-html)
 [assertDontSeeText](#assert-dont-see-text)
 [assertDownload](#assert-download)
 [assertExactJson](#assert-exact-json)
@@ -1102,6 +1103,8 @@ class BasicTest extends TestCase
 [assertRedirectToSignedRoute](#assert-redirect-to-signed-route)
 [assertRequestTimeout](#assert-request-timeout)
 [assertSee](#assert-see)
+[assertSeeHtml](#assert-see-html)
+[assertSeeHtmlInOrder](#assert-see-html-in-order)
 [assertSeeInOrder](#assert-see-in-order)
 [assertSeeText](#assert-see-text)
 [assertSeeTextInOrder](#assert-see-text-in-order)
@@ -1219,6 +1222,15 @@ $response->assertCreated();
 
 ```php
 $response->assertDontSee($value, $escape = true);
+```
+
+<a name="assert-dont-see-html"></a>
+#### assertDontSeeHtml
+
+Перевіряє, що заданого HTML-рядка немає у відповіді, поверненій застосунком. Це твердження є аліасом `assertDontSee` з аргументом екранування, встановленим у `false`:
+
+```php
+$response->assertDontSeeHtml($value);
 ```
 
 <a name="assert-dont-see-text"></a>
@@ -1771,6 +1783,24 @@ $response->assertRequestTimeout();
 
 ```php
 $response->assertSee($value, $escape = true);
+```
+
+<a name="assert-see-html"></a>
+#### assertSeeHtml
+
+Перевіряє, що заданий HTML-рядок або масив HTML-рядків міститься у відповіді. Це твердження є аліасом `assertSee` з аргументом екранування, встановленим у `false`:
+
+```php
+$response->assertSeeHtml($value);
+```
+
+<a name="assert-see-html-in-order"></a>
+#### assertSeeHtmlInOrder
+
+Перевіряє, що задані HTML-рядки містяться у відповіді в заданому порядку. Це твердження є аліасом `assertSeeInOrder` з аргументом екранування, встановленим у `false`:
+
+```php
+$response->assertSeeHtmlInOrder(array $values);
 ```
 
 <a name="assert-see-in-order"></a>
