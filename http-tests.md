@@ -1227,7 +1227,7 @@ $response->assertDontSee($value, $escape = true);
 <a name="assert-dont-see-html"></a>
 #### assertDontSeeHtml
 
-Переконайтеся, що вказаний HTML-рядок не міститься у відповіді, яку повернув застосунок. Ця перевірка є аліасом `assertDontSee` з аргументом екранування (escape), встановленим у `false`:
+Перевіряє, що заданого HTML-рядка немає у відповіді, поверненій застосунком. Це твердження є аліасом `assertDontSee` з аргументом екранування, встановленим у `false`:
 
 ```php
 $response->assertDontSeeHtml($value);
@@ -1788,7 +1788,7 @@ $response->assertSee($value, $escape = true);
 <a name="assert-see-html"></a>
 #### assertSeeHtml
 
-Перевірте, що вказаний HTML-рядок або масив HTML-рядків міститься у відповіді. Ця перевірка є псевдонімом `assertSee` з аргументом екранування, встановленим у `false`:
+Перевіряє, що заданий HTML-рядок або масив HTML-рядків міститься у відповіді. Це твердження є аліасом `assertSee` з аргументом екранування, встановленим у `false`:
 
 ```php
 $response->assertSeeHtml($value);
@@ -1797,7 +1797,7 @@ $response->assertSeeHtml($value);
 <a name="assert-see-html-in-order"></a>
 #### assertSeeHtmlInOrder
 
-Перевірте, що вказані HTML-рядки містяться у відповіді в заданому порядку. Ця перевірка є псевдонімом `assertSeeInOrder` з аргументом екранування, встановленим у `false`:
+Перевіряє, що задані HTML-рядки містяться у відповіді в заданому порядку. Це твердження є аліасом `assertSeeInOrder` з аргументом екранування, встановленим у `false`:
 
 ```php
 $response->assertSeeHtmlInOrder(array $values);

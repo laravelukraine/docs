@@ -146,6 +146,8 @@
 | feature | можливість / функція |
 | testing | тестування |
 | strict equality / strict comparison | строга рівність / строге порівняння (не «сувора») |
+| alias (method, middleware) | аліас |
+| retry window | вікно повторних спроб |
 
 ### Пастки
 
