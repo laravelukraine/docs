@@ -1,5 +1,5 @@
 ---
-git: 4cfebfe8058e92367272dd5e3b16935daa8846d8
+git: 623f59945b4db18566fcb6a10bdc1a7b17242daf
 ---
 # Laravel Scout
 
@@ -477,7 +477,7 @@ class Post extends Model
 <a name="configuring-the-model-id"></a>
 #### Налаштування ID моделі
 
-За замовчуванням Scout використовує первинний ключ моделі як її унікальний ID / ключ, що зберігається в пошуковому індексі. Якщо вам треба змінити цю поведінку зі стороннім рушієм, перевизначте на моделі методи `getScoutKey` та `getScoutKeyName`:
+За замовчуванням Scout використовує первинний ключ моделі як її унікальний ID / ключ, що зберігається в пошуковому індексі. Якщо вам треба змінити цю поведінку зі стороннім рушієм, перевизначте на моделі методи `getScoutKey`, `getScoutKeyName` та `getScoutKeyType`. Метод `getScoutKeyType` підказує Scout, як шукати моделі, що відповідають результатам пошуку, тому він має повертати `string`, коли ваш власний ключ не є цілим числом:
 
 ```php
 <?php
@@ -506,11 +506,19 @@ class User extends Model
     {
         return 'email';
     }
+
+    /**
+     * Get the key type used to query the model.
+     */
+    public function getScoutKeyType(): string
+    {
+        return 'string';
+    }
 }
 ```
 
 > [!NOTE]
-> Методи `getScoutKey` та `getScoutKeyName` не мають жодного впливу під час використання рушія database, який завжди використовує первинний ключ моделі.
+> Методи `getScoutKey`, `getScoutKeyName` та `getScoutKeyType` не мають жодного впливу під час використання рушія database, який завжди використовує первинний ключ моделі.
 
 <a name="algolia-configuration"></a>
 ### Algolia
