@@ -1,5 +1,5 @@
 ---
-git: eef1c3e0d0dfc9bc36882fb2819344f8aa879339
+git: 623f59945b4db18566fcb6a10bdc1a7b17242daf
 ---
 # База даних: початок роботи
 
@@ -133,6 +133,18 @@ driver://username:password@host:port/database?options
 #### Опція `sticky`
 
 `sticky` - це *необов'язкова* опція, яка дозволяє одразу читати записи, щойно записані в базу в межах поточного циклу запиту. Якщо `sticky` увімкнено і протягом поточного циклу запиту вже була операція «write», усі подальші операції «read» підуть через підключення «write». Так дані, записані під час запиту, можна одразу ж прочитати назад у межах цього самого запиту. Чи потрібна така поведінка вашому застосунку - вирішувати вам.
+
+Якщо вам потрібно виконати операції запису так, щоб це не вмикало `sticky` для подальших операцій читання (наприклад, під час оновлення прогресу завдання чи запису міток часу для аудиту), виконайте їх усередині методу `withoutAffectingStickiness`:
+
+```php
+use Illuminate\Support\Facades\DB;
+
+DB::withoutAffectingStickiness(function () {
+    DB::table('jobs')->where('id', $jobId)->update(['started_at' => now()]);
+});
+
+// Subsequent reads will continue using the read connection...
+```
 
 <a name="preventing-stale-database-reads"></a>
 #### Запобігання читанню застарілих даних із бази
