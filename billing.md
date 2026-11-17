@@ -1,5 +1,5 @@
 ---
-git: 6bb0a3be3c623f7964c8277625a07b6df7f1de2e
+git: 3690db0072b78d6383bc8f75f62b623d7dc63db0
 ---
 # Laravel Cashier (Stripe)
 
@@ -1615,7 +1615,7 @@ $user->meters();
 <a name="subscription-taxes"></a>
 ### Податки на підписки
 
-> [!WARNING]
+> [!NOTE]
 > Замість обчислювати податкові ставки вручну, ви можете [автоматично обчислювати податки за допомогою Stripe Tax](#tax-configuration)
 
 Щоб указати податкові ставки, які користувач сплачує за підпискою, реалізуйте на своїй моделі з білінгом метод `taxRates` і поверніть масив з ID податкових ставок Stripe. Ви можете визначити ці податкові ставки [у своїй панелі Stripe](https://dashboard.stripe.com/test/tax-rates):
@@ -2448,7 +2448,7 @@ $checkout = $user->collectTaxIds()->checkout('price_tshirt');
 
 Коли цей метод викликано, клієнту стане доступним новий чекбокс, який дозволяє вказати, що він купує як компанія. Якщо так, він матиме змогу надати свій податковий номер.
 
-> [!WARNING]
+> [!NOTE]
 > Якщо ви вже налаштували [автоматичний збір податків](#tax-configuration) у сервіс-провайдері свого застосунку, ця можливість буде увімкнена автоматично, і викликати метод `collectTaxIds` не потрібно.
 
 <a name="guest-checkouts"></a>
@@ -2576,7 +2576,7 @@ $subscription->withPaymentConfirmationOptions([
 
 Якщо ваш бізнес чи хтось із ваших клієнтів базується в Європі, вам потрібно дотримуватися правил Strong Customer Authentication (SCA) від ЄС. Ці правила запровадив Європейський Союз у вересні 2019 року, щоб запобігти платіжному шахрайству. На щастя, Stripe і Cashier готові до створення застосунків, сумісних із SCA.
 
-> [!WARNING]
+> [!NOTE]
 > Перш ніж почати, перегляньте [посібник Stripe щодо PSD2 і SCA](https://stripe.com/guides/strong-customer-authentication), а також їхню [документацію щодо нових API SCA](https://stripe.com/docs/strong-customer-authentication).
 
 <a name="payments-requiring-additional-confirmation"></a>

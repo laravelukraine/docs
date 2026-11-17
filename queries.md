@@ -1,5 +1,5 @@
 ---
-git: 10add0d2dade04cacfab436dcc3a8df7ca004e74
+git: 3690db0072b78d6383bc8f75f62b623d7dc63db0
 ---
 # База даних: конструктор запитів
 
@@ -116,6 +116,12 @@ $user = DB::table('users')->where('name', 'John')->firstOrFail();
 
 ```php
 $email = DB::table('users')->where('name', 'John')->value('email');
+```
+
+Метод `soleValue` повертає значення стовпця, лише якщо запиту відповідає рівно один рядок. Якщо відповідного рядка не знайдено, буде викинуто `Illuminate\Database\RecordsNotFoundException`. Якщо відповідних рядків більше одного, буде викинуто `Illuminate\Database\MultipleRecordsFoundException`:
+
+```php
+$email = DB::table('users')->where('name', 'John')->soleValue('email');
 ```
 
 Щоб отримати один рядок за значенням стовпця `id`, скористайтеся методом `find`:
@@ -842,7 +848,7 @@ select * from comments where user_id in (
 )
 ```
 
-> [!WARNING]
+> [!NOTE]
 > Якщо ви додаєте до запиту великий масив цілочисельних прив'язок, методи `whereIntegerInRaw` або `whereIntegerNotInRaw` допоможуть значно зменшити споживання пам'яті.
 
 **whereBetween / orWhereBetween**

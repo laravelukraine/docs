@@ -1,5 +1,5 @@
 ---
-git: b0d9ce8a6ab417d7ebef2423fb4682b7d9d8dfe1
+git: 3690db0072b78d6383bc8f75f62b623d7dc63db0
 ---
 # Валідація
 
@@ -213,7 +213,7 @@ $request->validate([
 
 Крім того, ви можете скопіювати цей файл до каталогу іншої мови, щоб перекласти повідомлення мовою вашого застосунку. Докладніше про локалізацію в Laravel читайте в повній [документації з локалізації](/docs/{{version}}/localization).
 
-> [!WARNING]
+> [!NOTE]
 > За замовчуванням каркас застосунку Laravel не містить каталогу `lang`. Якщо ви хочете налаштувати мовні файли Laravel, опублікуйте їх командою Artisan `lang:publish`.
 
 <a name="quick-xhr-requests-and-validation"></a>
@@ -959,7 +959,7 @@ if ($errors->has('email')) {
 
 Крім того, ви можете скопіювати цей файл до каталогу іншої мови, щоб перекласти повідомлення мовою вашого застосунку. Докладніше про локалізацію в Laravel читайте в повній [документації з локалізації](/docs/{{version}}/localization).
 
-> [!WARNING]
+> [!NOTE]
 > За замовчуванням каркас застосунку Laravel не містить каталогу `lang`. Якщо ви хочете налаштувати мовні файли Laravel, опублікуйте їх командою Artisan `lang:publish`.
 
 <a name="custom-messages-for-specific-attributes"></a>
@@ -987,7 +987,7 @@ if ($errors->has('email')) {
 ],
 ```
 
-> [!WARNING]
+> [!NOTE]
 > За замовчуванням каркас застосунку Laravel не містить каталогу `lang`. Якщо ви хочете налаштувати мовні файли Laravel, опублікуйте їх командою Artisan `lang:publish`.
 
 <a name="specifying-values-in-language-files"></a>
@@ -1017,7 +1017,7 @@ The credit card number field is required when payment type is cc.
 ],
 ```
 
-> [!WARNING]
+> [!NOTE]
 > За замовчуванням каркас застосунку Laravel не містить каталогу `lang`. Якщо ви хочете налаштувати мовні файли Laravel, опублікуйте їх командою Artisan `lang:publish`.
 
 Після визначення цього значення правило валідації створить таке повідомлення про помилку:

@@ -1,5 +1,5 @@
 ---
-git: 625d1dfb61018e6bc50cc7ab67fca89ae018dfa2
+git: 3690db0072b78d6383bc8f75f62b623d7dc63db0
 ---
 # Redis
 
@@ -430,7 +430,7 @@ $value = Redis::eval(<<<'LUA'
 LUA, 2, 'first-counter', 'second-counter');
 ```
 
-> [!WARNING]
+> [!NOTE]
 > Детальніше про скриптинг у Redis читайте в [документації Redis](https://redis.io/commands/eval).
 
 <a name="pipelining-commands"></a>

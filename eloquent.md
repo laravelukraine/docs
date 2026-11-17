@@ -1,5 +1,5 @@
 ---
-git: 10add0d2dade04cacfab436dcc3a8df7ca004e74
+git: 3690db0072b78d6383bc8f75f62b623d7dc63db0
 ---
 # Eloquent: початок роботи
 
@@ -723,6 +723,27 @@ $flight = Flight::where('legs', '>', 3)->firstOr(function () {
 });
 ```
 
+<a name="retrieving-single-column-values"></a>
+#### Отримання значень одного стовпця
+
+Якщо вам не потрібна вся модель, ви можете отримати значення одного стовпця з першої моделі, що відповідає запиту, за допомогою методу `value`. Якщо відповідної моделі не знайдено, повертається `null`:
+
+```php
+$name = Flight::where('active', 1)->value('name');
+```
+
+Метод `valueOrFail` працює так само, як `value`; проте якщо результату не знайдено, буде викинуто `Illuminate\Database\Eloquent\ModelNotFoundException`:
+
+```php
+$name = Flight::where('active', 1)->valueOrFail('name');
+```
+
+Метод `soleValue` отримує значення стовпця, лише якщо запиту відповідає рівно одна модель. Якщо результату не знайдено, буде викинуто `Illuminate\Database\Eloquent\ModelNotFoundException`. Якщо запиту відповідає більше однієї моделі, буде викинуто `Illuminate\Database\MultipleRecordsFoundException`:
+
+```php
+$name = Flight::where('number', 'FR 900')->soleValue('name');
+```
+
 <a name="not-found-exceptions"></a>
 #### Винятки «не знайдено»
 
@@ -1161,7 +1182,7 @@ Flight::destroy(collect([1, 2, 3]));
 Flight::forceDestroy(1);
 ```
 
-> [!WARNING]
+> [!NOTE]
 > Метод `destroy` завантажує кожну модель окремо й викликає метод `delete`, щоб події `deleting` та `deleted` коректно надсилалися для кожної моделі.
 
 <a name="deleting-models-using-queries"></a>

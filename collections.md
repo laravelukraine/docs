@@ -1,5 +1,5 @@
 ---
-git: 2e7f6c6d3c515800e80da27ac0d0a214858e8d71
+git: 3690db0072b78d6383bc8f75f62b623d7dc63db0
 ---
 # Колекції
 
@@ -1798,7 +1798,7 @@ $multiplied->all();
 // [2, 4, 6, 8, 10]
 ```
 
-> [!WARNING]
+> [!NOTE]
 > Як і більшість інших методів колекції, `map` повертає новий екземпляр колекції: він не змінює ту колекцію, на якій його викликано. Якщо ви хочете перетворити оригінальну колекцію, скористайтеся методом [transform](#method-transform).
 
 <a name="method-mapinto"></a>
@@ -4129,7 +4129,7 @@ return $users->sum->votes;
 <a name="lazy-collection-introduction"></a>
 ### Вступ
 
-> [!WARNING]
+> [!NOTE]
 > Перш ніж вивчати ліниві колекції Laravel, приділіть трохи часу знайомству з [генераторами PHP](https://www.php.net/manual/en/language.generators.overview.php).
 
 Щоб доповнити й без того потужний клас `Collection`, клас `LazyCollection` використовує [генератори](https://www.php.net/manual/en/language.generators.overview.php) PHP, які дозволяють працювати з дуже великими наборами даних, тримаючи споживання пам'яті низьким.

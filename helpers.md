@@ -1,5 +1,5 @@
 ---
-git: 156fc7fde114548640e13c39aa79b991291c3f91
+git: 3690db0072b78d6383bc8f75f62b623d7dc63db0
 ---
 # Хелпери
 
@@ -3751,6 +3751,7 @@ $uri = Uri::of('https://example.com')
 Клас `Uri` також дозволяє легко оглядати різні складові URI:
 
 ```php
+$origin = $uri->origin();
 $scheme = $uri->scheme();
 $authority = $uri->authority();
 $host = $uri->host();

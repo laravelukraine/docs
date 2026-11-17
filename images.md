@@ -1,5 +1,5 @@
 ---
-git: 97d2b7a984f39287500a1808ad98761e10faa275
+git: 3690db0072b78d6383bc8f75f62b623d7dc63db0
 ---
 # Обробка зображень
 
@@ -37,7 +37,7 @@ $path = Image::fromStorage('avatars/photo.jpg', 'public')
     ->storePublicly('avatars', 'public');
 ```
 
-> [!WARNING]
+> [!NOTE]
 > Обробка зображень може бути вимогливою до процесора й пам'яті. Розгляньте можливість виконувати великі обсяги обробки зображень у [завданні в черзі](/docs/{{version}}/queues), а не під час HTTP-запиту, який приймає завантаження.
 
 <a name="installation"></a>
