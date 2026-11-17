@@ -1,5 +1,5 @@
 ---
-git: b94b890362111c44de223e09502c610a9d9f20d8
+git: 3690db0072b78d6383bc8f75f62b623d7dc63db0
 ---
 # Laravel Horizon
 
@@ -623,7 +623,7 @@ stopwaitsecs=3600
 
 Описуючи конфігурацію Supervisor, переконайтеся, що значення `stopwaitsecs` більше за кількість секунд, які займає ваше найдовше завдання. Інакше Supervisor може вбити завдання до того, як його буде оброблено.
 
-> [!WARNING]
+> [!NOTE]
 > Хоча наведені вище приклади підходять для серверів на Ubuntu, розташування й розширення конфігураційних файлів Supervisor можуть відрізнятися в інших серверних операційних системах. Докладніше читайте в документації до вашого сервера.
 
 <a name="starting-supervisor"></a>
@@ -731,7 +731,7 @@ class SendRenderNotifications implements ShouldQueue
 <a name="notifications"></a>
 ## Сповіщення
 
-> [!WARNING]
+> [!NOTE]
 > Налаштовуючи Horizon на надсилання сповіщень у Slack чи SMS, перегляньте [передумови для відповідного каналу сповіщень](/docs/{{version}}/notifications).
 
 Якщо ви хочете отримувати сповіщення, коли в одній із ваших черг довгий час очікування, скористайтеся методами `Horizon::routeMailNotificationsTo`, `Horizon::routeSlackNotificationsTo` та `Horizon::routeSmsNotificationsTo`. Викликати ці методи можна в методі `boot` вашого `App\Providers\HorizonServiceProvider`:

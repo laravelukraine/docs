@@ -1,5 +1,5 @@
 ---
-git: 36fa00db57f97d0a5a89c40be7f50ff8b1133327
+git: 3690db0072b78d6383bc8f75f62b623d7dc63db0
 ---
 # Laravel Octane
 
@@ -529,7 +529,7 @@ $service->method($request->input('name'));
 
 Глобальний хелпер `request` завжди повертатиме запит, який застосунок обробляє зараз, тому його безпечно використовувати у вашому застосунку.
 
-> [!WARNING]
+> [!NOTE]
 > Вказувати тип `Illuminate\Http\Request` у методах контролерів і замиканнях маршрутів цілком припустимо.
 
 <a name="configuration-repository-injection"></a>

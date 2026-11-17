@@ -1,5 +1,5 @@
 ---
-git: eabbe57992fe98875329b546b2a13c7bfb707cc4
+git: 3690db0072b78d6383bc8f75f62b623d7dc63db0
 ---
 # HTTP-запити
 
@@ -409,6 +409,23 @@ $perPage = $request->integer('per_page');
 ```php
 $archived = $request->boolean('archived');
 ```
+
+<a name="retrieving-input-values-strictly"></a>
+#### Строге отримання вхідних значень
+
+Методи `string`, `integer`, `float` і `boolean` приводять будь-які вхідні дані до свого типу. Наприклад, `?count=abc` метод `integer` приведе до `0`, а `?name[]=taylor` змусить метод `string` викликати помилку «Array to string conversion». Якщо ви волієте отримувати значення за замовчуванням, коли вхідні дані мають неочікуваний тип, передайте цим методам `strict: true`:
+
+```php
+$count = $request->integer('count', 5, strict: true);
+
+$price = $request->float('price', strict: true);
+
+$name = $request->string('name', 'Guest', strict: true);
+
+$archived = $request->boolean('archived', strict: true);
+```
+
+У строгому режимі методи `integer` і `float` повертають значення за замовчуванням, якщо вхідні дані не є коректним цілим числом чи числом, метод `string` повертає значення за замовчуванням, якщо вхідні дані не є рядком або числом, а метод `boolean` повертає значення за замовчуванням, якщо вхідні дані не дорівнюють одному з `1`, `true`, `on`, `yes`, `0`, `false`, `off` чи `no`.
 
 <a name="retrieving-array-input-values"></a>
 #### Отримання масивів

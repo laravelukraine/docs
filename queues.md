@@ -1,5 +1,5 @@
 ---
-git: b6c6fc10d6904feec3081664ce82c6c936bdf730
+git: 3690db0072b78d6383bc8f75f62b623d7dc63db0
 ---
 # Черги
 
@@ -2016,6 +2016,30 @@ public function handle(): void
 $this->release(10);
 
 $this->release(now()->plus(seconds: 10));
+```
+
+Якщо завдання визначає [backoff](#dealing-with-failed-jobs), ви можете скористатися методом `releaseUsingBackoff`, щоб звільнити завдання із затримкою, яку backoff задає для поточної спроби. Коли backoff є масивом, а завдання виконувалося більше разів, ніж у масиві значень, використовується останнє значення. Якщо завдання не визначає backoff, його звільнено для негайної обробки:
+
+```php
+use Illuminate\Queue\Attributes\Backoff;
+
+#[Backoff([10, 30, 60])]
+class CheckPaymentStatus implements ShouldQueue
+{
+    /**
+     * Execute the job.
+     */
+    public function handle(): void
+    {
+        if ($this->payment->isPending()) {
+            $this->releaseUsingBackoff();
+
+            return;
+        }
+
+        // ...
+    }
+}
 ```
 
 <a name="manually-failing-a-job"></a>

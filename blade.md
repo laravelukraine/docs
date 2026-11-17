@@ -1,5 +1,5 @@
 ---
-git: 2e7f6c6d3c515800e80da27ac0d0a214858e8d71
+git: 3690db0072b78d6383bc8f75f62b623d7dc63db0
 ---
 # Шаблони Blade
 
@@ -1010,44 +1010,6 @@ public function isSelected(string $option): bool
 </option>
 ```
 
-<a name="using-attributes-slots-within-component-class"></a>
-#### Доступ до атрибутів і слотів усередині класів компонентів
-
-Компоненти Blade також дозволяють звертатися до імені компонента, його атрибутів і слота всередині методу `render` класу. Однак щоб отримати доступ до цих даних, метод `render` має повертати замикання:
-
-```php
-use Closure;
-
-/**
- * Get the view / contents that represent the component.
- */
-public function render(): Closure
-{
-    return function () {
-        return '<div {{ $attributes }}>Components content</div>';
-    };
-}
-```
-
-Замикання, повернене методом `render`, може також отримувати масив `$data` як єдиний аргумент. Цей масив міститиме кілька елементів з інформацією про компонент:
-
-```php
-return function (array $data) {
-    // $data['componentName'];
-    // $data['attributes'];
-    // $data['slot'];
-
-    return '<div {{ $attributes }}>Components content</div>';
-}
-```
-
-> [!WARNING]
-> Елементи масиву `$data` ніколи не слід вставляти безпосередньо в рядок Blade, який повертає ваш метод `render`, адже це може дозволити віддалене виконання коду через зловмисний вміст атрибутів.
-
-`componentName` дорівнює імені, використаному в HTML-тегу після префікса `x-`. Тож для `<x-alert />` `componentName` буде `alert`. Елемент `attributes` міститиме всі атрибути, присутні в HTML-тегу. Елемент `slot` є екземпляром `Illuminate\View\ComponentSlot` із вмістом слота компонента.
-
-Замикання має повертати рядок. Якщо повернений рядок відповідає наявному представленню, буде відрендерено це представлення; інакше рядок буде обчислено як вбудоване представлення Blade.
-
 <a name="additional-dependencies"></a>
 #### Додаткові залежності
 
@@ -1410,21 +1372,26 @@ class Alert extends Component
 <a name="inline-component-views"></a>
 ### Вбудовані представлення компонентів
 
-Для дуже маленьких компонентів керувати і класом компонента, і його шаблоном може здаватися марудним. Тому ви можете повертати розмітку компонента просто з методу `render`:
+Для дуже маленьких компонентів керувати і класом компонента, і його шаблоном може здаватися марудним. Тому ви можете повертати розмітку компонента просто з методу `render`, обгорнувши її в екземпляр `Illuminate\View\RawTemplate`:
 
 ```php
+use Illuminate\View\RawTemplate;
+
 /**
  * Get the view / contents that represent the component.
  */
-public function render(): string
+public function render(): RawTemplate
 {
-    return <<<'blade'
+    return new RawTemplate(<<<'blade'
         <div class="alert alert-danger">
             {{ $slot }}
         </div>
-    blade;
+    blade);
 }
 ```
+
+> [!WARNING]
+> `RawTemplate` компілюється і виконується як Blade, тому впроваджений вміст може уможливити віддалене виконання коду. Ніколи не будуйте шаблон із недовірених даних. Натомість передайте дані до компонента і виведіть їх за допомогою екранованого синтаксису Blade `{{ }}`.
 
 <a name="generating-inline-view-components"></a>
 #### Генерація компонентів із вбудованим представленням
@@ -1434,6 +1401,41 @@ public function render(): string
 ```shell
 php artisan make:component Alert --inline
 ```
+
+<a name="using-attributes-slots-within-component-class"></a>
+#### Доступ до атрибутів і слотів у вбудованих представленнях
+
+Якщо вам потрібні ім'я компонента, його атрибути або слот усередині методу `render` класу, ви можете натомість повернути замикання. Замикання отримує масив `$data` як єдиний аргумент:
+
+```php
+use Closure;
+use Illuminate\View\RawTemplate;
+
+/**
+ * Get the view / contents that represent the component.
+ */
+public function render(): Closure
+{
+    return function (array $data) {
+        // $data['componentName'];
+        // $data['attributes'];
+        // $data['slot'];
+
+        if ($data['slot']->isEmpty()) {
+            return new RawTemplate('<div {{ $attributes }}>No content provided.</div>');
+        }
+
+        return new RawTemplate('<div {{ $attributes }}>{{ $slot }}</div>');
+    };
+}
+```
+
+`componentName` дорівнює імені, використаному в HTML-тегу після префікса `x-`. Тож для `<x-alert />` `componentName` буде `alert`. Елемент `attributes` міститиме всі атрибути, присутні в HTML-тегу. Елемент `slot` є екземпляром `Illuminate\View\ComponentSlot` із вмістом слота компонента.
+
+Замикання має повертати або назву представлення, або екземпляр `RawTemplate`.
+
+> [!WARNING]
+> Елементи масиву `$data` слід вважати недовіреними, адже вони містять атрибути та вміст слота, передані компоненту. Ніколи не вставляйте їх у шаблон, який повертає ваше замикання, адже це може дозволити віддалене виконання коду.
 
 <a name="dynamic-components"></a>
 ### Динамічні компоненти
@@ -1449,7 +1451,7 @@ php artisan make:component Alert --inline
 <a name="manually-registering-components"></a>
 ### Ручна реєстрація компонентів
 
-> [!WARNING]
+> [!NOTE]
 > Наведена нижче документація про ручну реєстрацію компонентів стосується насамперед тих, хто пише пакети Laravel із компонентами представлень. Якщо ви не пишете пакет, ця частина документації може бути для вас неактуальною.
 
 Пишучи компоненти для власного застосунку, ви не потребуєте додаткової реєстрації: вони автоматично виявляються в каталогах `app/View/Components` і `resources/views/components`.
@@ -1955,6 +1957,9 @@ return Blade::render(
     deleteCachedView: true
 );
 ```
+
+> [!WARNING]
+> Рядок шаблону, переданий методу `render`, компілюється та виконується як Blade, тому впроваджений вміст може дозволити віддалене виконання коду. Ніколи не будуйте шаблон із недовірених даних. Натомість передавайте дані другим аргументом методу й виводьте їх за допомогою екранованого синтаксису Blade `{{ }}`.
 
 <a name="rendering-blade-fragments"></a>
 ## Рендеринг фрагментів Blade

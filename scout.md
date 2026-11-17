@@ -1,5 +1,5 @@
 ---
-git: 623f59945b4db18566fcb6a10bdc1a7b17242daf
+git: 3690db0072b78d6383bc8f75f62b623d7dc63db0
 ---
 # Laravel Scout
 
@@ -914,7 +914,7 @@ protected function makeAllSearchableUsing(Builder $query): Builder
 ```
 
 > [!WARNING]
-> Метод `makeAllSearchableUsing` може бути незастосовним, коли пакетний імпорт моделей іде через чергу. Зв'язки [не відновлюються](/docs/{{version}}/queues#handling-relationships), коли колекції моделей обробляються завданнями.
+> Коли для пакетного імпорту моделей використовується черга, зв'язки, завантажені жадібним завантаженням у методі `makeAllSearchableUsing`, під час обробки завдання [отримуються знову повністю](/docs/{{version}}/queues#handling-relationships), тож усі застосовані до них обмеження втрачаються. Якщо вам потрібно обмежити зв'язок, завантажте його жадібним завантаженням у методі [`makeSearchableUsing`](#modifying-records-before-importing), який виконується всередині завдання.
 
 <a name="adding-records"></a>
 ### Додавання записів
