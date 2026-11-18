@@ -35,7 +35,7 @@ git: 8395f2aa9fbc716b64e65846daf634b6c17ea97f
     - [Індекси та позиції в повідомленнях про помилки](#error-message-indexes-and-positions)
 - [Валідація файлів](#validating-files)
 - [Валідація паролів](#validating-passwords)
-- [Виведення правил із JSON-схем](#deriving-rules-from-json-schemas)
+- [Виведення правил із JSON Schema](#deriving-rules-from-json-schemas)
 - [Власні правила валідації](#custom-validation-rules)
     - [Використання об'єктів правил](#using-rule-objects)
     - [Використання замикань](#using-closures)
@@ -3123,7 +3123,7 @@ $rules = JsonSchema::rules([
 // ['email' => ['required', 'string', 'email']]
 ```
 
-Виведені правила можна використовувати в будь-якому місці, де Laravel приймає правила валідації, зокрема в методі `rules` вашого [form request](#creating-form-requests):
+Виведені правила можна використовувати в будь-якому місці, де Laravel приймає правила валідації, зокрема в методі `rules` вашого [запиту форми](#creating-form-requests):
 
 ```php
 use Illuminate\Foundation\Http\FormRequest;
