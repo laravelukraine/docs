@@ -1,5 +1,5 @@
 ---
-git: 3690db0072b78d6383bc8f75f62b623d7dc63db0
+git: 8395f2aa9fbc716b64e65846daf634b6c17ea97f
 ---
 # Валідація
 
@@ -35,6 +35,7 @@ git: 3690db0072b78d6383bc8f75f62b623d7dc63db0
     - [Індекси та позиції в повідомленнях про помилки](#error-message-indexes-and-positions)
 - [Валідація файлів](#validating-files)
 - [Валідація паролів](#validating-passwords)
+- [Виведення правил із JSON-схем](#deriving-rules-from-json-schemas)
 - [Власні правила валідації](#custom-validation-rules)
     - [Використання об'єктів правил](#using-rule-objects)
     - [Використання замикань](#using-closures)
@@ -3086,6 +3087,63 @@ Password::defaults(function () {
 
     // ...
 });
+```
+
+<a name="deriving-rules-from-json-schemas"></a>
+## Виведення правил із JSON Schema
+
+Якщо ваш застосунок описує схеми даних за допомогою конструктора [JSON Schema](/docs/{{version}}/ai-sdk#tool-input-schemas) від Laravel або «сирих» визначень JSON Schema (наприклад, вхідні дані інструментів у [Laravel MCP](/docs/{{version}}/mcp#tool-input-schemas)), ви можете скористатися методом `JsonSchema::rules`, щоб автоматично вивести правила валідації Laravel зі схеми об'єкта:
+
+```php
+use Illuminate\JsonSchema\JsonSchema;
+use Illuminate\Support\Facades\Validator;
+
+$schema = JsonSchema::object(fn ($s) => [
+    'name' => $s->string()->max(50)->required(),
+    'age' => $s->integer()->min(18),
+    'role' => $s->string()->enum(['admin', 'user'])->required(),
+]);
+
+$validator = Validator::make($request->all(), JsonSchema::rules($schema));
+```
+
+Метод `JsonSchema::rules` також приймає «сирий» масив JSON Schema:
+
+```php
+use Illuminate\JsonSchema\JsonSchema;
+
+$rules = JsonSchema::rules([
+    'type' => 'object',
+    'properties' => [
+        'email' => ['type' => 'string', 'format' => 'email'],
+    ],
+    'required' => ['email'],
+]);
+
+// ['email' => ['required', 'string', 'email']]
+```
+
+Виведені правила можна використовувати в будь-якому місці, де Laravel приймає правила валідації, зокрема в методі `rules` вашого [form request](#creating-form-requests):
+
+```php
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\JsonSchema\JsonSchema;
+
+class StoreUserRequest extends FormRequest
+{
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return JsonSchema::rules(JsonSchema::object(fn ($s) => [
+            'name' => $s->string()->max(50)->required(),
+            'email' => $s->string()->email()->required(),
+        ]));
+    }
+}
 ```
 
 <a name="custom-validation-rules"></a>
