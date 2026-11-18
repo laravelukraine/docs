@@ -1,5 +1,5 @@
 ---
-git: 3690db0072b78d6383bc8f75f62b623d7dc63db0
+git: 8395f2aa9fbc716b64e65846daf634b6c17ea97f
 ---
 # Laravel Scout
 
@@ -471,8 +471,26 @@ class Post extends Model
 }
 ```
 
+Також ви можете задати індекс моделі за допомогою атрибута `SearchableAs`. У цьому разі `prefix`, визначений у файлі конфігурації `scout` вашого застосунку, усе одно буде додано на початок імені індексу:
+
+```php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Laravel\Scout\Attributes\SearchableAs;
+use Laravel\Scout\Searchable;
+
+#[SearchableAs('posts_index')]
+class Post extends Model
+{
+    use Searchable;
+}
+```
+
 > [!NOTE]
-> Метод `searchableAs` не має жодного впливу під час використання рушія database, який завжди шукає безпосередньо в таблиці бази даних моделі.
+> Метод `searchableAs` та атрибут `SearchableAs` не мають жодного впливу під час використання рушія database, який завжди шукає безпосередньо в таблиці бази даних моделі.
 
 <a name="configuring-the-model-id"></a>
 #### Налаштування ID моделі
@@ -516,9 +534,6 @@ class User extends Model
     }
 }
 ```
-
-> [!NOTE]
-> Методи `getScoutKey`, `getScoutKeyName` та `getScoutKeyType` не мають жодного впливу під час використання рушія database, який завжди використовує первинний ключ моделі.
 
 <a name="algolia-configuration"></a>
 ### Algolia
