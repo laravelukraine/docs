@@ -1,5 +1,5 @@
 ---
-git: b0d9ce8a6ab417d7ebef2423fb4682b7d9d8dfe1
+git: 2c2cdcd98a912b027f6c3bed2fd19749cd99d206
 ---
 # Файлове сховище
 
@@ -549,6 +549,17 @@ Storage::disk('local')->copyToDisk('s3', 'reports/report.csv');
 Storage::disk('local')->moveToDisk(
     's3', 'reports/report.csv', 'archive/report.csv'
 );
+```
+
+Якщо для файлу на цільовому диску потрібно вказати [видимість](#file-visibility) або специфічні для драйвера параметри, наприклад заголовок `CacheControl` в S3, передайте їх четвертим аргументом. Можна передати рядок, щоб указати лише видимість, або масив параметрів:
+
+```php
+Storage::disk('local')->moveToDisk('s3', 'tmp/avatar.jpg', 'avatars/1.jpg', 'public');
+
+Storage::disk('local')->copyToDisk('s3', 'tmp/report.pdf', 'reports/report.pdf', [
+    'visibility' => 'private',
+    'CacheControl' => 'max-age=31536000',
+]);
 ```
 
 <a name="automatic-streaming"></a>

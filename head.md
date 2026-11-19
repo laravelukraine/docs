@@ -1,5 +1,5 @@
 ---
-git: 8042e4ce5c44b0ad51476cb1fb915af086047edb
+git: 2c2cdcd98a912b027f6c3bed2fd19749cd99d206
 ---
 # Laravel Head
 
@@ -315,9 +315,6 @@ Head::og(type: OgType::Article, title: $post->title)
 
 MIME-типи зображень можна передавати як case-и енума `ImageType` усюди, де API приймає `type` зображення: `ImageType::Svg`, `ImageType::Png`, `ImageType::Jpeg` та `ImageType::Webp`.
 
-> [!NOTE]
-> `title` і `description` документа автоматично заповнюють відсутні значення `og:title` та `og:description`.
-
 Для одного зображення Open Graph без інших атрибутів можна передати іменований аргумент `image` до методу `og`:
 
 ```php
@@ -330,6 +327,32 @@ Head::og(
 ```
 
 Виклики `og(image: ...)` та `ogImage(...)` пишуть в один і той самий список зображень, тож користуйтеся тим, що виразніше в конкретному місці. Для власних розширень Open Graph, як-от властивостей товару чи статті, скористайтеся методом [`meta`](#custom-tags).
+
+> [!NOTE]
+> `title` і `description` документа автоматично заповнюють відсутні значення `og:title` та `og:description`.
+
+Якщо сторінка виводить теги Open Graph без `url`, Laravel Head використовує [канонічну URL-адресу](#defaults) сторінки як значення `og:url`. Оскільки канонічна URL-адреса визначається для кожного запиту, обидва значення можна зареєструвати в значеннях за замовчуванням:
+
+```php
+use Laravel\Head\Enums\OgType;
+use Laravel\Head\Facades\Head;
+use Laravel\Head\HeadBuilder;
+
+Head::defaults(fn (HeadBuilder $head) => $head
+    ->canonical()
+    ->og(siteName: 'Laravel', type: OgType::Website));
+```
+
+Для запиту до `/pricing` це виведе:
+
+```html
+<link rel="canonical" href="https://example.com/pricing">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Laravel">
+<meta property="og:url" content="https://example.com/pricing">
+```
+
+Якщо канонічну URL-адресу не задано, `og:url` пропускається. Явно переданий `url` у методі `og` завжди має пріоритет над канонічною URL-адресою.
 
 <a name="twitter-cards"></a>
 ### Картки X / Twitter
