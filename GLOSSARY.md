@@ -149,6 +149,7 @@
 | strict equality / strict comparison | строга рівність / строге порівняння (не «сувора») |
 | alias (method, middleware) | аліас |
 | retry window | вікно повторних спроб |
+| URL / canonical URL | URL / канонічний URL (не «URL-адреса») |
 
 ### Пастки
 
