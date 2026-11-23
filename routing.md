@@ -1,5 +1,5 @@
 ---
-git: 226b0649c77e1d6fe739a20e1da654e94ccc718f
+git: 91e8831934e4f40186acb06a6aebec1535a48b8a
 ---
 # Маршрутизація
 
@@ -344,7 +344,7 @@ Route::get('/user/{id}/{name}', function (string $id, string $name) {
 })->where(['id' => '[0-9]+', 'name' => '[a-z]+']);
 ```
 
-Для зручності деякі поширені регулярні вирази мають методи-хелпери, що дозволяють швидко додати обмеження до ваших маршрутів:
+Для зручності методи `whereNumber`, `whereAlpha`, `whereAlphaNumeric`, `whereUuid`, `whereUlid` і `whereIn` додають до ваших маршрутів поширені обмеження за шаблоном:
 
 ```php
 Route::get('/user/{id}/{name}', function (string $id, string $name) {
