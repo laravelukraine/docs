@@ -1,5 +1,5 @@
 ---
-git: 4cfebfe8058e92367272dd5e3b16935daa8846d8
+git: 91e8831934e4f40186acb06a6aebec1535a48b8a
 ---
 # Розгортання
 
@@ -86,8 +86,8 @@ server {
     server_name example.com;
     root /srv/example.com/public;
 
-    add_header X-Frame-Options "SAMEORIGIN";
-    add_header X-Content-Type-Options "nosniff";
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
 
     index index.php;
 
