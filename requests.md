@@ -1,5 +1,5 @@
 ---
-git: 3690db0072b78d6383bc8f75f62b623d7dc63db0
+git: 56a449c8133b0ffc0242caa74c4301eae7740453
 ---
 # HTTP-запити
 
@@ -510,6 +510,44 @@ $status = $request->enum('status', Status::class, Status::Pending);
 use App\Enums\Product;
 
 $products = $request->enums('products', Product::class);
+```
+
+<a name="retrieving-model-input-values"></a>
+#### Отримання моделей зі значень вхідних даних
+
+Використовуючи [form request](/docs/{{version}}/validation#form-request-validation), ви можете отримувати моделі Eloquent за ідентифікаторами, що є у вхідних даних запиту. Метод `model` повертає `null`, якщо значення порожнє або відповідного запису не існує, а метод `modelOrFail` викидає `Illuminate\Database\Eloquent\ModelNotFoundException`. Якщо вхідне значення - це масив ідентифікаторів, ви можете скористатися методом `models`, щоб отримати колекцію Eloquent із відповідними записами:
+
+```php
+use App\Models\User;
+
+$user = $request->model('user_id', User::class);
+
+$user = $request->modelOrFail('user_id', User::class);
+
+$users = $request->models('user_ids', User::class);
+```
+
+Якщо ви не вкажете клас моделі, Laravel визначить його за ключем вхідних даних: прибере суфікс `_id` або `_ids` і перетворить решту назви на однину в «studly» регістрі. Модель шукається в просторі імен `Models` вашого застосунку, а якщо такої моделі немає - у кореневому просторі імен застосунку:
+
+```php
+$user = $request->model('user_id'); // App\Models\User
+
+$users = $request->models('user_ids'); // Collection<App\Models\User>
+```
+
+Ви також можете передати замикання, щоб обмежити запит, який використовується для отримання моделей. Замикання отримує екземпляр конструктора запитів Eloquent, а його умови групуються разом до того, як буде застосовано ідентифікатори з вхідних даних запиту. Замикання можна передати другим аргументом або третім - після явно вказаного класу моделі:
+
+```php
+use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
+
+$user = $request->model('user_id', function (Builder $query) use ($request) {
+    $query->where('team_id', $request->user()->team_id);
+});
+
+$author = $request->modelOrFail('author_id', User::class, function (Builder $query) use ($request) {
+    $query->where('team_id', $request->user()->team_id);
+});
 ```
 
 <a name="retrieving-input-via-dynamic-properties"></a>

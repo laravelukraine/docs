@@ -1,5 +1,5 @@
 ---
-git: ec28ad6ee78ebeada6095e05d33da7e8c42dd6dc
+git: 56a449c8133b0ffc0242caa74c4301eae7740453
 ---
 # Посібник з оновлення
 
@@ -36,6 +36,7 @@ git: ec28ad6ee78ebeada6095e05d33da7e8c42dd6dc
 - [Серіалізація колекцій моделей відновлює жадібно завантажені зв'язки](#collection-model-serialization-restores-eager-loaded-relations)
 - [`Container::call` і значення за замовчуванням для nullable-класів](#containercall-and-nullable-class-defaults)
 - [Пріоритет реєстрації доменних маршрутів](#domain-route-registration-precedence)
+- [Видалення глобальних скоупів у вкладених умовах Where](#global-scope-removal-in-nested-where-conditions)
 - [Дані винятку в події `JobAttempted`](#jobattempted-event-exception-payload)
 - [Прив'язка колбека `extend` у менеджерах](#manager-extend-callback-binding)
 - [Запити `DELETE` у MySQL із `JOIN`, `ORDER BY` та `LIMIT`](#mysql-delete-queries-with-join-order-by-and-limit)
@@ -489,6 +490,27 @@ pagination::simple-bootstrap-3
 ```
 
 Якщо ваш застосунок посилається безпосередньо на старі імена представлень пагінації, оновіть ці посилання.
+
+<a name="eloquent-global-scopes"></a>
+### Глобальні скопи Eloquent
+
+<a name="global-scope-removal-in-nested-where-conditions"></a>
+#### Видалення глобальних скопів у вкладених умовах Where
+
+**Імовірність впливу: низька**
+
+Глобальні скопи (Global Scopes), видалені всередині вкладеного замикання `where`, тепер застосовуються до всього запиту. У попередніх версіях Laravel мовчки ігнорував їх і все одно застосовував скоп до зовнішнього запиту. Це стосується замикань, переданих до `where`, `orWhere`, `whereNot` і `orWhereNot`, які викликають `withoutGlobalScope`, `withoutGlobalScopes` або локальний скоп, що видаляє глобальний скоп, наприклад `onlyTrashed`:
+
+```php
+User::where(function ($query) {
+    $query->withoutGlobalScope('active');
+})->get();
+
+// Laravel <= 12.x: the "active" scope is still applied
+// Laravel >= 13.x: the "active" scope is removed from the entire query
+```
+
+Оскільки скоп більше не застосовується до зовнішнього запиту, такі запити тепер можуть повертати записи, які раніше виключалися. Якщо ваш застосунок покладався на стару поведінку, приберіть видалення скопа з вкладеного замикання. Якщо ви мали на меці видалити скоп, викличте його на зовнішньому білдері, наприклад `User::withoutGlobalScope('active')->where(...)`.
 
 <a name="miscellaneous"></a>
 ### Різне
