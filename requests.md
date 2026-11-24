@@ -515,7 +515,7 @@ $products = $request->enums('products', Product::class);
 <a name="retrieving-model-input-values"></a>
 #### Отримання моделей зі значень вхідних даних
 
-Використовуючи [form request](/docs/{{version}}/validation#form-request-validation), ви можете отримувати моделі Eloquent за ідентифікаторами, що є у вхідних даних запиту. Метод `model` повертає `null`, якщо значення порожнє або відповідного запису не існує, а метод `modelOrFail` викидає `Illuminate\Database\Eloquent\ModelNotFoundException`. Якщо вхідне значення - це масив ідентифікаторів, ви можете скористатися методом `models`, щоб отримати колекцію Eloquent із відповідними записами:
+Використовуючи [запити форм](/docs/{{version}}/validation#form-request-validation), ви можете отримувати моделі Eloquent за ідентифікаторами, що є у вхідних даних запиту. Метод `model` повертає `null`, якщо значення порожнє або відповідного запису не існує, а метод `modelOrFail` викидає `Illuminate\Database\Eloquent\ModelNotFoundException`. Якщо вхідне значення - це масив ідентифікаторів, ви можете скористатися методом `models`, щоб отримати колекцію Eloquent із відповідними записами:
 
 ```php
 use App\Models\User;
