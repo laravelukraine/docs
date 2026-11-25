@@ -1,5 +1,5 @@
 ---
-git: 3690db0072b78d6383bc8f75f62b623d7dc63db0
+git: 7af733c0bc3491bcaa41efe25cf5a0cc535ac6e1
 ---
 # Laravel AI SDK
 
@@ -313,7 +313,7 @@ AI SDK підтримує різні провайдери для своїх мо
 | STT | OpenAI, OpenAI Compatible, ElevenLabs, Groq, Mistral, Gemini, OpenRouter |
 | Embeddings | OpenAI, OpenAI Compatible, Gemini, Azure, Bedrock, Cohere, Mistral, Jina, VoyageAI, Ollama, OpenRouter |
 | Reranking | Cohere, Jina, VoyageAI, Bedrock, OpenRouter |
-| Classification | OpenAI, OpenAI Compatible, TypeSafe, OpenRouter |
+| Classification | OpenAI, OpenAI Compatible, Gemini, TypeSafe, OpenRouter |
 | Files | OpenAI, Anthropic, Gemini, Azure, OpenRouter |
 
 </div>
@@ -467,7 +467,17 @@ foreach ($response->steps as $step) {
 }
 ```
 
-> **Примітка:** Властивість `raw` має значення `null` під час стримінгу відповіді, при використанні провайдера Bedrock (який виконує виклики API через AWS SDK замість HTTP-клієнта), а також для підроблених відповідей, якщо її не надано явно через `withRawResponse`.
+Відповіді на генерацію зображень, транскрипцію, ембединги, переранжування, класифікацію та роботу з файлами надають ту саму властивість `raw`. Наприклад, ви можете прочитати вартість запиту, яку повідомляє OpenRouter:
+
+```php
+use Laravel\Ai\Embeddings;
+
+$response = Embeddings::for(['Hello world'])->generate(provider: 'openrouter');
+
+$response->raw?->json('usage.cost');
+```
+
+> **Примітка:** Властивість `raw` має значення `null` під час стримінгу відповіді, при використанні провайдера Bedrock (який виконує виклики API через AWS SDK замість HTTP-клієнта), для ембедингів, які повністю обслуговані з [кешу](#caching-embeddings), для серіалізованих відповідей, а також для підроблених відповідей, якщо її не надано явно через `withRawResponse`.
 
 <a name="conversation-context"></a>
 ### Контекст розмови
@@ -1228,6 +1238,17 @@ class SupportAgent implements Agent, HasTools
 ```
 
 Коли Laravel визначає максимальну кількість кроків автоматично, цей атрибут додає один крок для виправленого виклику. Явні обмеження `MaxSteps` залишаються незмінними.
+
+<a name="handling-tool-failures"></a>
+#### Обробка збоїв інструментів
+
+Коли інструмент викидає виняток, виконання агента триває. Виняток передається до обробника винятків вашого застосунку, диспетчеризується [подія](#events) `ToolFailed`, а модель отримує збій як результат роботи інструмента, що дозволяє їй пояснити, що пішло не так, або спробувати інший підхід. Наприклад, якщо інструмент викидає виняток із повідомленням «Order 1234 can no longer be refunded.», модель отримує:
+
+```text
+The tool call failed: Order 1234 can no longer be refunded.
+```
+
+Невдалий результат доступний через `toolResults` відповіді, а потокові відповіді надсилають його як невдалу подію `tool_result`. [Субагенти](#sub-agents), які використовуються як інструменти, обробляються так само, коли викидають виняток.
 
 <a name="similarity-search"></a>
 #### Пошук за схожістю
@@ -2856,7 +2877,7 @@ $result->meta->provider;
 <a name="classifying-images"></a>
 ### Класифікація зображень
 
-Під час використання провайдерів OpenAI, TypeSafe, OpenRouter або сумісних з OpenAI зображення можна класифікувати разом із наданим вмістом, передавши їх другим аргументом до методу `of`. Зображення можна створити за допомогою тих самих [файлових класів, що використовуються для вкладень](#attachments):
+Під час використання провайдерів OpenAI, Gemini, TypeSafe, OpenRouter або сумісних з OpenAI зображення можна класифікувати разом із наданим вмістом, передавши їх другим аргументом до методу `of`. Зображення можна створити за допомогою тих самих [файлових класів, що використовуються для вкладень](#attachments):
 
 ```php
 use Laravel\Ai\Classification;
