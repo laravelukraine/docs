@@ -1,5 +1,5 @@
 ---
-git: 4cfebfe8058e92367272dd5e3b16935daa8846d8
+git: 7af733c0bc3491bcaa41efe25cf5a0cc535ac6e1
 ---
 # Laravel MCP
 
@@ -43,8 +43,10 @@ git: 4cfebfe8058e92367272dd5e3b16935daa8846d8
     - [Видимість інструментів застосунку](#app-tool-visibility)
     - [Конфігурація застосунку](#app-configuration)
     - [Створення застосунків за допомогою Boost](#building-apps-with-boost)
+- [Навички](#skills)
 - [Метадані](#metadata)
 - [Іконки](#icons)
+- [Можливості клієнта](#client-capabilities)
 - [Автентифікація](#authentication)
     - [OAuth 2.1](#oauth)
     - [Sanctum](#sanctum)
@@ -765,6 +767,46 @@ class CurrentWeatherTool extends Tool
 ```
 
 Використовуючи вебсервери, потокові відповіді автоматично відкривають SSE-потік (Server-Sent Events), надсилаючи кожне видане повідомлення клієнту як подію.
+
+Щоб надсилати стандартні MCP-сповіщення про прогрес (`notifications/progress`), видавайте `Response::progress` зі свого генератора. Ви можете передати поточне значення прогресу разом з необов'язковими аргументами `total` і `message`:
+
+```php
+<?php
+
+namespace App\Mcp\Tools;
+
+use Generator;
+use Laravel\Mcp\Request;
+use Laravel\Mcp\Response;
+use Laravel\Mcp\Server\Tool;
+
+class ImportFilesTool extends Tool
+{
+    /**
+     * Handle the tool request.
+     *
+     * @return \Generator<int, \Laravel\Mcp\Response>
+     */
+    public function handle(Request $request): Generator
+    {
+        $files = $request->array('files');
+
+        foreach ($files as $index => $file) {
+            yield Response::progress(
+                $index + 1,
+                total: count($files),
+                message: "Importing {$file}...",
+            );
+
+            $this->import($file);
+        }
+
+        yield Response::text('All files imported.');
+    }
+}
+```
+
+Сервер автоматично додає `_meta.progressToken` запиту до кожного сповіщення про прогрес. Якщо клієнт не передав `progressToken` із запитом, сповіщення про прогрес не надсилаються.
 
 <a name="prompts"></a>
 ## Промпти
@@ -1602,6 +1644,73 @@ Laravel MCP містить окремий довідник скіла [Boost](/d
 
 Повний довідник протоколу, включно з повним клієнтським API та деталями схеми, дивіться в офіційній [документації MCP Apps](https://modelcontextprotocol.io/extensions/apps/overview).
 
+<a name="skills"></a>
+## Навички
+
+Laravel MCP підтримує надання [навичок агентів](https://agentskills.io/specification) через [розширення MCP Skills](https://skills.extensions.modelcontextprotocol.io/specification/beta/skills) (`io.modelcontextprotocol/skills`). Клієнти знаходять навички через `skills/list` і `skills/get`, а їхні файли читають через `resources/read`.
+
+Кожна навичка живе в окремій директорії, що містить файл `SKILL.md` з YAML frontmatter (`name`, що збігається з назвою директорії, і `description`) разом з будь-якими допоміжними файлами:
+
+```markdown
+---
+name: release-checklist
+description: Prepare a release using the bundled checklist.
+---
+
+# Release Checklist
+
+Read [the checklist](references/checklist.md) before preparing a release.
+```
+
+Ви можете зареєструвати директорії навичок безпосередньо на сервері за допомогою властивості `$skills`. Відносні шляхи розв'язуються відносно `resource_path()`, а визначення `$skills` автоматично оголошує розширення навичок і можливість `resources`:
+
+```php
+use App\Mcp\Skills\ReleaseChecklist;
+use Laravel\Mcp\Server;
+
+class ProjectServer extends Server
+{
+    protected array $skills = [
+        'skills/house-style',
+        ReleaseChecklist::class,
+    ];
+}
+```
+
+Якщо навичці потрібна умовна реєстрація чи власний URI, згенеруйте клас `Skill` і файл `SKILL.md` артизан-командою `make:mcp-skill`:
+
+```shell
+php artisan make:mcp-skill ReleaseChecklist
+```
+
+Ви можете визначити метод `shouldRegister` (його залежності розв'язуються через контейнер), щоб приховати навичку з усіх ендпоїнтів навичок і ресурсів, коли він повертає `false`, а також змінити її URI атрибутом `#[Uri]` (за замовчуванням `skill://{name}/SKILL.md`):
+
+```php
+<?php
+
+namespace App\Mcp\Skills;
+
+use Laravel\Mcp\Request;
+use Laravel\Mcp\Server\Attributes\Uri;
+use Laravel\Mcp\Server\Skill;
+
+#[Uri('skill://engineering/release-checklist/SKILL.md')]
+class ReleaseChecklist extends Skill
+{
+    public function path(): string
+    {
+        return 'skills/release-checklist';
+    }
+
+    public function shouldRegister(Request $request): bool
+    {
+        return $request->user()?->can('prepare-releases') ?? false;
+    }
+}
+```
+
+У `resources/list` з'являється лише `SKILL.md`, тоді як усі допоміжні файли директорії доступні для читання через `resources/read`. Файли, назва яких починається з крапки, і символічні посилання пропускаються, а кожна навичка обмежена 512 файлами та 16 MiB.
+
 <a name="metadata"></a>
 ## Метадані
 
@@ -1707,6 +1816,30 @@ class CurrentWeatherTool extends Tool
 - Відносні шляхи перетворюються на URL за допомогою хелпера `asset` з Laravel.
 
 </div>
+
+<a name="client-capabilities"></a>
+## Можливості клієнта
+
+MCP-клієнти оголошують свої можливості під час ініціалізації та передають їх у запитах. У будь-якому обробнику інструмента, промпту чи ресурсу ви можете перевірити, чи оголосив підключений клієнт певну можливість, методом `clientSupports` екземпляра `Laravel\Mcp\Request`, використовуючи «крапкову» нотацію для вкладених можливостей:
+
+```php
+use Laravel\Mcp\Request;
+use Laravel\Mcp\Response;
+
+/**
+ * Handle the tool request.
+ */
+public function handle(Request $request): Response
+{
+    if ($request->clientSupports('sampling.tools')) {
+        // ...
+    }
+
+    return Response::text('Done.');
+}
+```
+
+Об'єкти можливостей, оголошені як масиви (включно з порожніми об'єктами, як-от `['sampling' => ['tools' => []]]`), вважаються `true`. Булеві прапорці можливостей повертаються так, як їх оголошено, тож `['roots' => ['listChanged' => true]]` повертає `true` для `roots.listChanged`, а `['sampling' => ['enabled' => false]]` повертає `false` для `sampling.enabled`.
 
 <a name="authentication"></a>
 ## Автентифікація
@@ -2229,6 +2362,14 @@ $response = WeatherServer::resource(...);
 $response = WeatherServer::actingAs($user)->tool(...);
 ```
 
+Щоб імітувати клієнт, який оголошує певні [можливості клієнта](#client-capabilities), додайте ланцюжком метод `withClientCapabilities` перед викликом інструмента, промпту, ресурсу чи автодоповнення. За замовчуванням тестовий клієнт не оголошує жодних можливостей:
+
+```php
+$response = WeatherServer::withClientCapabilities([
+    'sampling' => ['tools' => []],
+])->tool(CurrentWeatherTool::class);
+```
+
 Отримавши відповідь, ви можете скористатися різними методами тверджень, щоб перевірити її вміст і статус.
 
 Ви можете стверджувати, що відповідь успішна, методом `assertOk`. Він перевіряє, що відповідь не містить помилок:
@@ -2304,6 +2445,16 @@ $response->assertHasErrors([
 $response->assertHasNoErrors();
 ```
 
+Щоб стверджувати, що відповідь з помилкою JSON-RPC містить певний код помилки й, за потреби, `data` помилки, скористайтеся методом `assertErrorCode`:
+
+```php
+$response->assertErrorCode(-32602);
+
+$response->assertErrorCode(-32021, [
+    'requiredCapabilities' => ['sampling' => []],
+]);
+```
+
 Ви можете стверджувати, що відповідь містить певні метадані, методами `assertName()`, `assertTitle()` та `assertDescription()`:
 
 ```php
@@ -2326,6 +2477,14 @@ $response->assertSentNotification('processing/progress', [
 ]);
 
 $response->assertNotificationCount(5);
+```
+
+Для потокових інструментів, що видають `Response::progress`, ви можете перевірити надіслані сповіщення про прогрес методом `assertSentProgress`:
+
+```php
+$response
+    ->assertSentProgress(1, total: 2, message: 'Importing report.csv...')
+    ->assertSentProgress(2, total: 2);
 ```
 
 Насамкінець, якщо ви хочете оглянути сирий вміст відповіді, скористайтеся методами `dd` чи `dump`, щоб вивести відповідь для налагодження:
