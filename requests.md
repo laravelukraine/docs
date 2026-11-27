@@ -1,5 +1,5 @@
 ---
-git: 56a449c8133b0ffc0242caa74c4301eae7740453
+git: 820a08b0f0d4618bb5b0c0f164bbe5f10341fe15
 ---
 # HTTP-запити
 
@@ -956,5 +956,21 @@ $path = $request->photo->storeAs('images', 'filename.jpg', 's3');
 ```php
 ->withMiddleware(function (Middleware $middleware): void {
     $middleware->trustHosts(at: fn () => config('app.trusted_hosts'));
+})
+```
+
+Якщо вам потрібно довіряти лише власному хосту вашого застосунку, аргумент `at` можна опустити. Тоді Laravel довірятиме хосту, визначеному в конфігураційному значенні `app.url` вашого застосунку, разом з усіма його піддоменами:
+
+```php
+->withMiddleware(function (Middleware $middleware): void {
+    $middleware->trustHosts(subdomains: true);
+})
+```
+
+Якщо ви хочете довіряти лише хосту, визначеному в конфігураційному значенні `app.url` вашого застосунку, без жодного з його піддоменів, передайте `false` аргументу `subdomains`:
+
+```php
+->withMiddleware(function (Middleware $middleware): void {
+    $middleware->trustHosts(subdomains: false);
 })
 ```

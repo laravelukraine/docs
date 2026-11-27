@@ -1,5 +1,5 @@
 ---
-git: 3690db0072b78d6383bc8f75f62b623d7dc63db0
+git: 820a08b0f0d4618bb5b0c0f164bbe5f10341fe15
 ---
 # Бродкастинг
 
@@ -200,8 +200,11 @@ php artisan install:broadcasting --ably
 Щоб встановити підтримку Ably вручну, встановіть PHP SDK Ably через менеджер пакетів Composer:
 
 ```shell
-composer require ably/ably-php
+composer require ably/pubsub-server
 ```
+
+> [!NOTE]
+> Пакет `ably/pubsub-server` замінює пакет `ably/ably-php`. Якщо ваш застосунок зараз використовує `ably/ably-php`, замініть його на `ably/pubsub-server`. Якщо конфігурація Ably містить опції `environment` або `restHost`, замініть їх на опцію `endpoint`, оскільки `ably/pubsub-server` ці опції ігнорує. Докладніше читайте в [посібнику з оновлення](https://github.com/ably/ably-pubsub-php/blob/main/UPDATING.md) від Ably.
 
 Далі налаштуйте облікові дані Ably у файлі конфігурації `config/broadcasting.php`. Приклад конфігурації Ably уже є в цьому файлі, тож ви можете швидко вказати свій ключ. Зазвичай це значення задають через [змінну середовища](/docs/{{version}}/configuration#environment-configuration) `ABLY_KEY`:
 
